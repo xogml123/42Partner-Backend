@@ -1,66 +1,46 @@
 package com.Seoul.OpenProject.Partner.domain.model.activity;
 
-import com.Seoul.OpenProject.Partner.domain.model.BaseEntity;
-import com.Seoul.OpenProject.Partner.domain.model.member.Member;
+
 import javax.persistence.Column;
-import javax.persistence.DiscriminatorColumn;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 
+@Builder(access = AccessLevel.PRIVATE)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
-@Table(name = "ACTIVITY", uniqueConstraints = {
-    @UniqueConstraint(name = "API_ID_UNIQUE", columnNames = {"apiId"})
-})
-@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@DiscriminatorColumn(name = "ACTIVITY_TYPE")
+@Table(name = "MEAL_ARTICLE_ACTIVITY")
 @Entity
-public abstract class Activity extends BaseEntity{
+public class MealArticleActivity extends Activity{
     //********************************* static final 상수 필드 *********************************/
 
-    /**
-     * email 뒤에 붙는 문자열
-     */
 
 
     /********************************* PK 필드 *********************************/
 
-    /**
-     * 기본 키
-     */
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "ACTIVITY_ID")
-    private Long id;
-
 
     /********************************* PK가 아닌 필드 *********************************/
 
-
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, updatable = false)
-    private Integer score;
+    private MealMatchActivityType mealMatchActivityType;
+
 
 
     /********************************* 비영속 필드 *********************************/
 
     /********************************* 연관관계 매핑 *********************************/
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "MEMBER_ID", nullable = false, updatable = false)
-    private Member member;
 
 
     /********************************* 연관관계 편의 메서드 *********************************/

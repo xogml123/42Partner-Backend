@@ -1,14 +1,18 @@
 package com.Seoul.OpenProject.Partner.domain.model.article;
 
 import com.Seoul.OpenProject.Partner.domain.model.BaseEntity;
+import com.Seoul.OpenProject.Partner.domain.model.member.Member;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.Lob;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 import lombok.AccessLevel;
@@ -82,6 +86,10 @@ public class Article extends BaseEntity {
     @Column(nullable = false)
     private Boolean anonymity = false;
 
+    @Builder.Default
+    @Column(nullable = false)
+    private Boolean complete = false;
+
 
 
 
@@ -89,6 +97,17 @@ public class Article extends BaseEntity {
     /********************************* 비영속 필드 *********************************/
 
     /********************************* 연관관계 매핑 *********************************/
+
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "MEMBER_AUTHOR_ID", nullable = false, updatable = false)
+    private Member memberAuthor;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "PARTICIPANT_ID", nullable = false, updatable = false)
+    private Member participant;
+
+
 
 
 

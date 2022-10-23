@@ -11,18 +11,20 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
-import javax.persistence.MappedSuperclass;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Table(name = "MEMBER", uniqueConstraints = {
     @UniqueConstraint(name = "API_ID_UNIQUE", columnNames = {"apiId"}),
 })
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@DiscriminatorColumn(name = "DTYPE")
+@DiscriminatorColumn(name = "MATCH_TYPE")
 @Entity
 public abstract class Match extends BaseEntity {
     //********************************* static final 상수 필드 *********************************/

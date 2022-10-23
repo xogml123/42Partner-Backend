@@ -102,7 +102,7 @@ public class User extends BaseEntity implements UserDetails, CredentialsContaine
     /********************************* 연관관계 매핑 *********************************/
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "MEMBER_ID", nullable = false)
+    @JoinColumn(name = "MEMBER_ID", nullable = false, updatable = false)
     private Member member;
 
     /**
