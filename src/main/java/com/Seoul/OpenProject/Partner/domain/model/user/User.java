@@ -1,6 +1,7 @@
 package com.Seoul.OpenProject.Partner.domain.model.user;
 
 import com.Seoul.OpenProject.Partner.domain.model.BaseEntity;
+import com.Seoul.OpenProject.Partner.domain.model.member.Member;
 import java.io.Serializable;
 import java.security.SecureRandom;
 import java.util.Date;
@@ -14,7 +15,9 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 import lombok.AccessLevel;
@@ -98,6 +101,9 @@ public class User extends BaseEntity implements UserDetails, CredentialsContaine
 
     /********************************* 연관관계 매핑 *********************************/
 
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "MEMBER_ID", nullable = false)
+    private Member member;
 
     /**
      * role

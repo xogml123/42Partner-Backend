@@ -31,6 +31,10 @@ public class Authority implements Serializable {
     @Column(name="AUTHORITY_ID")
     private Long id;
 
+    @Column(nullable = false, updatable = false)
+    private String apiId;
+
+
     @Column(nullable = false)
     private String permission;
 

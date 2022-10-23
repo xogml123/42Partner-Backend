@@ -1,43 +1,30 @@
-package com.Seoul.OpenProject.Partner.domain.model;
+package com.Seoul.OpenProject.Partner.domain.model.match;
 
 
-import com.Seoul.OpenProject.Partner.domain.model.user.Role;
-import com.Seoul.OpenProject.Partner.domain.model.user.User;
-import com.Seoul.OpenProject.Partner.domain.model.user.UserRole;
-import java.security.SecureRandom;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.stream.Collectors;
-import javax.persistence.CascadeType;
+import com.Seoul.OpenProject.Partner.domain.model.BaseEntity;
+import com.Seoul.OpenProject.Partner.domain.model.article.PlaceOfEating;
 import javax.persistence.Column;
+import javax.persistence.DiscriminatorColumn;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.OneToMany;
+import javax.persistence.Inheritance;
+import javax.persistence.InheritanceType;
+import javax.persistence.MappedSuperclass;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Singular;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
-@Builder(access = AccessLevel.PRIVATE)
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+
 @Getter
 @Table(name = "MEMBER", uniqueConstraints = {
-    @UniqueConstraint(name = "NICK_NAME_UNIQUE", columnNames = {"nickname"}),
     @UniqueConstraint(name = "API_ID_UNIQUE", columnNames = {"apiId"}),
-    @UniqueConstraint(name = "SLACK_EMAIL_UNIQUE", columnNames = {"slackEmail"})
 })
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name = "DTYPE")
 @Entity
-public class Member {
+public abstract class Match extends BaseEntity {
     //********************************* static final 상수 필드 *********************************/
 
     /**
@@ -65,11 +52,13 @@ public class Member {
     @Column(nullable = false, updatable = false)
     private String apiId;
 
-    @Column(unique = true, nullable = false, length = 30)
-    private String nickname;
+    @Column(nullable = false, updatable = false)
+    private MatchStatus matchStatus;
 
-    @Column(length = 80)
-    private String slackEmail;
+
+
+
+
 
 
     /********************************* 비영속 필드 *********************************/
@@ -87,3 +76,4 @@ public class Member {
     /********************************* 비니지스 로직 *********************************/
 
 }
+

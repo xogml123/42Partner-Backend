@@ -1,13 +1,7 @@
-package com.Seoul.OpenProject.Partner.domain.model.user;
-
+package com.Seoul.OpenProject.Partner.domain.model.activity;
 
 import com.Seoul.OpenProject.Partner.domain.model.BaseEntity;
-import java.io.Serializable;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.stream.Collectors;
-import javax.persistence.CascadeType;
+import com.Seoul.OpenProject.Partner.domain.model.member.Member;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -17,25 +11,29 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Singular;
 
+@Builder(access = AccessLevel.PRIVATE)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Builder(access = AccessLevel.PRIVATE)
 @Getter
-@Table(name="ROLE")
+@Table(name = "ACTIVITY", uniqueConstraints = {
+    @UniqueConstraint(name = "API_ID_UNIQUE", columnNames = {"apiId"})
+})
 @Entity
-public class Role extends BaseEntity implements Serializable {
-
+public class Activity extends BaseEntity{
     //********************************* static final 상수 필드 *********************************/
+
+    /**
+     * email 뒤에 붙는 문자열
+     */
 
 
     /********************************* PK 필드 *********************************/
@@ -45,37 +43,43 @@ public class Role extends BaseEntity implements Serializable {
      */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name="ROLE_ID")
+    @Column(name = "ACTIVITY_ID")
     private Long id;
 
+
     /********************************* PK가 아닌 필드 *********************************/
+
     @Column(nullable = false, updatable = false)
     private String apiId;
 
+    @Column(nullable = false, updatable = false)
+    private Integer score;
 
-    @Enumerated(value = EnumType.STRING)
-    @Column(nullable = false)
-    private RoleEnum value;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, updatable = false)
+    private ActivityType activityType;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, updatable = false)
+    private Type type;
+
 
     /********************************* 비영속 필드 *********************************/
 
     /********************************* 연관관계 매핑 *********************************/
 
-    @Singular
-    @ManyToMany(cascade = {CascadeType.MERGE}, fetch = FetchType.EAGER)
-    @JoinTable(name = "ROLE_AUTHORITY",
-        joinColumns = {
-            @JoinColumn(name = "ROLE_ID", referencedColumnName = "ROLE_ID", nullable = false)},
-        inverseJoinColumns = {
-            @JoinColumn(name = "AUTHORITY_ID", referencedColumnName = "AUTHORITY_ID", nullable = false)})
-    private final Set<Authority> authorities = new HashSet<>();
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "MEMBER_ID", nullable = false)
+    private Member member;
+
+
+    /********************************* 연관관계 편의 메서드 *********************************/
+
+    /********************************* 생성 메서드 *********************************/
 
 
     /********************************* 비니지스 로직 *********************************/
 
-    public void addAuthorities(Authority... authorities) {
-        this.authorities.addAll(Arrays.stream(authorities).collect(Collectors.toSet()));
-    }
-
-
 }
+
+
