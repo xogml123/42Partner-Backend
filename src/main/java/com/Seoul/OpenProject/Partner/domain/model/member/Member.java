@@ -1,7 +1,7 @@
 package com.Seoul.OpenProject.Partner.domain.model.member;
 
 
-import com.Seoul.OpenProject.Partner.domain.model.BaseEntity;
+import com.Seoul.OpenProject.Partner.domain.model.BaseTimeVersionEntity;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -26,7 +26,7 @@ import lombok.NoArgsConstructor;
     @UniqueConstraint(name = "SLACK_EMAIL_UNIQUE", columnNames = {"slackEmail"})
 })
 @Entity
-public class Member extends BaseEntity {
+public class Member extends BaseTimeVersionEntity {
     //********************************* static final 상수 필드 *********************************/
 
     /**

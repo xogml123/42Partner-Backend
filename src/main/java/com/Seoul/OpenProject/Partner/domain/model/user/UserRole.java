@@ -1,7 +1,7 @@
 package com.Seoul.OpenProject.Partner.domain.model.user;
 
 
-import com.Seoul.OpenProject.Partner.domain.model.BaseEntity;
+import com.Seoul.OpenProject.Partner.domain.model.BaseTimeVersionEntity;
 import java.io.Serializable;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -24,7 +24,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @Table(name = "USER_ROLE")
 @Entity
-public class UserRole extends BaseEntity implements Serializable    {
+public class UserRole extends BaseTimeVersionEntity implements Serializable    {
 
     //********************************* static final 상수 필드 *********************************/
 

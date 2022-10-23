@@ -1,6 +1,6 @@
 package com.Seoul.OpenProject.Partner.domain.model.activity;
 
-import com.Seoul.OpenProject.Partner.domain.model.BaseEntity;
+import com.Seoul.OpenProject.Partner.domain.model.BaseTimeVersionEntity;
 import com.Seoul.OpenProject.Partner.domain.model.member.Member;
 import javax.persistence.Column;
 import javax.persistence.DiscriminatorColumn;
@@ -28,7 +28,7 @@ import lombok.NoArgsConstructor;
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "ACTIVITY_TYPE")
 @Entity
-public abstract class Activity extends BaseEntity{
+public abstract class Activity extends BaseTimeVersionEntity {
     //********************************* static final 상수 필드 *********************************/
 
     /**

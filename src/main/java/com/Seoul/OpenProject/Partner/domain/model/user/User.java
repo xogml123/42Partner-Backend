@@ -1,6 +1,6 @@
 package com.Seoul.OpenProject.Partner.domain.model.user;
 
-import com.Seoul.OpenProject.Partner.domain.model.BaseEntity;
+import com.Seoul.OpenProject.Partner.domain.model.BaseTimeVersionEntity;
 import com.Seoul.OpenProject.Partner.domain.model.member.Member;
 import java.io.Serializable;
 import java.security.SecureRandom;
@@ -41,7 +41,7 @@ import org.springframework.security.core.userdetails.UserDetails;
     @UniqueConstraint(name = "API_ID_UNIQUE", columnNames = {"apiId"})
 })
 @Entity
-public class User extends BaseEntity implements UserDetails, CredentialsContainer, Serializable {
+public class User extends BaseTimeVersionEntity implements UserDetails, CredentialsContainer, Serializable {
     //********************************* static final 상수 필드 *********************************/
 
     /**

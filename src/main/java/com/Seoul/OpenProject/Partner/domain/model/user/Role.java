@@ -1,7 +1,7 @@
 package com.Seoul.OpenProject.Partner.domain.model.user;
 
 
-import com.Seoul.OpenProject.Partner.domain.model.BaseEntity;
+import com.Seoul.OpenProject.Partner.domain.model.BaseTimeVersionEntity;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -33,7 +33,7 @@ import lombok.Singular;
 @Getter
 @Table(name="ROLE")
 @Entity
-public class Role extends BaseEntity implements Serializable {
+public class Role extends BaseTimeVersionEntity implements Serializable {
 
     //********************************* static final 상수 필드 *********************************/
 

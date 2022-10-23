@@ -1,8 +1,7 @@
 package com.Seoul.OpenProject.Partner.domain.model.match;
 
 
-import com.Seoul.OpenProject.Partner.domain.model.BaseEntity;
-import com.Seoul.OpenProject.Partner.domain.model.article.PlaceOfEating;
+import com.Seoul.OpenProject.Partner.domain.model.BaseTimeVersionEntity;
 import javax.persistence.Column;
 import javax.persistence.DiscriminatorColumn;
 import javax.persistence.Entity;
@@ -26,7 +25,7 @@ import lombok.NoArgsConstructor;
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "MATCH_TYPE")
 @Entity
-public abstract class Match extends BaseEntity {
+public abstract class Match extends BaseTimeVersionEntity {
     //********************************* static final 상수 필드 *********************************/
 
     /**

@@ -1,6 +1,6 @@
 package com.Seoul.OpenProject.Partner.domain.model.opnion;
 
-import com.Seoul.OpenProject.Partner.domain.model.BaseEntity;
+import com.Seoul.OpenProject.Partner.domain.model.BaseTimeVersionEntity;
 import com.Seoul.OpenProject.Partner.domain.model.article.Article;
 import com.Seoul.OpenProject.Partner.domain.model.member.Member;
 import javax.persistence.Column;
@@ -28,7 +28,7 @@ import lombok.NoArgsConstructor;
     @UniqueConstraint(name = "API_ID_UNIQUE", columnNames = {"apiId"})
 })
 @Entity
-public class Opinion extends BaseEntity{
+public class Opinion extends BaseTimeVersionEntity {
     //********************************* static final 상수 필드 *********************************/
 
     /**
