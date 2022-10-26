@@ -11,6 +11,13 @@ import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.oauth2.client.JdbcOAuth2AuthorizedClientService;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
+import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
+import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
@@ -29,19 +36,26 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     private final AuthenticationEntryPoint authenticationEntryPoint;
 
-    @Value("${client.local}")
-    private String clientLocal;
+    @Value("${cors.frontend}")
+    private String corsFrontend;
+
+    private final DefaultOAuth2UserService oAuth2UserService;
 
     @Bean
     public BCryptPasswordEncoder bCryptPasswordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
+//    @Bean
+//    public OAuth2AuthorizedClientService oAuth2AuthorizedClientService(ClientRegistrationRepository clientRegistrationRepository) {
+//        return new JdbcOAuth2AuthorizedClientService(jdbc, clientRegistrationRepository);
+//    }
+
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.csrf().disable();
         http.cors().configurationSource(corsConfigurationSource());
-        http.exceptionHandling().authenticationEntryPoint(authenticationEntryPoint);
+        //http.exceptionHandling().authenticationEntryPoint(authenticationEntryPoint);
         http.authorizeRequests(
                 authorize -> authorize
                     .antMatchers("/v2/api-docs").permitAll()
@@ -53,7 +67,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     .antMatchers("/webjars/**").permitAll()
                     .antMatchers("/v3/api-docs/**").permitAll()
                     .antMatchers("/swagger-ui/**").permitAll()
-                    .antMatchers("/api/**").permitAll()
+                    .antMatchers("/**").authenticated()
             )
 
 //                    .antMatchers(HttpMethod.POST) "/api/users").permitAll()
@@ -69,7 +83,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 //            .antMatchers("/user/**").authenticated()
 //            .antMatchers("/manager/**").access("hasRole('ROLE_ADMIN') or hasRole('ROLE_MANAGER')")
 //            .antMatchers("/admin/**").access("hasRole('ROLE_ADMIN')")
-            .authorizeRequests()
+            //oauth2/authorize/authclient
+            .oauth2Login()
+            .userInfoEndpoint()
+            .userService(oAuth2UserService)
+            .and()
 //            .anyRequest().authenticated()
             .and()
             .logout()
@@ -85,7 +103,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         final CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of(clientLocal));
+        configuration.setAllowedOrigins(List.of(corsFrontend));
         configuration.setAllowedMethods(List.of("HEAD",
             "GET", "POST", "PUT", "DELETE", "PATCH"));
         // setAllowCredentials(true) is important, otherwise:

@@ -3,6 +3,7 @@ package com.seoul.openproject.partner.domain.model.opnion;
 import com.seoul.openproject.partner.domain.model.BaseTimeVersionEntity;
 import com.seoul.openproject.partner.domain.model.article.Article;
 import com.seoul.openproject.partner.domain.model.member.Member;
+import java.util.UUID;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -49,8 +50,9 @@ public class Opinion extends BaseTimeVersionEntity {
 
     /********************************* PK가 아닌 필드 *********************************/
 
-    @Column(nullable = false, updatable = false)
-    private String apiId;
+    @Builder.Default
+    @Column(nullable = false, updatable = false, length = 50)
+    private final String apiId = UUID.randomUUID().toString();
 
     @Builder.Default
     @Column(nullable = false)

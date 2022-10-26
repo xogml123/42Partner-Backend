@@ -5,8 +5,11 @@ import com.seoul.openproject.partner.domain.model.member.Member;
 import java.io.Serializable;
 import java.security.SecureRandom;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -19,6 +22,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 import javax.persistence.UniqueConstraint;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -29,7 +33,7 @@ import lombok.Singular;
 import org.springframework.security.core.CredentialsContainer;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-
+import org.springframework.security.oauth2.core.user.OAuth2User;
 
 
 @Builder(access = AccessLevel.PRIVATE)
@@ -38,10 +42,11 @@ import org.springframework.security.core.userdetails.UserDetails;
 @Getter
 @Table(name = "USER", uniqueConstraints = {
     @UniqueConstraint(name = "USERNAME_UNIQUE", columnNames = {"username"}),
-    @UniqueConstraint(name = "API_ID_UNIQUE", columnNames = {"apiId"})
+    @UniqueConstraint(name = "API_ID_UNIQUE", columnNames = {"apiId"}),
+    @UniqueConstraint(name = "EMAIL_UNIQUE", columnNames = {"email"})
 })
 @Entity
-public class User extends BaseTimeVersionEntity implements UserDetails, CredentialsContainer, Serializable {
+public class User extends BaseTimeVersionEntity implements UserDetails, OAuth2User ,CredentialsContainer, Serializable {
     //********************************* static final 상수 필드 *********************************/
 
     /**
@@ -65,15 +70,35 @@ public class User extends BaseTimeVersionEntity implements UserDetails, Credenti
     /**
      * AUTH에 필요한 필드
      */
-    @Column(nullable = false)
-    private String apiId;
+    @Builder.Default
+    @Column(nullable = false, updatable = false, length = 50)
+    private final String apiId = UUID.randomUUID().toString();
 
-    @Column(unique = true, nullable = false, updatable = false, length = 30)
+    @Column(nullable = false, updatable = false, length = 30)
     private String username;
 
     @Column(nullable = false)
     private String password;
 
+    @Column(nullable = false, length = 30)
+    private String oauth2Username;
+
+    @Column(nullable = false,  length = 100)
+    private String email;
+
+    @Column(nullable = false)
+    private String imageUrl;
+
+    @Column(length = 80)
+    private String slackEmail;
+
+    @Builder.Default
+    @Column(nullable = false,  length = 100)
+    private final OAuth2Type oAuth2Type = OAuth2Type.INTRA_42;
+
+    @Builder.Default
+    @Column(nullable = false,  length = 100)
+    private Boolean isOAuth2 = true;
 
 
 
@@ -98,6 +123,8 @@ public class User extends BaseTimeVersionEntity implements UserDetails, Credenti
 
 
     /********************************* 비영속 필드 *********************************/
+    @Transient
+    private Map<String, Object> attributes = new HashMap<>();
 
     /********************************* 연관관계 매핑 *********************************/
 
@@ -116,12 +143,31 @@ public class User extends BaseTimeVersionEntity implements UserDetails, Credenti
 
     /********************************* 연관관계 편의 메서드 *********************************/
 
+    public void setMember(Member member) {
+        this.member = member;
+    }
+
     /********************************* 생성 메서드 *********************************/
 
-    public static User createDefaultUser(String username, String encodedPassword, String email) {
-        return new  User();
+    public static User createDefaultUser(String username, String encodedPassword, String email,
+        String oauth2Username, String imageUrl, UserRole userRole, Member member) {
+
+        User user = User.builder()
+            .username(username)
+            .password(encodedPassword)
+            .email(email)
+            .oauth2Username(oauth2Username)
+            .imageUrl(imageUrl)
+            .build();
+        userRole.setUserAndAddUserRoleToUser(user);
+        user.setMember(member);
+        return user;
     }
+
+
+
     /********************************* 비니지스 로직 *********************************/
+
 
     /**
      *
@@ -135,6 +181,16 @@ public class User extends BaseTimeVersionEntity implements UserDetails, Credenti
             .map(authority ->
                 new SimpleGrantedAuthority(authority.getPermission()))
             .collect(Collectors.toSet());
+    }
+
+    @Override
+    public String getName() {
+        return this.username;
+    }
+
+    @Override
+    public Map<String, Object> getAttributes(){
+        return this.attributes;
     }
 
     @Override
@@ -199,5 +255,9 @@ public class User extends BaseTimeVersionEntity implements UserDetails, Credenti
         this.password = encodedPassword;
     }
 
+    public void updateUserByOAuthIfo(String imageUrl) {
+        this.imageUrl = imageUrl;
+
+    }
 }
 

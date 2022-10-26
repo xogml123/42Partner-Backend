@@ -2,6 +2,7 @@ package com.seoul.openproject.partner.domain.model.member;
 
 
 import com.seoul.openproject.partner.domain.model.BaseTimeVersionEntity;
+import java.util.UUID;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -51,14 +52,15 @@ public class Member extends BaseTimeVersionEntity {
      * AUTH에 필요한 필드
      */
 
-    @Column(nullable = false, updatable = false)
-    private String apiId;
+    @Builder.Default
+    @Column(nullable = false, updatable = false, length = 50)
+    private final String apiId = UUID.randomUUID().toString();
 
     @Column(unique = true, nullable = false, length = 30)
     private String nickname;
 
-    @Column(length = 80)
-    private String slackEmail;
+
+
 
 
     /********************************* 비영속 필드 *********************************/
@@ -72,6 +74,11 @@ public class Member extends BaseTimeVersionEntity {
 
     /********************************* 생성 메서드 *********************************/
 
+    public static Member createMember(String nickname) {
+        return Member.builder()
+            .nickname(nickname)
+            .build();
+    }
 
     /********************************* 비니지스 로직 *********************************/
 

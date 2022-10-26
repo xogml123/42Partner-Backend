@@ -6,6 +6,7 @@ import java.io.Serializable;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -49,8 +50,9 @@ public class Role extends BaseTimeVersionEntity implements Serializable {
     private Long id;
 
     /********************************* PK가 아닌 필드 *********************************/
-    @Column(nullable = false, updatable = false)
-    private String apiId;
+    @Builder.Default
+    @Column(nullable = false, updatable = false, length = 50)
+    private final String apiId = UUID.randomUUID().toString();
 
 
     @Enumerated(value = EnumType.STRING)

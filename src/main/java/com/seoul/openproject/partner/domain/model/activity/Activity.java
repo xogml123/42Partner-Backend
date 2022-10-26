@@ -48,6 +48,7 @@ public abstract class Activity extends BaseTimeVersionEntity {
     /********************************* PK가 아닌 필드 *********************************/
 
 
+
     @Column(nullable = false, updatable = false)
     private Integer score;
 

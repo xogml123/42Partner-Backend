@@ -62,12 +62,10 @@ public class UserRole extends BaseTimeVersionEntity implements Serializable    {
         this.user = user;
     }
     /********************************* 생성 메서드 *********************************/
-    public static UserRole createUserRole(User user, Role role) {
-        UserRole userRole = UserRole.builder()
+    public static UserRole createUserRole(Role role) {
+        return UserRole.builder()
             .role(role)
             .build();
-        userRole.setUserAndAddUserRoleToUser(user);
-        return userRole;
     }
 
 

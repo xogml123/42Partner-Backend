@@ -4,6 +4,7 @@ package com.seoul.openproject.partner.domain.model.user;
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -31,8 +32,9 @@ public class Authority implements Serializable {
     @Column(name="AUTHORITY_ID")
     private Long id;
 
-    @Column(nullable = false, updatable = false)
-    private String apiId;
+    @Builder.Default
+    @Column(nullable = false, updatable = false, length = 50)
+    private final String apiId = UUID.randomUUID().toString();
 
 
     @Column(nullable = false)

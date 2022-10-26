@@ -2,6 +2,7 @@ package com.seoul.openproject.partner.domain.model.match;
 
 
 import com.seoul.openproject.partner.domain.model.BaseTimeVersionEntity;
+import java.util.UUID;
 import javax.persistence.Column;
 import javax.persistence.DiscriminatorColumn;
 import javax.persistence.Entity;
@@ -13,6 +14,7 @@ import javax.persistence.InheritanceType;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -50,8 +52,9 @@ public abstract class Match extends BaseTimeVersionEntity {
      * AUTH에 필요한 필드
      */
 
-    @Column(nullable = false, updatable = false)
-    private String apiId;
+    @Builder.Default
+    @Column(nullable = false, updatable = false, length = 50)
+    private final String apiId = UUID.randomUUID().toString();
 
     @Column(nullable = false, updatable = false)
     private MatchStatus matchStatus;

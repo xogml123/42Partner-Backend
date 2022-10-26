@@ -10,6 +10,10 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
+import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.security.oauth2.core.user.OAuth2UserAuthority;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,7 +26,8 @@ import org.springframework.web.client.RestTemplate;
 @RequestMapping("/api")
 @RequiredArgsConstructor
 public class UserController {
-    @Value("{token.url}")
+
+
 
     @ExceptionHandler
     public ResponseEntity<ErrorResult> entityNotFoundException(EntityNotFoundException e) {
@@ -32,13 +37,10 @@ public class UserController {
                 .build());
     }
 
-
-    @GetMapping("/auth/intra/callback")
-    public ResponseEntity<String> intraCallback(@RequestParam String code) {
-        RestTemplate rt = new RestTemplate();
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Content-type", "");
-        return ResponseEntity.ok("success");
+    @GetMapping("")
+    public String index() {
+        return "index";
     }
+
+
 }

@@ -2,6 +2,7 @@ package com.seoul.openproject.partner.domain.model.article;
 
 import com.seoul.openproject.partner.domain.model.BaseTimeVersionEntity;
 import com.seoul.openproject.partner.domain.model.member.Member;
+import java.util.UUID;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -55,8 +56,9 @@ public class Article extends BaseTimeVersionEntity {
      * AUTH에 필요한 필드
      */
 
-    @Column(nullable = false, updatable = false)
-    private String apiId;
+    @Builder.Default
+    @Column(nullable = false, updatable = false, length = 50)
+    private final String apiId = UUID.randomUUID().toString();
 
     @Column(nullable = false)
     private String title;
@@ -89,6 +91,11 @@ public class Article extends BaseTimeVersionEntity {
     @Builder.Default
     @Column(nullable = false)
     private Boolean complete = false;
+
+    @Builder.Default
+    @Column(nullable = false)
+    private Integer participantNum = 0;
+
 
 
 
