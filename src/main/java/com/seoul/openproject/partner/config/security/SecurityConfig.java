@@ -1,5 +1,12 @@
 package com.seoul.openproject.partner.config.security;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.seoul.openproject.partner.domain.model.user.RoleEnum;
+import com.seoul.openproject.partner.domain.model.user.User;
+import com.seoul.openproject.partner.domain.model.user.UserRole;
+import com.seoul.openproject.partner.dto.ErrorResponseDto;
+import com.seoul.openproject.partner.dto.LoginResponseDto;
+import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -33,18 +40,14 @@ import java.util.List;
 //Secured, PrePost 어노테이션 활성화
 @RequiredArgsConstructor
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
+    private final DefaultOAuth2UserService oAuth2UserService;
 
     private final AuthenticationEntryPoint authenticationEntryPoint;
+    private final ObjectMapper objectMapper;
 
     @Value("${cors.frontend}")
     private String corsFrontend;
 
-    private final DefaultOAuth2UserService oAuth2UserService;
-
-    @Bean
-    public BCryptPasswordEncoder bCryptPasswordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
 
 //    @Bean
 //    public OAuth2AuthorizedClientService oAuth2AuthorizedClientService(ClientRegistrationRepository clientRegistrationRepository) {
@@ -55,7 +58,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http.csrf().disable();
         http.cors().configurationSource(corsConfigurationSource());
-        //http.exceptionHandling().authenticationEntryPoint(authenticationEntryPoint);
+        http.exceptionHandling().authenticationEntryPoint(authenticationEntryPoint);
         http.authorizeRequests(
                 authorize -> authorize
                     .antMatchers("/v2/api-docs").permitAll()
@@ -88,6 +91,32 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .userInfoEndpoint()
             .userService(oAuth2UserService)
             .and()
+            .successHandler((req, res, auth) -> {
+                User user = (User)auth.getPrincipal();
+                LoginResponseDto body = new LoginResponseDto();
+                res.setStatus((boolean)(((User)auth.getPrincipal()).getAttributes().get("create_flag")) ?
+                    HttpServletResponse.SC_CREATED : HttpServletResponse.SC_OK);
+                res.setContentType("application/json");
+                res.setCharacterEncoding("utf-8");
+                body.setUserId(user.getApiId());
+                List<RoleEnum> roles = user.getUserRoles().stream()
+                    .map(ur ->
+                        ur.getRole().getValue()
+                    )
+                    .distinct()
+                    .collect(Collectors.toList());
+                body.setRole(roles);
+                res.getWriter().write(objectMapper.writeValueAsString(body));
+            })
+            .failureHandler((req, res, auth) -> {
+                res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                res.setContentType("application/json");
+                res.setCharacterEncoding("utf-8");
+                res.getWriter().write(objectMapper.writeValueAsString(
+                    ErrorResponseDto.builder()
+                        .message("로그인에 실패하였습니다.")
+                        .build()));
+            })
 //            .anyRequest().authenticated()
             .and()
             .logout()

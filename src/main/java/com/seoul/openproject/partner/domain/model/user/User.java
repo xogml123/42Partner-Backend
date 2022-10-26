@@ -43,7 +43,8 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 @Table(name = "USER", uniqueConstraints = {
     @UniqueConstraint(name = "USERNAME_UNIQUE", columnNames = {"username"}),
     @UniqueConstraint(name = "API_ID_UNIQUE", columnNames = {"apiId"}),
-    @UniqueConstraint(name = "EMAIL_UNIQUE", columnNames = {"email"})
+    @UniqueConstraint(name = "EMAIL_UNIQUE", columnNames = {"email"}),
+    @UniqueConstraint(name = "SLACK_EMAIL_UNIQUE", columnNames = {"slackEmail"})
 })
 @Entity
 public class User extends BaseTimeVersionEntity implements UserDetails, OAuth2User ,CredentialsContainer, Serializable {
@@ -123,6 +124,7 @@ public class User extends BaseTimeVersionEntity implements UserDetails, OAuth2Us
 
 
     /********************************* 비영속 필드 *********************************/
+    @Builder.Default
     @Transient
     private Map<String, Object> attributes = new HashMap<>();
 
@@ -150,7 +152,7 @@ public class User extends BaseTimeVersionEntity implements UserDetails, OAuth2Us
     /********************************* 생성 메서드 *********************************/
 
     public static User createDefaultUser(String username, String encodedPassword, String email,
-        String oauth2Username, String imageUrl, UserRole userRole, Member member) {
+        String oauth2Username, String imageUrl, Member member) {
 
         User user = User.builder()
             .username(username)
@@ -159,7 +161,6 @@ public class User extends BaseTimeVersionEntity implements UserDetails, OAuth2Us
             .oauth2Username(oauth2Username)
             .imageUrl(imageUrl)
             .build();
-        userRole.setUserAndAddUserRoleToUser(user);
         user.setMember(member);
         return user;
     }

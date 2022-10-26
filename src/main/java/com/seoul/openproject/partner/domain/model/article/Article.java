@@ -27,7 +27,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
-@Table(name = "MEMBER", uniqueConstraints = {
+@Table(name = "ARTICLE", uniqueConstraints = {
     @UniqueConstraint(name = "API_ID_UNIQUE", columnNames = {"apiId"}),
 })
 @Entity

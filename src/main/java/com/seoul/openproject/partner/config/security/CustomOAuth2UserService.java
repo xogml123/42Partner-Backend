@@ -14,7 +14,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import javax.persistence.EntityNotFoundException;
-import javax.persistence.Transient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
@@ -40,7 +39,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
         Map<String, Object> attributes = super.loadUser(userRequest).getAttributes();
         //resource Server로 부터 받아온 정보중 필요한 정보 출출.
-        String apiId = (String) attributes.get("id");
+        String apiId = ((Integer)attributes.get("id")).toString();
         //takim
         String login = (String)attributes.get("login");
         //takim@student.42seoul.kr
@@ -53,7 +52,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
         String username = email;
         Optional<User> userOptional = userRepository.findByUsername(username);
-        User oAuth2User = signUpOrUpdateUser(login, email, imageUrl, username, userOptional);
+        User oAuth2User = signUpOrUpdateUser(login, email, imageUrl, username, userOptional, necessaryAttributes);
         oAuth2User.getAttributes().putAll(necessaryAttributes);
         return oAuth2User;
     }
@@ -64,26 +63,33 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         necessaryAttributes.put("login", login);
         necessaryAttributes.put("email", email);
         necessaryAttributes.put("image_url", imageUrl);
+
     }
 
     private User signUpOrUpdateUser(String login, String email, String imageUrl, String username,
-        Optional<User> userOptional) {
+        Optional<User> userOptional, Map<String, Object> necessaryAttributes) {
         User user;
         //회원가입
         if (userOptional.isEmpty()) {
             //회원에 필용한 정보 생성 및 조회
             String encodedPassword = passwordEncoder.encode(UUID.randomUUID().toString());
+
+            Member member = Member.of(login);
+            memberRepository.save(member);
             Role role = roleRepository.findByValue(RoleEnum.ROLE_USER).orElseThrow(() ->
                 new EntityNotFoundException(RoleEnum.ROLE_USER + "에 해당하는 Role이 없습니다."));
-            UserRole userRole = userRoleRepository.save(UserRole.createUserRole(role));
-            Member member = Member.createMember(login);
-            memberRepository.save(member);
-            user = User.createDefaultUser(username, encodedPassword, email, login, imageUrl, userRole, member);
+            user = User.createDefaultUser(username, encodedPassword, email, login, imageUrl, member);
+            UserRole userRole = UserRole.of(role, user);
+
             userRepository.save(user);
+            userRoleRepository.save(userRole);
+            necessaryAttributes.put("create_flag", true);
+            //생성해야할 객체 추가로 더 있을 수 있음.
         } else{
             //회원정보 수정
             user = userOptional.get();
             user.updateUserByOAuthIfo(imageUrl);
+            necessaryAttributes.put("create_flag", false);
         }
         return user;
     }

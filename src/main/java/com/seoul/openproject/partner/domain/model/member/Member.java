@@ -23,8 +23,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @Table(name = "MEMBER", uniqueConstraints = {
     @UniqueConstraint(name = "NICK_NAME_UNIQUE", columnNames = {"nickname"}),
-    @UniqueConstraint(name = "API_ID_UNIQUE", columnNames = {"apiId"}),
-    @UniqueConstraint(name = "SLACK_EMAIL_UNIQUE", columnNames = {"slackEmail"})
+    @UniqueConstraint(name = "API_ID_UNIQUE", columnNames = {"apiId"})
 })
 @Entity
 public class Member extends BaseTimeVersionEntity {
@@ -74,12 +73,15 @@ public class Member extends BaseTimeVersionEntity {
 
     /********************************* 생성 메서드 *********************************/
 
-    public static Member createMember(String nickname) {
+    public static Member of(String nickname) {
         return Member.builder()
             .nickname(nickname)
             .build();
     }
 
     /********************************* 비니지스 로직 *********************************/
+    public void changeNickname(String nickname) {
+        this.nickname = nickname;
+    }
 
 }

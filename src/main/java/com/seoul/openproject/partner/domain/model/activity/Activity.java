@@ -3,30 +3,28 @@ package com.seoul.openproject.partner.domain.model.activity;
 import com.seoul.openproject.partner.domain.model.BaseTimeVersionEntity;
 import com.seoul.openproject.partner.domain.model.member.Member;
 import javax.persistence.Column;
-import javax.persistence.DiscriminatorColumn;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.Inheritance;
-import javax.persistence.InheritanceType;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@Builder(access = AccessLevel.PRIVATE)
 @Getter
 @Table(name = "ACTIVITY")
-@Inheritance(strategy = InheritanceType.JOINED)
-@DiscriminatorColumn(name = "ACTIVITY_TYPE")
 @Entity
-public abstract class Activity extends BaseTimeVersionEntity {
+public class Activity extends BaseTimeVersionEntity {
     //********************************* static final 상수 필드 *********************************/
 
     /**

@@ -43,4 +43,12 @@ public class Authority implements Serializable {
     @Singular
     @ManyToMany(mappedBy = "authorities", fetch = FetchType.EAGER)
     private final Set<Role> roles = new HashSet<>();
+    /********************************* 생성 메서드 *********************************/
+
+    public static Authority of(String permission) {
+        return Authority.builder()
+                .permission(permission)
+                .build();
+    }
+
 }

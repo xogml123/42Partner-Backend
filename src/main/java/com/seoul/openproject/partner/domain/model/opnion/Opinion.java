@@ -62,11 +62,11 @@ public class Opinion extends BaseTimeVersionEntity {
     @Column(nullable = false)
     private String content;
 
-    @Column(nullable = false, updatable = false)
-    private String parentApiId;
-
-    @Column(nullable = false, updatable = false)
-    private Integer level;
+//    @Column(nullable = false, updatable = false)
+//    private String parentApiId;
+//
+//    @Column(nullable = false, updatable = false)
+//    private Integer level;
 
     /********************************* 비영속 필드 *********************************/
 
@@ -85,6 +85,13 @@ public class Opinion extends BaseTimeVersionEntity {
 
     /********************************* 생성 메서드 *********************************/
 
+    public static Opinion of(String content, String parentApiId, Integer level, Member memberAuthor, Article article) {
+        return Opinion.builder()
+            .content(content)
+            .memberAuthor(memberAuthor)
+            .article(article)
+            .build();
+    }
 
     /********************************* 비니지스 로직 *********************************/
 

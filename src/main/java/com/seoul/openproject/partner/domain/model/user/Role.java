@@ -72,6 +72,12 @@ public class Role extends BaseTimeVersionEntity implements Serializable {
             @JoinColumn(name = "AUTHORITY_ID", referencedColumnName = "AUTHORITY_ID", nullable = false)})
     private final Set<Authority> authorities = new HashSet<>();
 
+    /********************************* 생성 메서드 *********************************/
+    public static Role of(RoleEnum value) {
+        return Role.builder()
+            .value(value)
+            .build();
+    }
 
     /********************************* 비니지스 로직 *********************************/
 

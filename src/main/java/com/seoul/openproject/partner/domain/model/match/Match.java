@@ -14,14 +14,16 @@ import javax.persistence.InheritanceType;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 import lombok.AccessLevel;
-import lombok.Builder;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 
+//@Builder(access = AccessLevel.PRIVATE)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
-@Table(name = "MEMBER", uniqueConstraints = {
+@Table(name = "MATCH", uniqueConstraints = {
     @UniqueConstraint(name = "API_ID_UNIQUE", columnNames = {"apiId"}),
 })
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
@@ -52,7 +54,7 @@ public abstract class Match extends BaseTimeVersionEntity {
      * AUTH에 필요한 필드
      */
 
-    @Builder.Default
+//    @Builder.Default
     @Column(nullable = false, updatable = false, length = 50)
     private final String apiId = UUID.randomUUID().toString();
 
@@ -75,6 +77,8 @@ public abstract class Match extends BaseTimeVersionEntity {
     /********************************* 연관관계 편의 메서드 *********************************/
 
     /********************************* 생성 메서드 *********************************/
+
+
 
 
     /********************************* 비니지스 로직 *********************************/
