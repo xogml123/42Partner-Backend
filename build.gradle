@@ -26,6 +26,10 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
 	implementation group: 'org.springframework.session', name: 'spring-session-core', version: '2.5.1'
+	implementation 'io.springfox:springfox-boot-starter:3.0.0'
+	implementation 'org.mapstruct:mapstruct:1.5.3.Final'
+	annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.3.Final'
+
 
 
 

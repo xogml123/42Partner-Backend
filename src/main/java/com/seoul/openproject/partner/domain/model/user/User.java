@@ -2,6 +2,7 @@ package com.seoul.openproject.partner.domain.model.user;
 
 import com.seoul.openproject.partner.domain.model.BaseTimeVersionEntity;
 import com.seoul.openproject.partner.domain.model.member.Member;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.io.Serializable;
 import java.security.SecureRandom;
 import java.util.Date;
@@ -24,11 +25,13 @@ import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 import javax.persistence.UniqueConstraint;
+import javax.validation.constraints.NotBlank;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.Singular;
 import org.springframework.security.core.CredentialsContainer;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -260,5 +263,39 @@ public class User extends BaseTimeVersionEntity implements UserDetails, OAuth2Us
         this.imageUrl = imageUrl;
 
     }
+
+
+    /********************************* DTO *********************************/
+
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    @Builder
+    static public class UserDto {
+        @Schema(name = "userId" , example = "db688a4a-2f70-4265-a1ea-d15fd6c5c914")
+        @NotBlank
+        private String userId;
+
+        @Schema(name = "oauth2Username" , example = "takim(intraId)")
+        @NotBlank
+        private String oauth2Username;
+
+        @Schema(name = "nickname" , example = "로그인 할 때 id아니라 사용자가 변경할 수 있는 id, default는 oauth2Username와 같음.")
+        @NotBlank
+        private String nickname;
+
+        @Schema(name = "email" , example = "takim@student.42seoul.kr")
+        @NotBlank
+        private String email;
+
+        @Schema(name = "imageUrl" , example = "로그인 할 때 id아니라 사용자가 변경할 수 있는 id")
+        @NotBlank
+        private String imageUrl;
+
+        @Schema(name = "slackEmail" , example = "slack 알림을 위해 사용될 수 있음. 아직은 사용하지 않음.")
+        private String slackEmail;
+
+    }
+
 }
 
