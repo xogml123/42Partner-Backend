@@ -8,7 +8,9 @@ import com.seoul.openproject.partner.domain.model.user.User.UserDto;
 import com.seoul.openproject.partner.mapper.UserMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 
+@SpringBootTest
 class UserServiceTest {
 
     @Autowired
