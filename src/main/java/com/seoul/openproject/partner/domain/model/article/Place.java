@@ -1,17 +1,17 @@
 package com.seoul.openproject.partner.domain.model.article;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import java.sql.Time;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-public enum TimeOfEating {
-    BREAKFAST("아침 식사"), LUNCH("점심 식사"), DUNCH("점저"), DINNER("저녁 식사"), MIDNIGHT("야식");
+public enum Place {
+    SEOCHO("서초 클러스터"), GAEPO("개포 클러스터"), OUTOFCLUSTER("클러스터 외부");
 
     private final String value;
     @JsonCreator
-    public static TimeOfEating from(String s) {
+    public static Place from(String s) {
         String target = s.toUpperCase();
-        return TimeOfEating.valueOf(target);
+        return Place.valueOf(target);
     }
+
 }

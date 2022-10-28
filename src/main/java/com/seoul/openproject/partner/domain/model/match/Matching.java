@@ -6,6 +6,8 @@ import java.util.UUID;
 import javax.persistence.Column;
 import javax.persistence.DiscriminatorColumn;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -13,23 +15,17 @@ import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 
-//@Builder(access = AccessLevel.PRIVATE)
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
-@Table(name = "MATCH", uniqueConstraints = {
+@Table(name = "MATCHING", uniqueConstraints = {
     @UniqueConstraint(name = "API_ID_UNIQUE", columnNames = {"apiId"}),
 })
-@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@Inheritance(strategy = InheritanceType.JOINED)
 @DiscriminatorColumn(name = "MATCH_TYPE")
 @Entity
-public abstract class Match extends BaseTimeVersionEntity {
+public abstract class Matching extends BaseTimeVersionEntity {
     //********************************* static final 상수 필드 *********************************/
 
     /**
@@ -44,7 +40,7 @@ public abstract class Match extends BaseTimeVersionEntity {
      */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "MEMBER_ID")
+    @Column(name = "MATCH_ID")
     private Long id;
 
 
@@ -58,6 +54,7 @@ public abstract class Match extends BaseTimeVersionEntity {
     @Column(nullable = false, updatable = false, length = 50)
     private final String apiId = UUID.randomUUID().toString();
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, updatable = false)
     private MatchStatus matchStatus;
 

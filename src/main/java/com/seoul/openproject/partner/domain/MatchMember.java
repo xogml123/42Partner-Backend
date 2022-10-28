@@ -1,9 +1,11 @@
-package com.seoul.openproject.partner.domain.model.member;
+package com.seoul.openproject.partner.domain;
+
+
 
 
 import com.seoul.openproject.partner.domain.model.BaseTimeVersionEntity;
-import com.seoul.openproject.partner.domain.model.article.Article;
-import java.util.UUID;
+import com.seoul.openproject.partner.domain.model.match.Matching;
+import com.seoul.openproject.partner.domain.model.member.Member;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -13,7 +15,6 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -25,12 +26,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
-@Table(name = "MEMBER", uniqueConstraints = {
-    @UniqueConstraint(name = "NICK_NAME_UNIQUE", columnNames = {"nickname"}),
-    @UniqueConstraint(name = "API_ID_UNIQUE", columnNames = {"apiId"})
-})
+@Table(name = "MATCH_MEMBER")
 @Entity
-public class Member extends BaseTimeVersionEntity {
+public class MatchMember extends BaseTimeVersionEntity {
     //********************************* static final 상수 필드 *********************************/
 
     /**
@@ -45,7 +43,7 @@ public class Member extends BaseTimeVersionEntity {
      */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "MEMBER_ID")
+    @Column(name = "MATCH_MEMBER_ID")
     private Long id;
 
 
@@ -55,12 +53,6 @@ public class Member extends BaseTimeVersionEntity {
      * AUTH에 필요한 필드
      */
 
-    @Builder.Default
-    @Column(nullable = false, updatable = false, length = 50)
-    private final String apiId = UUID.randomUUID().toString();
-
-    @Column(unique = true, nullable = false, length = 30)
-    private String nickname;
 
 
 
@@ -70,25 +62,21 @@ public class Member extends BaseTimeVersionEntity {
 
     /********************************* 연관관계 매핑 *********************************/
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "MEMBER_ID", nullable = false, updatable = false)
+    private Member member;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ARTICLE_ID", nullable = false, updatable = false)
-    private Article article;
+    @JoinColumn(name = "MATCH_ID", nullable = false, updatable = false)
+    private Matching matching;
+
 
 
     /********************************* 연관관계 편의 메서드 *********************************/
 
     /********************************* 생성 메서드 *********************************/
 
-    public static Member of(String nickname) {
-        return Member.builder()
-            .nickname(nickname)
-            .build();
-    }
 
     /********************************* 비니지스 로직 *********************************/
-    public void changeNickname(String nickname) {
-        this.nickname = nickname;
-    }
 
 }

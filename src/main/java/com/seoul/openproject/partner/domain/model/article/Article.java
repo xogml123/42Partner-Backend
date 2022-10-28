@@ -1,12 +1,13 @@
 package com.seoul.openproject.partner.domain.model.article;
 
 import com.seoul.openproject.partner.domain.model.BaseTimeVersionEntity;
+import com.seoul.openproject.partner.domain.model.match.MatchCondition;
 import com.seoul.openproject.partner.domain.model.member.Member;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -14,6 +15,8 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 import lombok.AccessLevel;
@@ -21,6 +24,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.Singular;
 
 
 @Builder(access = AccessLevel.PRIVATE)
@@ -63,21 +68,22 @@ public class Article extends BaseTimeVersionEntity {
     @Column(nullable = false)
     private String title;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private WayOfEating wayOfEating = WayOfEating.NONE;
+//    @Enumerated(EnumType.STRING)
+//    @Column(nullable = false)
+//    private WayOfEating wayOfEating;
+//
+//    @Enumerated(EnumType.STRING)
+//    @Column(nullable = false)
+//    private Place place;
+//
+//    @Enumerated(EnumType.STRING)
+//    @Column(nullable = false)
+//    private TimeOfEating timeOfEating;
+//
+//    @Enumerated(EnumType.STRING)
+//    @Column(nullable = false)
+//    private TypeOfEating typeOfEating;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private PlaceOfEating placeOfEating = PlaceOfEating.NONE;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private TimeOfEating timeOfEating = TimeOfEating.NONE;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private TypeOfEating typeOfEating = TypeOfEating.NONE;
 
     //longtext형
     @Lob
@@ -94,7 +100,7 @@ public class Article extends BaseTimeVersionEntity {
 
     @Builder.Default
     @Column(nullable = false)
-    private Integer participantNum = 0;
+    private Integer participantNum = 1;
 
 
 
@@ -106,24 +112,48 @@ public class Article extends BaseTimeVersionEntity {
     /********************************* 연관관계 매핑 *********************************/
 
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "MEMBER_AUTHOR_ID", nullable = false, updatable = false)
     private Member memberAuthor;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "PARTICIPANT_ID", nullable = false, updatable = false)
-    private Member participant;
-
-
-
-
+    @Singular
+    @OneToMany(mappedBy = "article", fetch = FetchType.LAZY)
+    private List<MatchCondition> matchConditions = new ArrayList<>();
 
 
     /********************************* 연관관계 편의 메서드 *********************************/
 
     /********************************* 생성 메서드 *********************************/
 
-
+//    public static Article of(String title, String content, boolean anonymity, Member memberAuthor){
+//        Article.builder()
+//            .title(title)
+//            .content(content)
+//            .anonymity(anonymity)
+//            .memberAuthor(memberAuthor)
+//            .
+//    }
     /********************************* 비니지스 로직 *********************************/
 
+    /********************************* DTO *********************************/
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    @Builder
+    public static class ArticleOnlyIdResponse {
+        private String articleId;
+    }
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    @Builder
+    public static class ArticleDto{
+        private String memberId;
+        private String title;
+        private List<TimeOfEating> timeOfEating;
+        private List<TypeOfEating> typeOfEating;
+        private List<WayOfEating> wayOfEating;
+        private String content;
+        private Boolean anonymity;
+    }
 }
