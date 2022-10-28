@@ -214,7 +214,7 @@ public class DataLoader implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-            createRoleAuthority();
-            createMatchCondition();
+//            createRoleAuthority();
+//            createMatchCondition();
     }
 }

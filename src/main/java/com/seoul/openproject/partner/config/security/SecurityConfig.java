@@ -87,8 +87,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 //            .antMatchers("/manager/**").access("hasRole('ROLE_ADMIN') or hasRole('ROLE_MANAGER')")
 //            .antMatchers("/admin/**").access("hasRole('ROLE_ADMIN')")
             /*
-                loginURI: /login/oauth2/code/authclient
-                callback URI: /oauth2/authorize/authclient
+                callback(redirect) URI: /login/oauth2/code/authclient - 아예 정해진거라 못바꿈
+                login URI: /oauth2/authorization/authclient - 설정을 하면 바꿀 수 있을 것 같음.
              */
             .oauth2Login()
             .userInfoEndpoint()

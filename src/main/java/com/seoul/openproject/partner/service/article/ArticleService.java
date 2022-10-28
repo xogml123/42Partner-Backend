@@ -4,6 +4,10 @@ import com.seoul.openproject.partner.domain.ArticleMatchCondition;
 import com.seoul.openproject.partner.domain.model.article.Article;
 import com.seoul.openproject.partner.domain.model.article.Article.ArticleDto;
 import com.seoul.openproject.partner.domain.model.article.Article.ArticleOnlyIdResponse;
+import com.seoul.openproject.partner.domain.model.article.Place;
+import com.seoul.openproject.partner.domain.model.article.TimeOfEating;
+import com.seoul.openproject.partner.domain.model.article.TypeOfEating;
+import com.seoul.openproject.partner.domain.model.article.WayOfEating;
 import com.seoul.openproject.partner.domain.model.match.MatchCondition;
 import com.seoul.openproject.partner.domain.model.member.Member;
 import com.seoul.openproject.partner.domain.repository.article.ArticleRepository;
@@ -36,6 +40,8 @@ public class ArticleService {
 
         List<String> matchConditionStrings = new ArrayList<>();
         addAllMatchCondition(articleRequest, matchConditionStrings);
+
+
         List<ArticleMatchCondition> articleMatchConditionList = new ArrayList<>();
 
         for (String matchConditionString : matchConditionStrings) {
@@ -45,7 +51,6 @@ public class ArticleService {
                     matchConditionString + "에 해당하는 매칭 조건이 없습니다."));
             ArticleMatchCondition ar = ArticleMatchCondition.of(matchCondition);
             articleMatchConditionList.add(ar);
-            articleMatchConditionRepository.save(ar);
         }
 
         Article article = articleRepository.save(Article.of(articleRequest.getTitle(),
@@ -54,23 +59,43 @@ public class ArticleService {
             member,
             articleMatchConditionList));
 
+        articleMatchConditionList.forEach(articleMatchCondition -> {
+            articleMatchConditionRepository.save(articleMatchCondition);
+        });
+
         return new ArticleOnlyIdResponse(article.getApiId());
     }
 
     private void addAllMatchCondition(ArticleDto articleRequest, List<String> matchConditionStrings) {
-        matchConditionStrings.addAll(articleRequest.getPlace().stream()
+        List<Place> place = articleRequest.getPlace();
+        if (place == null) {
+            place = new ArrayList<>();
+        }
+        matchConditionStrings.addAll(place.stream()
                 .map(p ->
                     p.name())
                     .collect(Collectors.toList()));
-        matchConditionStrings.addAll(articleRequest.getTimeOfEating().stream()
+        List<TimeOfEating> timeOfEating = articleRequest.getTimeOfEating();
+        if (timeOfEating == null) {
+            timeOfEating = new ArrayList<>();
+        }
+        matchConditionStrings.addAll(timeOfEating.stream()
             .map(p ->
                 p.name())
             .collect(Collectors.toList()));
-        matchConditionStrings.addAll(articleRequest.getTypeOfEating().stream()
+        List<TypeOfEating> typeOfEating = articleRequest.getTypeOfEating();
+        if (typeOfEating == null) {
+            typeOfEating = new ArrayList<>();
+        }
+        matchConditionStrings.addAll(typeOfEating.stream()
             .map(p ->
                 p.name())
             .collect(Collectors.toList()));
-        matchConditionStrings.addAll(articleRequest.getWayOfEating().stream()
+        List<WayOfEating> wayOfEating = articleRequest.getWayOfEating();
+        if (wayOfEating == null) {
+            wayOfEating = new ArrayList<>();
+        }
+        matchConditionStrings.addAll(wayOfEating.stream()
             .map(p ->
                 p.name())
             .collect(Collectors.toList()));

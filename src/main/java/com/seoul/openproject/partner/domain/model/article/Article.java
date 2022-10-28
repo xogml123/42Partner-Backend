@@ -108,11 +108,11 @@ public class Article extends BaseTimeVersionEntity {
 
     /*********************************  *********************************/
 
-    @Singular
+    @Builder.Default
     @OneToMany(mappedBy = "article", fetch = FetchType.LAZY)
     private List<ArticleMatchCondition> articleMatchConditions = new ArrayList<>();
 
-    @Singular
+    @Builder.Default
     @OneToMany(mappedBy = "participatedArticle", fetch = FetchType.LAZY)
     private List<Member> participants = new ArrayList<>();
 
@@ -159,24 +159,25 @@ public class Article extends BaseTimeVersionEntity {
 
         @Schema(name= "title" , example = "글 제목")
         @NotBlank
-        @Size(min = 1)
+        @Size(min = 1, max = 255)
         private String title;
 
         @Schema(name= "place" , example = "SEOCHO(서초 클러스터), GAEPO(개포 클러스터), OUT_OF_CLUSTER(클러스터 외부)")
-        private List<Place> place;
+        private List<Place> place ;
         @Schema(name= "timeOfEating" , example = "BREAKFAST(아침 식사), LUNCH(점심 식사), DUNCH(점저), DINNER(저녁 식사), MIDNIGHT(야식)")
         private List<TimeOfEating> timeOfEating;
         @Schema(name= "typeOfEating" , example = " KOREAN(한식), JAPANESE(일식), CHINESE(중식),"
             + "    WESTERN(양식), ASIAN(아시안), EXOTIC(이국적인), CONVENIENCE(편의점)")
-        private List<TypeOfEating> typeOfEating;
+        private List<TypeOfEating> typeOfEating ;
         @Schema(name= "wayOfEating" , example = " DELIVERY(배달), EATOUT(외식), TAKEOUT(포장)")
-        private List<WayOfEating> wayOfEating;
+        private List<WayOfEating> wayOfEating ;
 
         @Schema(name= "content" , example = "글 내용")
         @NotNull
+        @Size(min = 1, max = 100000)
         private String content;
 
-        @Schema(name= "content" , example = "글 내용")
+        @Schema(name= "anonymity" , example = "익명 여부")
         @NotNull
         private Boolean anonymity;
     }
