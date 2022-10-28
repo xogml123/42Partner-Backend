@@ -1,7 +1,7 @@
 package com.seoul.openproject.partner.domain.model;
 
 
-import com.seoul.openproject.partner.domain.model.match.Matching;
+import com.seoul.openproject.partner.domain.model.match.Match;
 import com.seoul.openproject.partner.domain.model.match.MatchCondition;
 
 import javax.persistence.Column;
@@ -56,7 +56,7 @@ public class MatchConditionMatch {
     /********************************* 연관관계 매핑 *********************************/
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "MATCH_ID", nullable = false, updatable = false)
-    private Matching matching;
+    private Match match;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "MATCH_CONDITION_ID", nullable = false, updatable = false)

@@ -1,21 +1,13 @@
 package com.seoul.openproject.partner.domain.model.match;
 
-import com.seoul.openproject.partner.domain.model.article.Article;
-import com.seoul.openproject.partner.domain.model.member.Member;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
-import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.Lob;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToOne;
 import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -72,6 +64,12 @@ public class MatchCondition {
 
     /********************************* 생성 메서드 *********************************/
 
+    public static MatchCondition of(String value, ConditionCategory conditionCategory) {
+        return MatchCondition.builder()
+            .value(value)
+            .conditionCategory(conditionCategory)
+            .build();
+    }
     /********************************* 비니지스 로직 *********************************/
 
     /********************************* DTO *********************************/

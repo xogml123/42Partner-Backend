@@ -4,7 +4,7 @@ package com.seoul.openproject.partner.domain;
 
 
 import com.seoul.openproject.partner.domain.model.BaseTimeVersionEntity;
-import com.seoul.openproject.partner.domain.model.match.Matching;
+import com.seoul.openproject.partner.domain.model.match.Match;
 import com.seoul.openproject.partner.domain.model.member.Member;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -68,7 +68,7 @@ public class MatchMember extends BaseTimeVersionEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "MATCH_ID", nullable = false, updatable = false)
-    private Matching matching;
+    private Match match;
 
 
 

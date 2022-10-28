@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @Table(name = "STUDY_RANDOM_MATCH")
 @Entity
-public class StudyRandomMatching extends Matching {
+public class StudyRandomMatch extends Match {
     //********************************* static final 상수 필드 *********************************/
 
     /**

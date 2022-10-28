@@ -68,9 +68,20 @@ public class ArticleMatchCondition {
 
     /********************************* 생성 메서드 *********************************/
 
+    public static ArticleMatchCondition of(MatchCondition matchCondition) {
+        return ArticleMatchCondition.builder()
+                .matchCondition(matchCondition)
+                .build();
+    }
+
+
+
     /********************************* 비니지스 로직 *********************************/
 
-
+    public void setArticle(Article article) {
+        this.article = article;
+        article.getArticleMatchConditions().add(this);
+    }
 
     /********************************* DTO *********************************/
 

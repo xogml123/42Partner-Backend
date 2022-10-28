@@ -1,8 +1,11 @@
 package com.seoul.openproject.partner.domain.model.article;
 
+import com.seoul.openproject.partner.domain.ArticleMatchCondition;
 import com.seoul.openproject.partner.domain.model.BaseTimeVersionEntity;
+import com.seoul.openproject.partner.domain.model.MatchConditionMatch;
 import com.seoul.openproject.partner.domain.model.match.MatchCondition;
 import com.seoul.openproject.partner.domain.model.member.Member;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -19,6 +22,9 @@ import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -68,23 +74,6 @@ public class Article extends BaseTimeVersionEntity {
     @Column(nullable = false)
     private String title;
 
-//    @Enumerated(EnumType.STRING)
-//    @Column(nullable = false)
-//    private WayOfEating wayOfEating;
-//
-//    @Enumerated(EnumType.STRING)
-//    @Column(nullable = false)
-//    private Place place;
-//
-//    @Enumerated(EnumType.STRING)
-//    @Column(nullable = false)
-//    private TimeOfEating timeOfEating;
-//
-//    @Enumerated(EnumType.STRING)
-//    @Column(nullable = false)
-//    private TypeOfEating typeOfEating;
-
-
     //longtext형
     @Lob
     @Column(nullable = false)
@@ -100,7 +89,7 @@ public class Article extends BaseTimeVersionEntity {
 
     @Builder.Default
     @Column(nullable = false)
-    private Integer participantNum = 1;
+    private Integer participantNum = 0;
 
 
 
@@ -112,28 +101,42 @@ public class Article extends BaseTimeVersionEntity {
     /********************************* 연관관계 매핑 *********************************/
 
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "MEMBER_AUTHOR_ID", nullable = false, updatable = false)
     private Member memberAuthor;
 
+
+    /*********************************  *********************************/
+
     @Singular
     @OneToMany(mappedBy = "article", fetch = FetchType.LAZY)
-    private List<MatchCondition> matchConditions = new ArrayList<>();
+    private List<ArticleMatchCondition> articleMatchConditions = new ArrayList<>();
 
+    @Singular
+    @OneToMany(mappedBy = "participatedArticle", fetch = FetchType.LAZY)
+    private List<Member> participants = new ArrayList<>();
 
     /********************************* 연관관계 편의 메서드 *********************************/
 
     /********************************* 생성 메서드 *********************************/
 
-//    public static Article of(String title, String content, boolean anonymity, Member memberAuthor){
-//        Article.builder()
-//            .title(title)
-//            .content(content)
-//            .anonymity(anonymity)
-//            .memberAuthor(memberAuthor)
-//            .
-//    }
+    public static Article of(String title, String content, boolean anonymity, Member memberAuthor, List<ArticleMatchCondition> articleMatchConditions) {
+        Article article = Article.builder()
+            .title(title)
+            .content(content)
+            .anonymity(anonymity)
+            .build();
+        article.addMemberAuthor(memberAuthor);
+        for (ArticleMatchCondition articleMatchCondition : articleMatchConditions) {
+            articleMatchCondition.setArticle(article);
+        }
+        return article;
+    }
     /********************************* 비니지스 로직 *********************************/
+    public void addMemberAuthor(Member memberAuthor){
+        this.memberAuthor = memberAuthor;
+        memberAuthor.getWrittenArticles().add(this);
+    }
 
     /********************************* DTO *********************************/
     @Getter
@@ -141,6 +144,7 @@ public class Article extends BaseTimeVersionEntity {
     @AllArgsConstructor
     @Builder
     public static class ArticleOnlyIdResponse {
+        @Schema(name = "articleId", description = "게시글 ID")
         private String articleId;
     }
     @Getter
@@ -148,12 +152,32 @@ public class Article extends BaseTimeVersionEntity {
     @AllArgsConstructor
     @Builder
     public static class ArticleDto{
+        @Schema(name= "memberId" , example = "4f3dda35-3739-406c-ad22-eed438831d66")
+        @NotBlank
+        @Size(min = 1, max = 100)
         private String memberId;
+
+        @Schema(name= "title" , example = "글 제목")
+        @NotBlank
+        @Size(min = 1)
         private String title;
+
+        @Schema(name= "place" , example = "SEOCHO(서초 클러스터), GAEPO(개포 클러스터), OUT_OF_CLUSTER(클러스터 외부)")
+        private List<Place> place;
+        @Schema(name= "timeOfEating" , example = "BREAKFAST(아침 식사), LUNCH(점심 식사), DUNCH(점저), DINNER(저녁 식사), MIDNIGHT(야식)")
         private List<TimeOfEating> timeOfEating;
+        @Schema(name= "typeOfEating" , example = " KOREAN(한식), JAPANESE(일식), CHINESE(중식),"
+            + "    WESTERN(양식), ASIAN(아시안), EXOTIC(이국적인), CONVENIENCE(편의점)")
         private List<TypeOfEating> typeOfEating;
+        @Schema(name= "wayOfEating" , example = " DELIVERY(배달), EATOUT(외식), TAKEOUT(포장)")
         private List<WayOfEating> wayOfEating;
+
+        @Schema(name= "content" , example = "글 내용")
+        @NotNull
         private String content;
+
+        @Schema(name= "content" , example = "글 내용")
+        @NotNull
         private Boolean anonymity;
     }
 }

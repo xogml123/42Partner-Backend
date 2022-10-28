@@ -3,6 +3,8 @@ package com.seoul.openproject.partner.domain.model.member;
 
 import com.seoul.openproject.partner.domain.model.BaseTimeVersionEntity;
 import com.seoul.openproject.partner.domain.model.article.Article;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -12,6 +14,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 import lombok.AccessLevel;
@@ -19,6 +22,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Singular;
 
 
 @Builder(access = AccessLevel.PRIVATE)
@@ -62,6 +66,11 @@ public class Member extends BaseTimeVersionEntity {
     @Column(unique = true, nullable = false, length = 30)
     private String nickname;
 
+    //내가 작성하고 있는 Aritcle의 개수를 감시하기 위해 필요
+    @Builder.Default
+    @Column(nullable = false)
+    private Integer writtenArticleCount = 0;
+
 
 
 
@@ -72,8 +81,12 @@ public class Member extends BaseTimeVersionEntity {
 
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ARTICLE_ID", nullable = false, updatable = false)
-    private Article article;
+    @JoinColumn(name = "ARTICLE_ID")
+    private Article participatedArticle;
+
+    @Singular
+    @OneToMany(mappedBy = "memberAuthor", fetch = FetchType.LAZY)
+    private List<Article> writtenArticles = new ArrayList<>();
 
 
     /********************************* 연관관계 편의 메서드 *********************************/

@@ -5,11 +5,14 @@ import com.seoul.openproject.partner.domain.model.user.User;
 import com.seoul.openproject.partner.error.ErrorResult;
 import com.seoul.openproject.partner.service.article.ArticleService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import javax.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -33,10 +36,11 @@ public class ArticleController {
                 .message(e.getMessage())
                 .build());
     }
-
+//    @PreAuthorize("hasAuthority('article.create') OR "
+//        + "(hasAuthority('article.create') AND @customAuthenticationManager.userIdMatches(authentication, #articleRequest))")
     @Operation(summary = "방 매칭 글쓰기", description = "방 매칭 글쓰기")
     @PostMapping("/articles")
-    public Article.ArticleOnlyIdResponse writeRoomMatching(@RequestBody Article.ArticleDto articleRequest) {
+    public Article.ArticleOnlyIdResponse writeRoomMatching(@Validated @Parameter @RequestBody Article.ArticleDto articleRequest) {
         return articleService.createArticle(articleRequest);
     }
 

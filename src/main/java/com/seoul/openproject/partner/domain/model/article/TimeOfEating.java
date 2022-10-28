@@ -1,7 +1,6 @@
 package com.seoul.openproject.partner.domain.model.article;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import java.sql.Time;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor

@@ -1,4 +1,4 @@
-package com.seoul.openproject.partner.config.security;
+package com.seoul.openproject.partner.service.user;
 
 import com.seoul.openproject.partner.domain.model.member.Member;
 import com.seoul.openproject.partner.domain.model.user.Role;
@@ -37,6 +37,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     @Transactional
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
+        System.out.println("1\n");
         Map<String, Object> attributes = super.loadUser(userRequest).getAttributes();
         //resource Server로 부터 받아온 정보중 필요한 정보 출출.
         String apiId = ((Integer)attributes.get("id")).toString();

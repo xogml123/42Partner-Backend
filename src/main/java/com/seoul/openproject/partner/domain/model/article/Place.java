@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public enum Place {
-    SEOCHO("서초 클러스터"), GAEPO("개포 클러스터"), OUTOFCLUSTER("클러스터 외부");
+    SEOCHO("서초 클러스터"), GAEPO("개포 클러스터"), OUT_OF_CLUSTER("클러스터 외부");
 
     private final String value;
     @JsonCreator

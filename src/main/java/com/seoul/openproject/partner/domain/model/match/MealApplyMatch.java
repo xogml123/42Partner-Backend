@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @Table(name = "MEAL_APPLY_MATCH")
 @Entity
-public class MealApplyMatching extends Matching {
+public class MealApplyMatch extends Match {
     //********************************* static final 상수 필드 *********************************/
 
     /**
