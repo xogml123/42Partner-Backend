@@ -40,8 +40,8 @@ public class ArticleController {
     }
     @Operation(summary = "방 하나 상세조회", description = "방 상세페이지")
     @GetMapping("/articles/{articleId}")
-    public Article.ArticleReadOneResponse readOneRoomMatching(@PathVariable) {
-        return articleService.readOneArticle(articleRequest);
+    public Article.ArticleReadOneResponse readOneRoomMatching(@PathVariable String articleId) {
+        return articleService.readOneArticle(articleId);
     }
 
 

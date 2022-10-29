@@ -2,6 +2,7 @@ package com.seoul.openproject.partner.domain.model;
 
 import com.seoul.openproject.partner.domain.model.article.Article;
 import com.seoul.openproject.partner.domain.model.member.Member;
+import io.swagger.v3.oas.annotations.media.Schema;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -11,6 +12,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import javax.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -51,6 +53,9 @@ public class ArticleMember {
 
     @Column(name = "IS_AUTHOR", nullable = false, updatable = false)
     private Boolean isAuthor;
+
+    @Column(name = "anonimity", nullable = false)
+    private Boolean anonymity;
 
 
 

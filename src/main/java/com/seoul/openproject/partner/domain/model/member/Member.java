@@ -93,4 +93,5 @@ public class Member extends BaseTimeVersionEntity {
         this.nickname = nickname;
     }
 
+
 }

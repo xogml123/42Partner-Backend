@@ -8,16 +8,16 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EntityNotFoundException;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
 import javax.persistence.Lob;
-import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
@@ -30,7 +30,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.Singular;
 
 
 @Builder(access = AccessLevel.PRIVATE)
@@ -137,6 +136,26 @@ public class Article extends BaseTimeVersionEntity {
         for (ArticleMatchCondition articleMatchCondition : articleMatchConditions) {
             articleMatchCondition.setArticle(this);
         }
+    }
+
+    public Member getAuthorMember(){
+        return this.getArticleMembers().stream()
+            .filter((articleMember) ->
+                articleMember.getIsAuthor())
+            .map((articleMember) ->
+                articleMember.getMember())
+            .findFirst().orElseThrow(() -> (
+                new EntityNotFoundException("해당 게시글의 작성자가 존재하지 않습니다.")
+            ));
+    }
+
+    public List<Member> getParticipatedMembers() {
+        return this.getArticleMembers().stream()
+            .filter((articleMember) ->
+                !articleMember.getIsAuthor())
+            .map((articleMember) ->
+                articleMember.getMember())
+            .collect(Collectors.toList());
     }
 
     /********************************* DTO *********************************/

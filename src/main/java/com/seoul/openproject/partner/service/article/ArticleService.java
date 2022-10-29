@@ -5,11 +5,11 @@ import com.seoul.openproject.partner.domain.model.ArticleMember;
 import com.seoul.openproject.partner.domain.model.article.Article;
 import com.seoul.openproject.partner.domain.model.article.Article.ArticleDto;
 import com.seoul.openproject.partner.domain.model.article.Article.ArticleOnlyIdResponse;
+import com.seoul.openproject.partner.domain.model.article.Article.ArticleReadOneResponse;
 import com.seoul.openproject.partner.domain.model.article.Place;
 import com.seoul.openproject.partner.domain.model.article.TimeOfEating;
 import com.seoul.openproject.partner.domain.model.article.TypeOfEating;
 import com.seoul.openproject.partner.domain.model.article.WayOfEating;
-import com.seoul.openproject.partner.domain.model.match.MatchCondition;
 import com.seoul.openproject.partner.domain.model.member.Member;
 import com.seoul.openproject.partner.domain.repository.article.ArticleRepository;
 import com.seoul.openproject.partner.domain.repository.matchcondition.MatchConditionRepository;
@@ -119,4 +119,15 @@ public class ArticleService {
     }
 
 
+    public ArticleReadOneResponse readOneArticle(String articleId) {
+        Article article = articleRepository.findByApiId(articleId)
+            .orElseThrow(() -> new EntityNotFoundException(articleId + "에 해당하는 게시글이 없습니다."));
+
+        Member memberAuthor = article.getAuthorMember();
+        List<Member> participatedMembers = article.getParticipatedMembers();
+
+
+
+        return ;
+    }
 }
