@@ -15,6 +15,8 @@ import com.seoul.openproject.partner.domain.repository.article.ArticleRepository
 import com.seoul.openproject.partner.domain.repository.matchcondition.MatchConditionRepository;
 import com.seoul.openproject.partner.domain.repository.member.MemberRepository;
 import com.seoul.openproject.partner.domain.repository.ArticleMatchConditionRepository;
+import com.seoul.openproject.partner.mapper.MatchConditionMapper;
+import com.seoul.openproject.partner.mapper.MemberMapper;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -32,6 +34,9 @@ public class ArticleService {
     private final MemberRepository memberRepository;
     private final MatchConditionRepository matchConditionRepository;
     private final ArticleMatchConditionRepository articleMatchConditionRepository;
+
+    private final MemberMapper memberMapper;
+    private final MatchConditionMapper matchConditionMapper;
 
     @Transactional
     public ArticleOnlyIdResponse createArticle(Article.ArticleDto articleRequest) {
@@ -108,7 +113,7 @@ public class ArticleService {
             .collect(Collectors.toList()));
         return matchConditionStrings;
     }
-    private List<ArticleMatchCondition> allMatchConditionToArticleMatchCondition(ArticleDto articleRequest) {
+    private List<ArticleMatchCondition> allMatchConditionToArticleMatchCondition(Article.ArticleDto articleRequest) {
         return allMatchConditionToStringList(articleRequest).stream()
             .map((matchConditionString) ->
                 matchConditionRepository.findByValue(matchConditionString).orElseThrow(() ->
@@ -123,11 +128,21 @@ public class ArticleService {
         Article article = articleRepository.findByApiId(articleId)
             .orElseThrow(() -> new EntityNotFoundException(articleId + "에 해당하는 게시글이 없습니다."));
 
-        Member memberAuthor = article.getAuthorMember();
-        List<Member> participatedMembers = article.getParticipatedMembers();
-
-
-
-        return ;
+        return ArticleReadOneResponse.builder()
+            .articleId(article.getApiId())
+            .content(article.getContent())
+            .title(article.getTitle())
+            .participantNumMax(article.getParticipantNumMax())
+            .participantNum(article.getParticipantNum())
+            .participantsOrAuthor(article.getArticleMembers().stream()
+                .map(am -> (
+                    memberMapper.entityToMemberDto(am.getMember(), am)))
+                .collect(Collectors.toList()))
+            .matchConditions(article.getArticleMatchConditions().stream()
+                .map(arc -> (
+                    matchConditionMapper.entityToMatchConditionDto(arc.getMatchCondition())
+                ))
+                .collect(Collectors.toList()))
+            .build();
     }
 }
