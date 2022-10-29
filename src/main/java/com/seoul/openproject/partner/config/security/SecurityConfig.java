@@ -70,7 +70,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     .antMatchers("/webjars/**").permitAll()
                     .antMatchers("/v3/api-docs/**").permitAll()
                     .antMatchers("/swagger-ui/**").permitAll()
-                    .antMatchers("/**").authenticated()
+                    .antMatchers("/**").permitAll()
             )
 
 //                    .antMatchers(HttpMethod.POST) "/api/users").permitAll()
@@ -86,7 +86,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 //            .antMatchers("/user/**").authenticated()
 //            .antMatchers("/manager/**").access("hasRole('ROLE_ADMIN') or hasRole('ROLE_MANAGER')")
 //            .antMatchers("/admin/**").access("hasRole('ROLE_ADMIN')")
-            //oauth2/authorize/authclient
+            /*
+                callback(redirect) URI: /login/oauth2/code/authclient - 아예 정해진거라 못바꿈
+                login URI: /oauth2/authorization/authclient - 설정을 하면 바꿀 수 있을 것 같음.
+             */
             .oauth2Login()
             .userInfoEndpoint()
             .userService(oAuth2UserService)
@@ -117,7 +120,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         .message("로그인에 실패하였습니다.")
                         .build()));
             })
-//            .anyRequest().authenticated()
             .and()
             .logout()
             .logoutRequestMatcher(new AntPathRequestMatcher("/api/security/logout"))

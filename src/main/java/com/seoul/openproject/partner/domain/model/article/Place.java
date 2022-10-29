@@ -4,15 +4,14 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-public enum TypeOfEating {
-    KOREAN("한식"), JAPANESE("일식"), CHINESE("중식"),
-    WESTERN("양식"), ASIAN("아시안"), EXOTIC("이국적인"), CONVENIENCE("편의점");
+public enum Place {
+    SEOCHO("서초 클러스터"), GAEPO("개포 클러스터"), OUT_OF_CLUSTER("클러스터 외부");
 
     private final String value;
-
     @JsonCreator
-    public static TypeOfEating from(String s) {
+    public static Place from(String s) {
         String target = s.toUpperCase();
-        return TypeOfEating.valueOf(target);
+        return Place.valueOf(target);
     }
+
 }

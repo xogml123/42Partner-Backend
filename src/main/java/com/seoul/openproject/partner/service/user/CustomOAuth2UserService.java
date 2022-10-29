@@ -1,5 +1,6 @@
-package com.seoul.openproject.partner.config.security;
+package com.seoul.openproject.partner.service.user;
 
+import com.seoul.openproject.partner.domain.MatchTryAvailabilityJudge;
 import com.seoul.openproject.partner.domain.model.member.Member;
 import com.seoul.openproject.partner.domain.model.user.Role;
 import com.seoul.openproject.partner.domain.model.user.RoleEnum;
@@ -47,8 +48,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         //https://cdn.intra.42.fr/users/0f260cc3e59777f0f5ba926f19cc1ec9/takim.jpg
         String imageUrl = (String) attributes.get("image_url");
 
-        HashMap<String, Object> necessaryAttributes = new HashMap<>();
-        createNeccessaryAttributes(apiId, login, email, imageUrl, necessaryAttributes);
+        HashMap<String, Object> necessaryAttributes = createNecessaryAttributes(apiId, login,
+            email, imageUrl);
 
         String username = email;
         Optional<User> userOptional = userRepository.findByUsername(username);
@@ -57,14 +58,15 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         return oAuth2User;
     }
 
-    private void createNeccessaryAttributes(String apiId, String login, String email, String imageUrl,
-        HashMap<String, Object> necessaryAttributes) {
+    private HashMap<String, Object> createNecessaryAttributes(String apiId, String login, String email, String imageUrl) {
+        HashMap<String, Object> necessaryAttributes = new HashMap<>();
         necessaryAttributes.put("id", apiId);
         necessaryAttributes.put("login", login);
         necessaryAttributes.put("email", email);
         necessaryAttributes.put("image_url", imageUrl);
-
+        return necessaryAttributes;
     }
+
 
     private User signUpOrUpdateUser(String login, String email, String imageUrl, String username,
         Optional<User> userOptional, Map<String, Object> necessaryAttributes) {
@@ -72,10 +74,13 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         //회원가입
         if (userOptional.isEmpty()) {
             //회원에 필용한 정보 생성 및 조회
+
             String encodedPassword = passwordEncoder.encode(UUID.randomUUID().toString());
 
-            Member member = Member.of(login);
+            MatchTryAvailabilityJudge matchTryAvailabilityJudge = MatchTryAvailabilityJudge.of();
+            Member member = Member.of(login, matchTryAvailabilityJudge);
             memberRepository.save(member);
+
             Role role = roleRepository.findByValue(RoleEnum.ROLE_USER).orElseThrow(() ->
                 new EntityNotFoundException(RoleEnum.ROLE_USER + "에 해당하는 Role이 없습니다."));
             user = User.createDefaultUser(username, encodedPassword, email, login, imageUrl, member);
@@ -88,7 +93,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         } else{
             //회원정보 수정
             user = userOptional.get();
-            user.updateUserByOAuthIfo(imageUrl);
+            // 새로 로그인 시 oauth2 기반 데이터로 변경하지않음.
+//            user.updateUserByOAuthIfo(imageUrl);
             necessaryAttributes.put("create_flag", false);
         }
         return user;
