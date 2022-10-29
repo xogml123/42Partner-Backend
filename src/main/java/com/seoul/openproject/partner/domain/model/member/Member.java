@@ -1,11 +1,14 @@
 package com.seoul.openproject.partner.domain.model.member;
 
 
+import com.seoul.openproject.partner.domain.MatchTryAvailabilityJudge;
 import com.seoul.openproject.partner.domain.model.BaseTimeVersionEntity;
 import com.seoul.openproject.partner.domain.model.article.Article;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -15,13 +18,17 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 
 @Builder(access = AccessLevel.PRIVATE)
@@ -65,10 +72,6 @@ public class Member extends BaseTimeVersionEntity {
     @Column(unique = true, nullable = false, length = 30)
     private String nickname;
 
-    //내가 작성하고 있는 Aritcle의 개수를 감시하기 위해 필요
-    @Builder.Default
-    @Column(nullable = false)
-    private Integer writtenArticleCount = 0;
 
 
 
@@ -78,19 +81,50 @@ public class Member extends BaseTimeVersionEntity {
 
     /********************************* 연관관계 매핑 *********************************/
 
+    //FetchType.LAZY가 실질적으로 적용안됨 항상 EAGER로 적용
+    @OneToOne(fetch = FetchType.LAZY, mappedBy = "member", cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
+    private MatchTryAvailabilityJudge matchTryAvailabilityJudge;
     /********************************* 연관관계 편의 메서드 *********************************/
 
     /********************************* 생성 메서드 *********************************/
 
-    public static Member of(String nickname) {
-        return Member.builder()
+    public static Member of(String nickname, MatchTryAvailabilityJudge matchTryAvailabilityJudge) {
+        Member member = Member.builder()
             .nickname(nickname)
             .build();
+        matchTryAvailabilityJudge.setMember(member);
+        return member;
     }
 
     /********************************* 비니지스 로직 *********************************/
     public void changeNickname(String nickname) {
         this.nickname = nickname;
+    }
+    public void setMatchTryAvailabilityJudge(MatchTryAvailabilityJudge matchTryAvailabilityJudge) {
+        this.matchTryAvailabilityJudge = matchTryAvailabilityJudge;
+    }
+
+    /********************************* DTO *********************************/
+
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    @Builder
+    static public class MemberDto {
+
+
+        @Schema(name = "nickname" , example = "꿈꾸는 나무", description = "글 작성자 혹은 참여자 (member)의 nickname")
+        @NotBlank
+        private String nickname;
+
+        @Schema(name = "isAuthor" , example = "true Or false", description = "작성자이면 true")
+        @NotNull
+        private Boolean isAuthor;
+
+        @Schema(name = "anonymity" , example = "true Or false", description = "익명을 원하면 true")
+        @NotNull
+        private Boolean anonymity;
+
     }
 
 

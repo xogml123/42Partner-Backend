@@ -259,10 +259,10 @@ public class User extends BaseTimeVersionEntity implements UserDetails, OAuth2Us
         this.password = encodedPassword;
     }
 
-    public void updateUserByOAuthIfo(String imageUrl) {
-        this.imageUrl = imageUrl;
-
-    }
+//    public void updateUserByOAuthIfo(String imageUrl) {
+//        this.imageUrl = imageUrl;
+//
+//    }
 
 
     /********************************* DTO *********************************/
