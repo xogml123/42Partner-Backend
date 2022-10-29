@@ -14,7 +14,7 @@ import com.seoul.openproject.partner.domain.model.member.Member;
 import com.seoul.openproject.partner.domain.repository.article.ArticleRepository;
 import com.seoul.openproject.partner.domain.repository.matchcondition.MatchConditionRepository;
 import com.seoul.openproject.partner.domain.repository.member.MemberRepository;
-import com.seoul.openproject.partner.repository.ArticleMatchConditionRepository;
+import com.seoul.openproject.partner.domain.repository.ArticleMatchConditionRepository;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -39,12 +39,12 @@ public class ArticleService {
         Member member = memberRepository.findByApiId(memberId)
             .orElseThrow(() -> new EntityNotFoundException(memberId + "에 해당하는 회원이 없습니다."));
 
-        ArticleMember articleMemberAuthor = ArticleMember.of(member, true);
+        ArticleMember articleMemberAuthor = ArticleMember.of(member, true, articleRequest.getAuthorAnonymity());
         List<ArticleMatchCondition> articleMatchConditionList = allMatchConditionToArticleMatchCondition(articleRequest);
 
         Article article = articleRepository.save(Article.of(articleRequest.getTitle(),
             articleRequest.getContent(),
-            articleRequest.getAnonymity(),
+            articleRequest.getParticipantNumMax(),
             articleMemberAuthor,
             articleMatchConditionList));
 
@@ -67,7 +67,7 @@ public class ArticleService {
         article.getArticleMatchConditions().stream()
                 .forEach(articleMatchCondition -> articleMatchConditionRepository.delete(articleMatchCondition));
         article.update(articleRequest.getTitle(), articleRequest.getContent(),
-            articleRequest.getAnonymity(), articleMatchConditions);
+            articleRequest.getParticipantNumMax(), articleMatchConditions);
         return new ArticleOnlyIdResponse(article.getApiId());
     }
 
