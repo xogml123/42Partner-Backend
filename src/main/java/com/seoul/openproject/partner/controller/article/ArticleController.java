@@ -13,10 +13,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -36,12 +38,32 @@ public class ArticleController {
                 .message(e.getMessage())
                 .build());
     }
+    @Operation(summary = "방 하나 상세조회", description = "방 상세페이지")
+    @GetMapping("/articles/{articleId}")
+    public Article.ArticleReadOneResponse readOneRoomMatching(@PathVariable) {
+        return articleService.readOneArticle(articleRequest);
+    }
+
+
 //    @PreAuthorize("hasAuthority('article.create') OR "
 //        + "(hasAuthority('article.create') AND @customAuthenticationManager.userIdMatches(authentication, #articleRequest))")
     @Operation(summary = "방 매칭 글쓰기", description = "방 매칭 글쓰기")
     @PostMapping("/articles")
     public Article.ArticleOnlyIdResponse writeRoomMatching(@Validated @Parameter @RequestBody Article.ArticleDto articleRequest) {
         return articleService.createArticle(articleRequest);
+    }
+
+    @Operation(summary = "방 매칭 글수정", description = "방 매칭 글쓰기")
+    @PutMapping("/articles/{articleId}")
+    public Article.ArticleOnlyIdResponse updateRoomMatching(@Validated @Parameter @RequestBody Article.ArticleDto articleRequest,
+        @PathVariable String articleId) {
+        return articleService.updateArticle(articleRequest, articleId);
+    }
+
+    @Operation(summary = "방 매칭 삭제", description = "방 매칭 삭제")
+    @DeleteMapping("/articles/{articleId}")
+    public Article.ArticleOnlyIdResponse deleteRoomMatching(@PathVariable String articleId) {
+        return articleService.deleteArticle(articleId);
     }
 
 }

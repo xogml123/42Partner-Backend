@@ -1,11 +1,7 @@
-package com.seoul.openproject.partner.domain.model.member;
+package com.seoul.openproject.partner.domain.model;
 
-
-import com.seoul.openproject.partner.domain.model.BaseTimeVersionEntity;
 import com.seoul.openproject.partner.domain.model.article.Article;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import com.seoul.openproject.partner.domain.model.member.Member;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -14,26 +10,21 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
 import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-
 @Builder(access = AccessLevel.PRIVATE)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
-@Table(name = "MEMBER", uniqueConstraints = {
-    @UniqueConstraint(name = "NICK_NAME_UNIQUE", columnNames = {"nickname"}),
-    @UniqueConstraint(name = "API_ID_UNIQUE", columnNames = {"apiId"})
-})
+@Table(name = "ARTICLE_MEMBER")
 @Entity
-public class Member extends BaseTimeVersionEntity {
+public class ArticleMember {
+
     //********************************* static final 상수 필드 *********************************/
 
     /**
@@ -48,7 +39,7 @@ public class Member extends BaseTimeVersionEntity {
      */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "MEMBER_ID")
+    @Column(name = "ARTICLE_MEMBER_ID")
     private Long id;
 
 
@@ -58,17 +49,11 @@ public class Member extends BaseTimeVersionEntity {
      * AUTH에 필요한 필드
      */
 
-    @Builder.Default
-    @Column(nullable = false, updatable = false, length = 50)
-    private final String apiId = UUID.randomUUID().toString();
+    @Column(name = "IS_AUTHOR", nullable = false, updatable = false)
+    private Boolean isAuthor;
 
-    @Column(unique = true, nullable = false, length = 30)
-    private String nickname;
 
-    //내가 작성하고 있는 Aritcle의 개수를 감시하기 위해 필요
-    @Builder.Default
-    @Column(nullable = false)
-    private Integer writtenArticleCount = 0;
+
 
 
 
@@ -78,19 +63,36 @@ public class Member extends BaseTimeVersionEntity {
 
     /********************************* 연관관계 매핑 *********************************/
 
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "MEMBER_ID", nullable = false, updatable = false)
+    private Member member;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ARTICLE_ID", nullable = false, updatable = false)
+    private Article article;
+
+
+    /*********************************  *********************************/
+
+
     /********************************* 연관관계 편의 메서드 *********************************/
 
     /********************************* 생성 메서드 *********************************/
 
-    public static Member of(String nickname) {
-        return Member.builder()
-            .nickname(nickname)
+    public static ArticleMember of(Member member, boolean isAuthor) {
+        return ArticleMember.builder()
+            .member(member)
+            .isAuthor(isAuthor)
             .build();
     }
 
     /********************************* 비니지스 로직 *********************************/
-    public void changeNickname(String nickname) {
-        this.nickname = nickname;
+
+    public void setArticle(Article article) {
+        this.article = article;
+        article.getArticleMembers().add(this);
     }
 
+    /********************************* DTO *********************************/
 }

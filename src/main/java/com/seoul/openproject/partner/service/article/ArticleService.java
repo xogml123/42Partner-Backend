@@ -1,6 +1,7 @@
 package com.seoul.openproject.partner.service.article;
 
 import com.seoul.openproject.partner.domain.ArticleMatchCondition;
+import com.seoul.openproject.partner.domain.model.ArticleMember;
 import com.seoul.openproject.partner.domain.model.article.Article;
 import com.seoul.openproject.partner.domain.model.article.Article.ArticleDto;
 import com.seoul.openproject.partner.domain.model.article.Article.ArticleOnlyIdResponse;
@@ -38,35 +39,41 @@ public class ArticleService {
         Member member = memberRepository.findByApiId(memberId)
             .orElseThrow(() -> new EntityNotFoundException(memberId + "에 해당하는 회원이 없습니다."));
 
-        List<String> matchConditionStrings = new ArrayList<>();
-        addAllMatchCondition(articleRequest, matchConditionStrings);
-
-
-        List<ArticleMatchCondition> articleMatchConditionList = new ArrayList<>();
-
-        for (String matchConditionString : matchConditionStrings) {
-            MatchCondition matchCondition = matchConditionRepository.findByValue(
-                    matchConditionString)
-                .orElseThrow(() -> new EntityNotFoundException(
-                    matchConditionString + "에 해당하는 매칭 조건이 없습니다."));
-            ArticleMatchCondition ar = ArticleMatchCondition.of(matchCondition);
-            articleMatchConditionList.add(ar);
-        }
+        ArticleMember articleMemberAuthor = ArticleMember.of(member, true);
+        List<ArticleMatchCondition> articleMatchConditionList = allMatchConditionToArticleMatchCondition(articleRequest);
 
         Article article = articleRepository.save(Article.of(articleRequest.getTitle(),
             articleRequest.getContent(),
             articleRequest.getAnonymity(),
-            member,
+            articleMemberAuthor,
             articleMatchConditionList));
-
-        articleMatchConditionList.forEach(articleMatchCondition -> {
-            articleMatchConditionRepository.save(articleMatchCondition);
-        });
 
         return new ArticleOnlyIdResponse(article.getApiId());
     }
+    @Transactional
+    public ArticleOnlyIdResponse deleteArticle(String articleId) {
 
-    private void addAllMatchCondition(ArticleDto articleRequest, List<String> matchConditionStrings) {
+        articleRepository.deleteByApiId(articleId);
+
+        return new ArticleOnlyIdResponse(articleId);
+    }
+
+    @Transactional
+    public ArticleOnlyIdResponse updateArticle(ArticleDto articleRequest, String articleId) {
+        Article article = articleRepository.findByApiId(articleId)
+            .orElseThrow(() -> new EntityNotFoundException(articleId + "에 해당하는 게시글이 없습니다."));
+        List<ArticleMatchCondition> articleMatchConditions = allMatchConditionToArticleMatchCondition(
+            articleRequest);
+        article.getArticleMatchConditions().stream()
+                .forEach(articleMatchCondition -> articleMatchConditionRepository.delete(articleMatchCondition));
+        article.update(articleRequest.getTitle(), articleRequest.getContent(),
+            articleRequest.getAnonymity(), articleMatchConditions);
+        return new ArticleOnlyIdResponse(article.getApiId());
+    }
+
+
+    private List<String> allMatchConditionToStringList(Article.ArticleDto articleRequest) {
+        List<String> matchConditionStrings = new ArrayList<>();
         List<Place> place = articleRequest.getPlace();
         if (place == null) {
             place = new ArrayList<>();
@@ -99,5 +106,17 @@ public class ArticleService {
             .map(p ->
                 p.name())
             .collect(Collectors.toList()));
+        return matchConditionStrings;
     }
+    private List<ArticleMatchCondition> allMatchConditionToArticleMatchCondition(ArticleDto articleRequest) {
+        return allMatchConditionToStringList(articleRequest).stream()
+            .map((matchConditionString) ->
+                matchConditionRepository.findByValue(matchConditionString).orElseThrow(() ->
+                    new EntityNotFoundException(matchConditionString + "에 해당하는 매칭 조건이 없습니다.")
+                ))
+            .map(ArticleMatchCondition::of)
+            .collect(Collectors.toList());
+    }
+
+
 }
