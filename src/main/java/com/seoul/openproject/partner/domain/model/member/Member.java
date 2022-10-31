@@ -3,10 +3,7 @@ package com.seoul.openproject.partner.domain.model.member;
 
 import com.seoul.openproject.partner.domain.MatchTryAvailabilityJudge;
 import com.seoul.openproject.partner.domain.model.BaseTimeVersionEntity;
-import com.seoul.openproject.partner.domain.model.article.Article;
 import io.swagger.v3.oas.annotations.media.Schema;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -15,9 +12,6 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
@@ -29,6 +23,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.data.domain.Pageable;
 
 
 @Builder(access = AccessLevel.PRIVATE)
@@ -87,7 +82,6 @@ public class Member extends BaseTimeVersionEntity {
     /********************************* 연관관계 편의 메서드 *********************************/
 
     /********************************* 생성 메서드 *********************************/
-
     public static Member of(String nickname, MatchTryAvailabilityJudge matchTryAvailabilityJudge) {
         Member member = Member.builder()
             .nickname(nickname)
@@ -110,7 +104,7 @@ public class Member extends BaseTimeVersionEntity {
     @Setter
     @AllArgsConstructor
     @Builder
-    static public class MemberDto {
+    public static class MemberDto {
 
 
         @Schema(name = "nickname" , example = "꿈꾸는 나무", description = "글 작성자 혹은 참여자 (member)의 nickname")
@@ -126,6 +120,4 @@ public class Member extends BaseTimeVersionEntity {
         private Boolean anonymity;
 
     }
-
-
 }
