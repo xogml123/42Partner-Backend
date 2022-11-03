@@ -2,7 +2,7 @@ package com.seoul.openproject.partner.service.user;
 
 
 import com.seoul.openproject.partner.domain.model.user.User;
-import com.seoul.openproject.partner.domain.repository.user.UserRepository;
+import com.seoul.openproject.partner.repository.user.UserRepository;
 import com.seoul.openproject.partner.mapper.UserMapper;
 import javax.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;

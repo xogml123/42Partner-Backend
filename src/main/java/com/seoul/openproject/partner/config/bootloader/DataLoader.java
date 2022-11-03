@@ -3,17 +3,18 @@ package com.seoul.openproject.partner.config.bootloader;
 import com.seoul.openproject.partner.domain.model.article.Place;
 import com.seoul.openproject.partner.domain.model.article.TimeOfEating;
 import com.seoul.openproject.partner.domain.model.article.TypeOfEating;
+import com.seoul.openproject.partner.domain.model.article.TypeOfStudy;
 import com.seoul.openproject.partner.domain.model.article.WayOfEating;
 import com.seoul.openproject.partner.domain.model.match.ConditionCategory;
 import com.seoul.openproject.partner.domain.model.match.MatchCondition;
 import com.seoul.openproject.partner.domain.model.user.Authority;
 import com.seoul.openproject.partner.domain.model.user.Role;
 import com.seoul.openproject.partner.domain.model.user.RoleEnum;
-import com.seoul.openproject.partner.domain.repository.matchcondition.MatchConditionRepository;
-import com.seoul.openproject.partner.domain.repository.user.AuthorityRepository;
-import com.seoul.openproject.partner.domain.repository.user.RoleRepository;
-import com.seoul.openproject.partner.domain.repository.user.UserRepository;
-import com.seoul.openproject.partner.domain.repository.user.UserRoleRepository;
+import com.seoul.openproject.partner.repository.matchcondition.MatchConditionRepository;
+import com.seoul.openproject.partner.repository.user.AuthorityRepository;
+import com.seoul.openproject.partner.repository.user.RoleRepository;
+import com.seoul.openproject.partner.repository.user.UserRepository;
+import com.seoul.openproject.partner.repository.user.UserRoleRepository;
 import java.util.Arrays;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -199,6 +200,11 @@ public class DataLoader implements CommandLineRunner {
         matchConditionRepository.save(MatchCondition.of(TypeOfEating.ASIAN.name(), ConditionCategory.TYPE_OF_EATING));
         matchConditionRepository.save(MatchCondition.of(TypeOfEating.EXOTIC.name(), ConditionCategory.TYPE_OF_EATING));
         matchConditionRepository.save(MatchCondition.of(TypeOfEating.CONVENIENCE.name(), ConditionCategory.TYPE_OF_EATING));
+
+        matchConditionRepository.save(MatchCondition.of(TypeOfStudy.INNER_CIRCLE.name(), ConditionCategory.TYPE_OF_STUDY));
+        matchConditionRepository.save(MatchCondition.of(TypeOfStudy.NOT_INNER_CIRCLE.name(), ConditionCategory.TYPE_OF_STUDY));
+
+
     }
 
     private Role saveNewRole(RoleEnum roleEnum) {

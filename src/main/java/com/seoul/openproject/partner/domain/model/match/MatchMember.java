@@ -1,7 +1,11 @@
-package com.seoul.openproject.partner.domain.model.activity;
+package com.seoul.openproject.partner.domain.model.match;
+
+
+
 
 import com.seoul.openproject.partner.domain.model.BaseEntity;
 import com.seoul.openproject.partner.domain.model.BaseTimeVersionEntity;
+import com.seoul.openproject.partner.domain.model.match.Match;
 import com.seoul.openproject.partner.domain.model.member.Member;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -19,13 +23,13 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder(access = AccessLevel.PRIVATE)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
-@Table(name = "ACTIVITY")
+@Table(name = "MATCH_MEMBER")
 @Entity
-public class Activity extends BaseEntity {
+public class MatchMember extends BaseEntity {
     //********************************* static final 상수 필드 *********************************/
 
     /**
@@ -40,16 +44,19 @@ public class Activity extends BaseEntity {
      */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "ACTIVITY_ID")
+    @Column(name = "MATCH_MEMBER_ID")
     private Long id;
 
 
     /********************************* PK가 아닌 필드 *********************************/
 
+    /**
+     * AUTH에 필요한 필드
+     */
 
 
-    @Column(nullable = false, updatable = false)
-    private Integer score;
+
+
 
 
     /********************************* 비영속 필드 *********************************/
@@ -60,6 +67,11 @@ public class Activity extends BaseEntity {
     @JoinColumn(name = "MEMBER_ID", nullable = false, updatable = false)
     private Member member;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "MATCH_ID", nullable = false, updatable = false)
+    private Match match;
+
+
 
     /********************************* 연관관계 편의 메서드 *********************************/
 
@@ -69,5 +81,3 @@ public class Activity extends BaseEntity {
     /********************************* 비니지스 로직 *********************************/
 
 }
-
-

@@ -1,8 +1,8 @@
 package com.seoul.openproject.partner.domain.model.match;
 
 
-import com.seoul.openproject.partner.domain.model.BaseTimeVersionEntity;
-import com.seoul.openproject.partner.domain.model.MatchConditionMatch;
+import com.seoul.openproject.partner.domain.model.BaseEntity;
+import com.seoul.openproject.partner.domain.model.matchcondition.MatchConditionMatch;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -20,18 +20,24 @@ import javax.persistence.InheritanceType;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Singular;
 
 
+@Builder(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Getter
 @Table(name = "MATCHS", uniqueConstraints = {
     @UniqueConstraint(name = "API_ID_UNIQUE", columnNames = {"apiId"}),
 })
-@Inheritance(strategy = InheritanceType.JOINED)
-@DiscriminatorColumn(name = "MATCH_TYPE")
+
 @Entity
-public abstract class Match extends BaseTimeVersionEntity {
+public class Match extends BaseEntity {
     //********************************* static final 상수 필드 *********************************/
 
     /**
@@ -63,6 +69,14 @@ public abstract class Match extends BaseTimeVersionEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, updatable = false)
     private MatchStatus matchStatus;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, updatable = false)
+    private ContentCategory contentCategory;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, updatable = false)
+    private MethodCategory methodCategory;
 
 
 

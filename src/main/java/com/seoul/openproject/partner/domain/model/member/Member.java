@@ -1,8 +1,8 @@
 package com.seoul.openproject.partner.domain.model.member;
 
 
-import com.seoul.openproject.partner.domain.MatchTryAvailabilityJudge;
-import com.seoul.openproject.partner.domain.model.BaseTimeVersionEntity;
+import com.seoul.openproject.partner.domain.model.tryjudge.MatchTryAvailabilityJudge;
+import com.seoul.openproject.partner.domain.model.BaseEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.UUID;
 import javax.persistence.CascadeType;
@@ -23,7 +23,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.data.domain.Pageable;
 
 
 @Builder(access = AccessLevel.PRIVATE)
@@ -35,7 +34,7 @@ import org.springframework.data.domain.Pageable;
     @UniqueConstraint(name = "API_ID_UNIQUE", columnNames = {"apiId"})
 })
 @Entity
-public class Member extends BaseTimeVersionEntity {
+public class Member extends BaseEntity {
     //********************************* static final 상수 필드 *********************************/
 
     /**
@@ -115,9 +114,6 @@ public class Member extends BaseTimeVersionEntity {
         @NotNull
         private Boolean isAuthor;
 
-        @Schema(name = "anonymity" , example = "true Or false", description = "익명을 원하면 true")
-        @NotNull
-        private Boolean anonymity;
 
     }
 }

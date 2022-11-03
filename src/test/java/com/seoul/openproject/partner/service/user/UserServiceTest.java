@@ -2,14 +2,11 @@ package com.seoul.openproject.partner.service.user;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.seoul.openproject.partner.domain.MatchTryAvailabilityJudge;
+import com.seoul.openproject.partner.domain.model.tryjudge.MatchTryAvailabilityJudge;
 import com.seoul.openproject.partner.domain.model.member.Member;
 import com.seoul.openproject.partner.domain.model.user.User;
 import com.seoul.openproject.partner.domain.model.user.User.UserDto;
 import com.seoul.openproject.partner.mapper.UserMapper;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.PriorityQueue;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 

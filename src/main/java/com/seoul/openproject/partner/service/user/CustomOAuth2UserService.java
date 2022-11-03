@@ -1,15 +1,15 @@
 package com.seoul.openproject.partner.service.user;
 
-import com.seoul.openproject.partner.domain.MatchTryAvailabilityJudge;
+import com.seoul.openproject.partner.domain.model.tryjudge.MatchTryAvailabilityJudge;
 import com.seoul.openproject.partner.domain.model.member.Member;
 import com.seoul.openproject.partner.domain.model.user.Role;
 import com.seoul.openproject.partner.domain.model.user.RoleEnum;
 import com.seoul.openproject.partner.domain.model.user.User;
 import com.seoul.openproject.partner.domain.model.user.UserRole;
-import com.seoul.openproject.partner.domain.repository.member.MemberRepository;
-import com.seoul.openproject.partner.domain.repository.user.RoleRepository;
-import com.seoul.openproject.partner.domain.repository.user.UserRepository;
-import com.seoul.openproject.partner.domain.repository.user.UserRoleRepository;
+import com.seoul.openproject.partner.repository.member.MemberRepository;
+import com.seoul.openproject.partner.repository.user.RoleRepository;
+import com.seoul.openproject.partner.repository.user.UserRepository;
+import com.seoul.openproject.partner.repository.user.UserRoleRepository;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;

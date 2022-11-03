@@ -1,6 +1,7 @@
 package com.seoul.openproject.partner.domain.model.user;
 
 
+import com.seoul.openproject.partner.domain.model.BaseTimeVersionEntity;
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
@@ -25,7 +26,7 @@ import lombok.Singular;
 @Getter
 @Table(name="AUTHORITY")
 @Entity
-public class Authority implements Serializable {
+public class Authority extends BaseTimeVersionEntity implements Serializable {
 
     @Id
     @GeneratedValue

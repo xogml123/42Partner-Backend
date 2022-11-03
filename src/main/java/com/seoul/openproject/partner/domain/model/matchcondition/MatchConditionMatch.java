@@ -1,8 +1,10 @@
-package com.seoul.openproject.partner.domain.model.activity;
+package com.seoul.openproject.partner.domain.model.matchcondition;
 
-import com.seoul.openproject.partner.domain.model.BaseEntity;
+
 import com.seoul.openproject.partner.domain.model.BaseTimeVersionEntity;
-import com.seoul.openproject.partner.domain.model.member.Member;
+import com.seoul.openproject.partner.domain.model.match.Match;
+import com.seoul.openproject.partner.domain.model.match.MatchCondition;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -17,15 +19,16 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.data.domain.Sort;
 
 
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder(access = AccessLevel.PRIVATE)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
-@Table(name = "ACTIVITY")
+@Table(name = "MATCH_CONDITION_MATCH")
 @Entity
-public class Activity extends BaseEntity {
+public class MatchConditionMatch extends BaseTimeVersionEntity {
     //********************************* static final 상수 필드 *********************************/
 
     /**
@@ -40,7 +43,7 @@ public class Activity extends BaseEntity {
      */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "ACTIVITY_ID")
+    @Column(name = "MATCH_CONDITION_MATCH_ID")
     private Long id;
 
 
@@ -48,26 +51,29 @@ public class Activity extends BaseEntity {
 
 
 
-    @Column(nullable = false, updatable = false)
-    private Integer score;
-
 
     /********************************* 비영속 필드 *********************************/
 
+
     /********************************* 연관관계 매핑 *********************************/
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "MATCH_ID", nullable = false, updatable = false)
+    private Match match;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "MEMBER_ID", nullable = false, updatable = false)
-    private Member member;
-
+    @JoinColumn(name = "MATCH_CONDITION_ID", nullable = false, updatable = false)
+    private MatchCondition matchCondition;
 
     /********************************* 연관관계 편의 메서드 *********************************/
 
-    /********************************* 생성 메서드 *********************************/
 
+    /********************************* 생성 메서드 *********************************/
 
     /********************************* 비니지스 로직 *********************************/
 
-}
 
+
+    /********************************* DTO *********************************/
+
+}
 

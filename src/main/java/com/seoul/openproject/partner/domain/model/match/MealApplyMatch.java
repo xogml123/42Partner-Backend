@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Table(name = "MEAL_APPLY_MATCH")
-@Entity
+//@Entity
 public class MealApplyMatch extends Match {
     //********************************* static final 상수 필드 *********************************/
 

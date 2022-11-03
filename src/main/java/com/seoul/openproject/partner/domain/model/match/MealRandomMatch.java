@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Table(name = "MEAL_RANDOM_MATCH")
-@Entity
+//@Entity
 public class MealRandomMatch extends Match {
     //********************************* static final 상수 필드 *********************************/
 

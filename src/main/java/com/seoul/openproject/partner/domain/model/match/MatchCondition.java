@@ -1,5 +1,6 @@
 package com.seoul.openproject.partner.domain.model.match;
 
+import com.seoul.openproject.partner.domain.model.BaseTimeVersionEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
 import javax.persistence.Column;
@@ -28,7 +29,7 @@ import lombok.Setter;
 @Getter
 @Table(name = "MATCH_CONDITION")
 @Entity
-public class MatchCondition {
+public class MatchCondition extends BaseTimeVersionEntity {
     //********************************* static final 상수 필드 *********************************/
 
     /**
