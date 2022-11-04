@@ -1,5 +1,10 @@
 package com.seoul.openproject.partner.service.article;
 
+import com.seoul.openproject.partner.domain.model.match.ContentCategory;
+import com.seoul.openproject.partner.domain.model.match.Match;
+import com.seoul.openproject.partner.domain.model.match.MatchMember;
+import com.seoul.openproject.partner.domain.model.match.MatchStatus;
+import com.seoul.openproject.partner.domain.model.match.MethodCategory;
 import com.seoul.openproject.partner.domain.model.matchcondition.ArticleMatchCondition;
 import com.seoul.openproject.partner.domain.model.article.ArticleMember;
 import com.seoul.openproject.partner.domain.model.article.Article;
@@ -11,11 +16,15 @@ import com.seoul.openproject.partner.domain.model.article.Place;
 import com.seoul.openproject.partner.domain.model.article.TimeOfEating;
 import com.seoul.openproject.partner.domain.model.article.WayOfEating;
 import com.seoul.openproject.partner.domain.model.match.MatchCondition.MatchConditionDto;
+import com.seoul.openproject.partner.domain.model.matchcondition.MatchConditionMatch;
 import com.seoul.openproject.partner.domain.model.member.Member;
 import com.seoul.openproject.partner.exception.NotAuthorException;
 import com.seoul.openproject.partner.repository.article.ArticleRepository;
 import com.seoul.openproject.partner.repository.article.ArticleSearch;
 import com.seoul.openproject.partner.repository.articlemember.ArticleMemberRepository;
+import com.seoul.openproject.partner.repository.match.MatchMemberRepository;
+import com.seoul.openproject.partner.repository.match.MatchRepository;
+import com.seoul.openproject.partner.repository.matchcondition.MatchConditionMatchRepository;
 import com.seoul.openproject.partner.repository.matchcondition.MatchConditionRepository;
 import com.seoul.openproject.partner.repository.member.MemberRepository;
 import com.seoul.openproject.partner.repository.ArticleMatchConditionRepository;
@@ -29,6 +38,7 @@ import javax.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,6 +53,12 @@ public class ArticleService {
     private final MatchConditionRepository matchConditionRepository;
     private final ArticleMatchConditionRepository articleMatchConditionRepository;
     private final ArticleMemberRepository articleMemberRepository;
+
+    private final MatchConditionMatchRepository matchConditionMatchRepository;
+    private final MatchRepository matchRepository;
+
+    private final MatchMemberRepository matchMemberRepository;
+
     private final MemberMapper memberMapper;
     private final MatchConditionMapper matchConditionMapper;
 
@@ -210,7 +226,16 @@ public class ArticleService {
         }
         article.complete();
         //매칭 완료
-        .of()
+        Match match = matchRepository.save(Match.of(MatchStatus.MATCHED, ContentCategory.MEAL, MethodCategory.MANUAL,
+            article));
+        matchConditionMatchRepository.saveAll(article.getArticleMatchConditions().stream()
+            .map(arm ->
+                MatchConditionMatch.of(match, arm.getMatchCondition()))
+            .collect(Collectors.toList()));
+        matchMemberRepository.saveAll(article.getArticleMembers().stream()
+            .map(am ->
+                MatchMember.of(match, am.getMember(), am.getIsAuthor()))
+            .collect(Collectors.toList()));
         //활동 점수 부여
 
         //슬랙 알림(비동기)

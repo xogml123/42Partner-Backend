@@ -113,14 +113,17 @@ public class Article extends BaseEntity {
     @Builder.Default
     @OneToMany(mappedBy = "article", fetch = FetchType.LAZY, cascade = {CascadeType.REMOVE,
         CascadeType.PERSIST})
+    @Column(nullable = false, updatable = false)
     private List<ArticleMatchCondition> articleMatchConditions = new ArrayList<>();
 
     @Builder.Default
     @OneToMany(mappedBy = "article", fetch = FetchType.LAZY, cascade = {CascadeType.REMOVE, CascadeType.PERSIST})
+    @Column(nullable = false, updatable = false)
     private List<ArticleMember> articleMembers = new ArrayList<>();
 
     @Builder.Default
     @OneToMany(mappedBy = "article", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+    @Column(nullable = false, updatable = false)
     private List<Opinion> Opinions = new ArrayList<>();
 
     /********************************* 연관관계 편의 메서드 *********************************/

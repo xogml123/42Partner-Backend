@@ -65,9 +65,20 @@ public class MatchConditionMatch extends BaseTimeVersionEntity {
     private MatchCondition matchCondition;
 
     /********************************* 연관관계 편의 메서드 *********************************/
+    public void setMatch(Match match) {
+        this.match = match;
+        match.getMatchConditionMatches().add(this);
+    }
 
 
     /********************************* 생성 메서드 *********************************/
+    public static MatchConditionMatch of(Match match, MatchCondition matchCondition) {
+        MatchConditionMatch matchConditionMatch = MatchConditionMatch.builder()
+            .matchCondition(matchCondition)
+            .build();
+        matchConditionMatch.setMatch(match);
+        return matchConditionMatch;
+    }
 
     /********************************* 비니지스 로직 *********************************/
 

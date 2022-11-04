@@ -2,6 +2,7 @@ package com.seoul.openproject.partner.domain.model.match;
 
 
 import com.seoul.openproject.partner.domain.model.BaseEntity;
+import com.seoul.openproject.partner.domain.model.article.Article;
 import com.seoul.openproject.partner.domain.model.matchcondition.MatchConditionMatch;
 import java.util.ArrayList;
 import java.util.List;
@@ -17,6 +18,8 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
@@ -62,7 +65,7 @@ public class Match extends BaseEntity {
      * AUTH에 필요한 필드
      */
 
-//    @Builder.Default
+    @Builder.Default
     @Column(nullable = false, updatable = false, length = 50)
     private final String apiId = UUID.randomUUID().toString();
 
@@ -78,8 +81,14 @@ public class Match extends BaseEntity {
     @Column(nullable = false, updatable = false)
     private MethodCategory methodCategory;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ARTICLE_ID", nullable = false, updatable = false)
+    private Article article;
 
-
+    @Builder.Default
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "match")
+    @Column(nullable = false, updatable = false)
+    private List<MatchMember> matchMembers = new ArrayList<>();
 
 
 
@@ -97,6 +106,14 @@ public class Match extends BaseEntity {
 
     /********************************* 생성 메서드 *********************************/
 
+    public static Match of(MatchStatus matchStatus, ContentCategory contentCategory, MethodCategory methodCategory, Article article) {
+        return Match.builder()
+            .matchStatus(matchStatus)
+            .contentCategory(contentCategory)
+            .methodCategory(methodCategory)
+            .article(article)
+            .build();
+    }
 
 
 

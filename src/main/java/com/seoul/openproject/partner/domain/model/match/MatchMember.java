@@ -4,8 +4,6 @@ package com.seoul.openproject.partner.domain.model.match;
 
 
 import com.seoul.openproject.partner.domain.model.BaseEntity;
-import com.seoul.openproject.partner.domain.model.BaseTimeVersionEntity;
-import com.seoul.openproject.partner.domain.model.match.Match;
 import com.seoul.openproject.partner.domain.model.member.Member;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -50,10 +48,9 @@ public class MatchMember extends BaseEntity {
 
     /********************************* PK가 아닌 필드 *********************************/
 
-    /**
-     * AUTH에 필요한 필드
-     */
 
+    @Column(name = "IS_AUTHOR", nullable = false, updatable = false)
+    private Boolean isAuthor;
 
 
 
@@ -74,10 +71,21 @@ public class MatchMember extends BaseEntity {
 
 
     /********************************* 연관관계 편의 메서드 *********************************/
+    public void setMatch(Match match) {
+        this.match = match;
+        match.getMatchMembers().add(this);
+    }
 
     /********************************* 생성 메서드 *********************************/
 
-
+    public static MatchMember of(Match match, Member member, boolean isAuthor) {
+        MatchMember matchMember = MatchMember.builder()
+            .isAuthor(isAuthor)
+            .member(member)
+            .build();
+        matchMember.setMatch(match);
+        return matchMember;
+    }
     /********************************* 비니지스 로직 *********************************/
 
 }
