@@ -1,7 +1,7 @@
 package com.seoul.openproject.partner.repository.article;
 
-import static com.seoul.openproject.partner.domain.model.QArticleMember.articleMember;
 import static com.seoul.openproject.partner.domain.model.article.QArticle.article;
+import static com.seoul.openproject.partner.domain.model.article.QArticleMember.articleMember;
 
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;

@@ -33,6 +33,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.Singular;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.CredentialsContainer;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -56,7 +57,8 @@ public class User extends BaseTimeVersionEntity implements UserDetails, OAuth2Us
     /**
      * email 뒤에 붙는 문자열
      */
-
+    public static final String GMAIL = "@gmail.com";
+    public static final String SEOUL_42 = "@student.42seoul.kr";
 
     /********************************* PK 필드 *********************************/
 

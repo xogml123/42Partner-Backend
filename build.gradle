@@ -36,6 +36,7 @@ dependencies {
 	implementation 'io.springfox:springfox-boot-starter:3.0.0'
 	annotationProcessor 'org.projectlombok:lombok'
 	compileOnly 'org.projectlombok:lombok'
+	implementation 'org.json:json:20190722'
 
 	//querydsl
 	implementation "com.querydsl:querydsl-jpa:${queryDslVersion}"
