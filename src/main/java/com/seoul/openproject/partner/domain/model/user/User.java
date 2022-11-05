@@ -56,7 +56,8 @@ public class User extends BaseTimeVersionEntity implements UserDetails, OAuth2Us
     /**
      * email 뒤에 붙는 문자열
      */
-
+    public static final String GMAIL = "@gmail.com";
+    public static final String SEOUL_42 = "@student.42seoul.kr";
 
     /********************************* PK 필드 *********************************/
 
@@ -154,7 +155,7 @@ public class User extends BaseTimeVersionEntity implements UserDetails, OAuth2Us
 
     /********************************* 생성 메서드 *********************************/
 
-    public static User createDefaultUser(String username, String encodedPassword, String email,
+    public static User of(String username, String encodedPassword, String email,
         String oauth2Username, String imageUrl, Member member) {
 
         User user = User.builder()

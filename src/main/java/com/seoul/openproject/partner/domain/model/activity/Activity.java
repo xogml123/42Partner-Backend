@@ -1,5 +1,6 @@
 package com.seoul.openproject.partner.domain.model.activity;
 
+import com.seoul.openproject.partner.domain.model.BaseEntity;
 import com.seoul.openproject.partner.domain.model.BaseTimeVersionEntity;
 import com.seoul.openproject.partner.domain.model.member.Member;
 import javax.persistence.Column;
@@ -24,7 +25,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @Table(name = "ACTIVITY")
 @Entity
-public class Activity extends BaseTimeVersionEntity {
+public class Activity extends BaseEntity {
     //********************************* static final 상수 필드 *********************************/
 
     /**

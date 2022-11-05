@@ -2,10 +2,12 @@ package com.seoul.openproject.partner.service.user;
 
 
 import com.seoul.openproject.partner.domain.model.user.User;
-import com.seoul.openproject.partner.domain.repository.user.UserRepository;
+import com.seoul.openproject.partner.repository.user.UserRepository;
 import com.seoul.openproject.partner.mapper.UserMapper;
+import java.util.Locale;
 import javax.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,22 +16,17 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class UserService {
 
-    private final UserMapper userMapper;
+    private final MessageSource messageSource;
     private final UserRepository userRepository;
+
+    private final UserMapper userMapper;
 
 
     public User.UserDto findById(String userId) {
 
         User user = userRepository.findByApiId(userId).orElseThrow(() ->
-            new EntityNotFoundException(userId + "에 해당하는 User가 없습니다."));
-//        return User.UserDto.builder()
-//            .userId(user.getApiId())
-//            .oauth2Username(user.getOauth2Username())
-//            .nickname(user.getMember().getNickname())
-//            .email(user.getEmail())
-//            .imageUrl(user.getImageUrl())
-//            .slackEmail(user.getSlackEmail())
-//            .build();
+            new EntityNotFoundException(messageSource.getMessage("exception.notfound", new Object[]{userId, User.class.toString()}, Locale.KOREAN)));
+
         return userMapper.entityToUserDto(user);
     }
 }

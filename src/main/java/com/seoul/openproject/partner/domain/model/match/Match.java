@@ -1,8 +1,9 @@
 package com.seoul.openproject.partner.domain.model.match;
 
 
-import com.seoul.openproject.partner.domain.model.BaseTimeVersionEntity;
-import com.seoul.openproject.partner.domain.model.MatchConditionMatch;
+import com.seoul.openproject.partner.domain.model.BaseEntity;
+import com.seoul.openproject.partner.domain.model.article.Article;
+import com.seoul.openproject.partner.domain.model.matchcondition.MatchConditionMatch;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -17,21 +18,29 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Singular;
 
 
+@Builder(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Getter
 @Table(name = "MATCHS", uniqueConstraints = {
     @UniqueConstraint(name = "API_ID_UNIQUE", columnNames = {"apiId"}),
 })
-@Inheritance(strategy = InheritanceType.JOINED)
-@DiscriminatorColumn(name = "MATCH_TYPE")
+
 @Entity
-public abstract class Match extends BaseTimeVersionEntity {
+public class Match extends BaseEntity {
     //********************************* static final 상수 필드 *********************************/
 
     /**
@@ -56,7 +65,7 @@ public abstract class Match extends BaseTimeVersionEntity {
      * AUTH에 필요한 필드
      */
 
-//    @Builder.Default
+    @Builder.Default
     @Column(nullable = false, updatable = false, length = 50)
     private final String apiId = UUID.randomUUID().toString();
 
@@ -64,8 +73,22 @@ public abstract class Match extends BaseTimeVersionEntity {
     @Column(nullable = false, updatable = false)
     private MatchStatus matchStatus;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, updatable = false)
+    private ContentCategory contentCategory;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, updatable = false)
+    private MethodCategory methodCategory;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ARTICLE_ID", nullable = false, updatable = false)
+    private Article article;
+
+    @Builder.Default
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "match")
+    @Column(nullable = false, updatable = false)
+    private List<MatchMember> matchMembers = new ArrayList<>();
 
 
 
@@ -83,6 +106,14 @@ public abstract class Match extends BaseTimeVersionEntity {
 
     /********************************* 생성 메서드 *********************************/
 
+    public static Match of(MatchStatus matchStatus, ContentCategory contentCategory, MethodCategory methodCategory, Article article) {
+        return Match.builder()
+            .matchStatus(matchStatus)
+            .contentCategory(contentCategory)
+            .methodCategory(methodCategory)
+            .article(article)
+            .build();
+    }
 
 
 

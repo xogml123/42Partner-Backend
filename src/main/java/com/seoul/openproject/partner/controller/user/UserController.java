@@ -22,8 +22,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api")
 @RequiredArgsConstructor
 public class UserController {
-    private final UserService userService;
-
     @ExceptionHandler
     public ResponseEntity<ErrorResult> entityNotFoundException(EntityNotFoundException e) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -31,6 +29,9 @@ public class UserController {
                 .message(e.getMessage())
                 .build());
     }
+    private final UserService userService;
+
+
 //    @PreAuthorize("hasAuthority('todo.update') OR "
 //        + "(hasAuthority('user.todo.update') AND @customAuthenticationManager.userIdMatches(authentication, #userId))")
     @Operation(summary = "특정 유저 userId로 조회", description = "특정 유저 userId로 조회")
