@@ -33,7 +33,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.Singular;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.CredentialsContainer;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -156,7 +155,7 @@ public class User extends BaseTimeVersionEntity implements UserDetails, OAuth2Us
 
     /********************************* 생성 메서드 *********************************/
 
-    public static User createDefaultUser(String username, String encodedPassword, String email,
+    public static User of(String username, String encodedPassword, String email,
         String oauth2Username, String imageUrl, Member member) {
 
         User user = User.builder()

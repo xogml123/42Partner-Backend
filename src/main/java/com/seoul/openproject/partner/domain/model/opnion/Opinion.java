@@ -1,7 +1,6 @@
 package com.seoul.openproject.partner.domain.model.opnion;
 
 import com.seoul.openproject.partner.domain.model.BaseEntity;
-import com.seoul.openproject.partner.domain.model.BaseTimeVersionEntity;
 import com.seoul.openproject.partner.domain.model.article.Article;
 import com.seoul.openproject.partner.domain.model.member.Member;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -27,7 +26,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.data.annotation.LastModifiedDate;
 
 @Builder(access = AccessLevel.PRIVATE)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)

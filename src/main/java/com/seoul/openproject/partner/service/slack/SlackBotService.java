@@ -53,7 +53,7 @@ public class SlackBotService {
         }
     }
 
-    public String sendMessageToUser(String slackId, String message) {
+    public String sendMessage(String slackId, String message) {
         String url = slackURI + "chat.postMessage";
 
         HttpHeaders headers = new HttpHeaders();
@@ -78,7 +78,7 @@ public class SlackBotService {
 
     }
 
-    public Optional<String> createConversations(List<String> slackIds){
+    public Optional<String> createMPIM(List<String> slackIds){
         String url = slackURI + "conversations.open";
 
         HttpHeaders headers = new HttpHeaders();

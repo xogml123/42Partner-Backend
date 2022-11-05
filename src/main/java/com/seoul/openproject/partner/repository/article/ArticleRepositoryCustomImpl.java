@@ -10,6 +10,7 @@ import com.querydsl.core.types.dsl.PathBuilder;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.seoul.openproject.partner.domain.model.article.Article;
+import com.seoul.openproject.partner.domain.model.match.ContentCategory;
 import io.swagger.v3.oas.annotations.Parameter;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +33,8 @@ public class ArticleRepositoryCustomImpl implements ArticleRepositoryCustom {
             .join(article.articleMembers, articleMember).fetchJoin()
             .where(
                 isDeletedIsFalse(),
-                isComplete(condition.getIsMatched())
+                isComplete(condition.getIsMatched()),
+                isContentCategory(condition.getContentCategory())
             );
         for (Sort.Order o : pageable.getSort()) {
             PathBuilder pathBuilder = new PathBuilder(article.getType(),
@@ -55,6 +57,10 @@ public class ArticleRepositoryCustomImpl implements ArticleRepositoryCustom {
     private BooleanExpression isComplete(Boolean isMatched) {
 
         return isMatched == null ? null :article.complete.eq(isMatched);
+    }
+
+    private BooleanExpression isContentCategory(ContentCategory contentCategory) {
+        return article.contentCategory.eq(contentCategory);
     }
 }
 

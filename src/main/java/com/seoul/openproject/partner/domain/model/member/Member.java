@@ -3,6 +3,7 @@ package com.seoul.openproject.partner.domain.model.member;
 
 import com.seoul.openproject.partner.domain.model.tryjudge.MatchTryAvailabilityJudge;
 import com.seoul.openproject.partner.domain.model.BaseEntity;
+import com.seoul.openproject.partner.domain.model.user.User;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.UUID;
 import javax.persistence.CascadeType;
@@ -78,6 +79,9 @@ public class Member extends BaseEntity {
     //FetchType.LAZY가 실질적으로 적용안됨 항상 EAGER로 적용
     @OneToOne(fetch = FetchType.LAZY, mappedBy = "member", cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
     private MatchTryAvailabilityJudge matchTryAvailabilityJudge;
+
+    @OneToOne(fetch = FetchType.LAZY, mappedBy = "member")
+    private User user;
     /********************************* 연관관계 편의 메서드 *********************************/
 
     /********************************* 생성 메서드 *********************************/

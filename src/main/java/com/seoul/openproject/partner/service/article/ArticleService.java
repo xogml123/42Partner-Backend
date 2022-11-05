@@ -2,6 +2,7 @@ package com.seoul.openproject.partner.service.article;
 
 import com.seoul.openproject.partner.domain.model.match.ContentCategory;
 import com.seoul.openproject.partner.domain.model.match.Match;
+import com.seoul.openproject.partner.domain.model.match.MatchCondition;
 import com.seoul.openproject.partner.domain.model.match.MatchMember;
 import com.seoul.openproject.partner.domain.model.match.MatchStatus;
 import com.seoul.openproject.partner.domain.model.match.MethodCategory;
@@ -15,10 +16,11 @@ import com.seoul.openproject.partner.domain.model.article.Article.ArticleReadRes
 import com.seoul.openproject.partner.domain.model.article.Place;
 import com.seoul.openproject.partner.domain.model.article.TimeOfEating;
 import com.seoul.openproject.partner.domain.model.article.WayOfEating;
-import com.seoul.openproject.partner.domain.model.match.MatchCondition.MatchConditionDto;
 import com.seoul.openproject.partner.domain.model.matchcondition.MatchConditionMatch;
 import com.seoul.openproject.partner.domain.model.member.Member;
+import com.seoul.openproject.partner.domain.model.user.User;
 import com.seoul.openproject.partner.exception.NotAuthorException;
+import com.seoul.openproject.partner.exception.SlackBotException;
 import com.seoul.openproject.partner.repository.article.ArticleRepository;
 import com.seoul.openproject.partner.repository.article.ArticleSearch;
 import com.seoul.openproject.partner.repository.articlemember.ArticleMemberRepository;
@@ -31,14 +33,17 @@ import com.seoul.openproject.partner.repository.ArticleMatchConditionRepository;
 import com.seoul.openproject.partner.mapper.MatchConditionMapper;
 import com.seoul.openproject.partner.mapper.MemberMapper;
 import com.seoul.openproject.partner.repository.user.UserRepository;
+import com.seoul.openproject.partner.service.slack.SlackBotService;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -47,6 +52,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class ArticleService {
 
+    private final MessageSource messageSource;
     private final UserRepository userRepository;
     private final ArticleRepository articleRepository;
     private final MemberRepository memberRepository;
@@ -56,8 +62,9 @@ public class ArticleService {
 
     private final MatchConditionMatchRepository matchConditionMatchRepository;
     private final MatchRepository matchRepository;
-
     private final MatchMemberRepository matchMemberRepository;
+
+    private final SlackBotService slackBotService;
 
     private final MemberMapper memberMapper;
     private final MatchConditionMapper matchConditionMapper;
@@ -66,7 +73,7 @@ public class ArticleService {
     public ArticleOnlyIdResponse createArticle(Article.ArticleDto articleRequest) {
         String memberId = articleRequest.getMemberId();
         Member member = memberRepository.findByApiId(memberId)
-            .orElseThrow(() -> new EntityNotFoundException(memberId + "에 해당하는 회원이 없습니다."));
+            .orElseThrow(() -> new EntityNotFoundException(messageSource.getMessage("exception.notfound", new Object[]{memberId, Member.class.toString()}, Locale.KOREAN)));
 
         ArticleMember articleMemberAuthor = ArticleMember.of(member, true);
         List<ArticleMatchCondition> articleMatchConditionList = allMatchConditionToArticleMatchCondition(
@@ -78,10 +85,9 @@ public class ArticleService {
                 articleRequest.getContent(),
                 articleRequest.getAnonymity(),
                 articleRequest.getParticipantNumMax(),
+                articleRequest.getContentCategory(),
                 articleMemberAuthor,
                 articleMatchConditionList));
-        //Persist 조건 없애야할지 순서를 잘 보장해주는지 검증.
-        //articleMemberRepository.save(articleMemberAuthor);
         return new ArticleOnlyIdResponse(article.getApiId());
     }
 
@@ -96,12 +102,10 @@ public class ArticleService {
     @Transactional
     public ArticleOnlyIdResponse updateArticle(ArticleDto articleRequest, String articleId) {
         Article article = articleRepository.findDistinctFetchArticleMatchConditionsByApiIdAndIsDeletedIsFalse(articleId)
-            .orElseThrow(() -> new EntityNotFoundException(articleId + "에 해당하는 게시글이 없습니다."));
+            .orElseThrow(() -> new EntityNotFoundException(messageSource.getMessage("exception.notfound", new Object[]{articleId, Article.class.toString()}, Locale.KOREAN)));
         List<ArticleMatchCondition> articleMatchConditions = allMatchConditionToArticleMatchCondition(
             articleRequest);
-        article.getArticleMatchConditions().stream()
-            .forEach(articleMatchCondition -> articleMatchConditionRepository.delete(
-                articleMatchCondition));
+        articleMatchConditionRepository.deleteAll(article.getArticleMatchConditions());
         if (article.isParticipantNumMaxChangeable(articleRequest.getParticipantNumMax())) {
             article.update(articleRequest.getDate(), articleRequest.getTitle(),
                 articleRequest.getContent(),
@@ -148,7 +152,7 @@ public class ArticleService {
         return allMatchConditionToStringList(articleRequest).stream()
             .map((matchConditionString) ->
                 matchConditionRepository.findByValue(matchConditionString).orElseThrow(() ->
-                    new EntityNotFoundException(matchConditionString + "에 해당하는 매칭 조건이 없습니다.")
+                    new EntityNotFoundException(messageSource.getMessage("exception.notfound", new Object[]{matchConditionString, MatchCondition.class.toString()}, Locale.KOREAN))
                 ))
             .map(ArticleMatchCondition::of)
             .collect(Collectors.toList());
@@ -157,7 +161,7 @@ public class ArticleService {
 
     public ArticleReadOneResponse readOneArticle(String articleId) {
         Article article = articleRepository.findDistinctFetchArticleMatchConditionsByApiIdAndIsDeletedIsFalse(articleId)
-            .orElseThrow(() -> new EntityNotFoundException(articleId + "에 해당하는 게시글이 없습니다."));
+            .orElseThrow(() -> new EntityNotFoundException(messageSource.getMessage("exception.notfound", new Object[]{articleId, Article.class.toString()}, Locale.KOREAN)));
 
         return ArticleReadOneResponse.of(article, memberMapper, matchConditionMapper);
 
@@ -165,30 +169,21 @@ public class ArticleService {
 
     public Slice<ArticleReadResponse> readAllArticle(Pageable pageable,
         ArticleSearch condition) {
-
         return articleRepository.findSliceByCondition(pageable,
-            condition).map((article) -> {
-                List<MatchConditionDto> matchConditionDtos = article.getArticleMatchConditions()
-                    .stream()
-                    .map(arc -> (
-                        matchConditionMapper.entityToMatchConditionDto(arc.getMatchCondition())
-                    ))
-                    .collect(Collectors.toList());
-                return ArticleReadResponse.of(article, matchConditionMapper);
-            }
+            condition).map((article) ->
+                ArticleReadResponse.of(article, matchConditionMapper)
         );
-
     }
 
     //이미 참여중인 경우 방지.
     @Transactional
     public ArticleOnlyIdResponse participateArticle(String userId, String articleId) {
         Article article = articleRepository.findDistinctFetchArticleMembersByApiIdAndIsDeletedIsFalse(articleId)
-            .orElseThrow(() -> new EntityNotFoundException(articleId + "에 해당하는 게시글이 없습니다."));
+            .orElseThrow(() -> new EntityNotFoundException(messageSource.getMessage("exception.notfound", new Object[]{articleId, Article.class.toString()}, Locale.KOREAN)));
 
-        ArticleMember ParticipateMember = article.participate(userRepository.findByApiId(userId)
-            .orElseThrow(() -> new EntityNotFoundException(userId + "에 해당하는 회원이 없습니다.")).getMember());
-        articleMemberRepository.save(ParticipateMember);
+        ArticleMember participateMember = article.participate(userRepository.findByApiId(userId)
+            .orElseThrow(() -> new EntityNotFoundException(messageSource.getMessage("exception.notfound", new Object[]{userId, User.class.toString()}, Locale.KOREAN))).getMember());
+        articleMemberRepository.save(participateMember);
         return ArticleOnlyIdResponse.builder()
             .articleId(article.getApiId())
             .build();
@@ -198,11 +193,11 @@ public class ArticleService {
     public ArticleOnlyIdResponse participateCancelArticle(String userId, String articleId) {
 
         Article article = articleRepository.findDistinctFetchArticleMembersByApiIdAndIsDeletedIsFalse(articleId)
-            .orElseThrow(() -> new EntityNotFoundException(articleId + "에 해당하는 게시글이 없습니다."));
+            .orElseThrow(() -> new EntityNotFoundException(messageSource.getMessage("exception.notfound", new Object[]{articleId, Article.class.toString()}, Locale.KOREAN)));
 
-        ArticleMember ParticipateMember = article.participateCancel(userRepository.findByApiId(userId)
-            .orElseThrow(() -> new EntityNotFoundException(userId + "에 해당하는 회원이 없습니다.")).getMember());
-        articleMemberRepository.delete(ParticipateMember);
+        ArticleMember participateMember = article.participateCancel(userRepository.findByApiId(userId)
+            .orElseThrow(() -> new EntityNotFoundException(messageSource.getMessage("exception.notfound", new Object[]{userId, User.class.toString()}, Locale.KOREAN))).getMember());
+        articleMemberRepository.delete(participateMember);
         return ArticleOnlyIdResponse.builder()
             .articleId(article.getApiId())
             .build();
@@ -211,15 +206,12 @@ public class ArticleService {
     @Transactional
     public ArticleOnlyIdResponse completeArticle(String userId, String articleId) {
         Article article = articleRepository.findDistinctFetchArticleMembersByApiIdAndIsDeletedIsFalse(articleId)
-            .orElseThrow(() -> new EntityNotFoundException(articleId + "에 해당하는 게시글이 없습니다."));
+            .orElseThrow(() -> new EntityNotFoundException(messageSource.getMessage("exception.notfound", new Object[]{articleId, Article.class.toString()}, Locale.KOREAN)));
 
         Member requestMember = userRepository.findByApiId(userId)
-            .orElseThrow(() -> new EntityNotFoundException(userId + "에 해당하는 회원이 없습니다."))
+            .orElseThrow(() -> new EntityNotFoundException(messageSource.getMessage("exception.notfound", new Object[]{userId, User.class.toString()}, Locale.KOREAN)))
             .getMember();
-        Member memberAuthor = article.getArticleMembers().stream()
-            .filter(am -> am.getIsAuthor())
-            .findFirst().orElseThrow(() -> new EntityNotFoundException("해당 게시글의 작성자가 없습니다."))
-            .getMember();
+        Member memberAuthor = article.getAuthorMember();
         //글 작성자아닌 경우
         if (!requestMember.equals(memberAuthor)) {
             throw new NotAuthorException("글 작성자만 완료할 수 있습니다.");
@@ -240,6 +232,21 @@ public class ArticleService {
 
         //슬랙 알림(비동기)
 
+        ArrayList<String> slackIds= new ArrayList<>();
+        for (ArticleMember articleMember : article.getArticleMembers()) {
+            Optional<String> slackId = slackBotService.getSlackIdByEmail(
+                articleMember.getMember().getUser().getEmail());
+            if (slackId.isPresent()){
+                slackIds.add(slackId.get());
+            }
+        }
+
+        String MPIMId = slackBotService.createMPIM(slackIds)
+            .orElseThrow(() -> new SlackBotException("슬랙 대화방 생성 실패"));
+        slackBotService.sendMessage(MPIMId, "매칭이 완료되었습니다. 대화방에서 매칭을 확인해주세요.\n"
+            + "만약, 초대 되지않은 유저가 있다면 slack에서 초대해주세요.\n"
+            + "slack에 등록된 email이 IntraId" + User.SEOUL_42
+            + " 형식으로 되어있지 않으면 초대 및 알림이 발송 되지 않을 수 있습니다.");
         return ArticleOnlyIdResponse.builder()
             .articleId(article.getApiId())
             .build();

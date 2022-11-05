@@ -35,16 +35,36 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api")
 @RequiredArgsConstructor
 public class ArticleController {
-
-    private final ArticleService articleService;
-
-    @ExceptionHandler
+    @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<ErrorResult> entityNotFoundException(EntityNotFoundException e) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
             .body(ErrorResult.builder()
                 .message(e.getMessage())
                 .build());
     }
+
+    //데이터 정합성에 문제가 있는경우 명백한 서버 에러
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ErrorResult> illegalStateException(IllegalStateException e) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+            .body(ErrorResult.builder()
+                .message(e.getMessage())
+                .build());
+    }
+    //요청의 처리가 불가능한 경우 -> 방 참여자수가 이미 다 차잇는데 참여를 누르는 경우.
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResult> illegalArgumentException(IllegalArgumentException e) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+            .body(ErrorResult.builder()
+                .message(e.getMessage())
+                .build());
+    }
+
+
+    private final ArticleService articleService;
+
+
     @Operation(summary = "방 하나 상세조회", description = "방 상세페이지")
     @GetMapping("/articles/{articleId}")
     public Article.ArticleReadOneResponse readOneArticle(

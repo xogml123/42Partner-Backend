@@ -83,7 +83,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
             Role role = roleRepository.findByValue(RoleEnum.ROLE_USER).orElseThrow(() ->
                 new EntityNotFoundException(RoleEnum.ROLE_USER + "에 해당하는 Role이 없습니다."));
-            user = User.createDefaultUser(username, encodedPassword, email, login, imageUrl, member);
+            user = User.of(username, encodedPassword, email, login, imageUrl, member);
             UserRole userRole = UserRole.of(role, user);
 
             userRepository.save(user);

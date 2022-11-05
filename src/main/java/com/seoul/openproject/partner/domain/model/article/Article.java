@@ -1,5 +1,6 @@
 package com.seoul.openproject.partner.domain.model.article;
 
+import com.seoul.openproject.partner.domain.model.match.ContentCategory;
 import com.seoul.openproject.partner.domain.model.matchcondition.ArticleMatchCondition;
 import com.seoul.openproject.partner.domain.model.BaseEntity;
 import com.seoul.openproject.partner.domain.model.match.MatchCondition;
@@ -7,6 +8,7 @@ import com.seoul.openproject.partner.domain.model.member.Member;
 import com.seoul.openproject.partner.domain.model.opnion.Opinion;
 import com.seoul.openproject.partner.mapper.MatchConditionMapper;
 import com.seoul.openproject.partner.mapper.MemberMapper;
+import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -37,6 +39,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.beans.factory.annotation.Autowired;
 
 
 @Builder(access = AccessLevel.PRIVATE)
@@ -48,6 +51,9 @@ import lombok.Setter;
 })
 @Entity
 public class Article extends BaseEntity {
+
+//    @Autowired
+//    private
     //********************************* static final 상수 필드 *********************************/
 
     /**
@@ -103,6 +109,9 @@ public class Article extends BaseEntity {
     @Column(nullable = false)
     private Boolean isDeleted = false;
 
+    @Column(nullable = false, updatable = false)
+    private ContentCategory contentCategory;
+
     /********************************* 비영속 필드 *********************************/
 
     /********************************* 연관관계 매핑 *********************************/
@@ -124,14 +133,14 @@ public class Article extends BaseEntity {
     @Builder.Default
     @OneToMany(mappedBy = "article", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     @Column(nullable = false, updatable = false)
-    private List<Opinion> Opinions = new ArrayList<>();
+    private List<Opinion> opinions = new ArrayList<>();
 
     /********************************* 연관관계 편의 메서드 *********************************/
 
     /********************************* 생성 메서드 *********************************/
 
     public static Article of(LocalDate date, String title, String content, Boolean anonymity,
-        Integer participantNumMax, ArticleMember articleMember,
+        Integer participantNumMax, ContentCategory contentCategory, ArticleMember articleMember,
         List<ArticleMatchCondition> articleMatchConditions) {
         Article article = Article.builder()
             .date(date)
@@ -139,6 +148,7 @@ public class Article extends BaseEntity {
             .content(content)
             .anonymity(anonymity)
             .participantNumMax(participantNumMax)
+            .contentCategory(contentCategory)
             .build();
         articleMember.setArticle(article);
         for (ArticleMatchCondition articleMatchCondition : articleMatchConditions) {
@@ -168,7 +178,7 @@ public class Article extends BaseEntity {
             .map((articleMember) ->
                 articleMember.getMember())
             .findFirst().orElseThrow(() -> (
-                new EntityNotFoundException("해당 게시글의 작성자가 존재하지 않습니다.")
+                new IllegalStateException("해당 게시글의 작성자가 존재하지 않습니다.")
             ));
     }
 
@@ -273,6 +283,10 @@ public class Article extends BaseEntity {
         @Min(1)
         @Max(20)
         private Integer participantNumMax;
+
+        @Schema(name = "contentCategory", example = "MEAL or STUDY", description = "식사, 공부 글인지 여부")
+        @NotNull
+        private ContentCategory contentCategory;
     }
 
     @Getter
@@ -359,6 +373,10 @@ public class Article extends BaseEntity {
         @NotNull
         private Integer participantNum;
 
+        @Schema(name = "contentCategory", example = "MEAL or STUDY", description = "식사, 공부 글인지 여부")
+        @NotNull
+        private ContentCategory contentCategory;
+
 
         @Builder.Default
         @Schema(name = "matchConditions", example = " ", description = "매치 조건 배열")
@@ -381,6 +399,7 @@ public class Article extends BaseEntity {
                 .isToday(article.isDateToday())
                 .participantNumMax(article.getParticipantNumMax())
                 .participantNum(article.getParticipantNum())
+                .contentCategory(article.getContentCategory())
                 .participantsOrAuthor(article.getArticleMembers().stream()
                     .map(am -> (
                         memberMapper.entityToMemberDto(am.getMember(), am)))
@@ -446,6 +465,10 @@ public class Article extends BaseEntity {
         @NotNull
         private Integer participantNum;
 
+        @Schema(name = "contentCategory", example = "MEAL or STUDY", description = "식사, 공부 글인지 여부")
+        @NotNull
+        private ContentCategory contentCategory;
+
         @Builder.Default
         @Schema(name = "matchConditions", example = " ", description = "매치 조건 배열")
         private List<MatchCondition.MatchConditionDto> matchConditions = new ArrayList<>();
@@ -469,6 +492,7 @@ public class Article extends BaseEntity {
                 .isToday(article.getDate().isEqual(LocalDate.now()))
                 .participantNumMax(article.getParticipantNumMax())
                 .participantNum(article.getParticipantNum())
+                .contentCategory(article.getContentCategory())
                 .matchConditions(article.getArticleMatchConditions().stream()
                     .map(arc -> (
                         matchConditionMapper.entityToMatchConditionDto(arc.getMatchCondition())

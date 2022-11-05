@@ -1,10 +1,7 @@
 package com.seoul.openproject.partner.service.slack;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import com.seoul.openproject.partner.domain.model.user.User;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,10 +24,10 @@ class SlackBotServiceTest {
         if (userId2.isPresent()){
             userIds.add(userId2.get());
         }
-        Optional<String> dmId = slackBotService.createConversations(userIds);
+        Optional<String> dmId = slackBotService.createMPIM(userIds);
         System.out.println("dmId = " + dmId);
         if (dmId.isPresent()){
-            String 테스트_메시지 = slackBotService.sendMessageToUser(dmId.get(), "테스트 메시지");
+            String 테스트_메시지 = slackBotService.sendMessage(dmId.get(), "테스트 메시지");
             System.out.println(테스트_메시지);
         }
     }

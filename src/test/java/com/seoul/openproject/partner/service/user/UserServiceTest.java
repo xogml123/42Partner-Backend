@@ -20,7 +20,7 @@ class UserServiceTest {
     void findById(){
         MatchTryAvailabilityJudge of = MatchTryAvailabilityJudge.of();
         //given
-        User user = User.createDefaultUser("username", "encodedPassword", "email",
+        User user = User.of("username", "encodedPassword", "email",
             "oauth2Username",
             "imageUrl", Member.of("nickname", of));
         //when
