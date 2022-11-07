@@ -1,6 +1,9 @@
 package com.seoul.openproject.partner.exception;
 
-public class NotAuthorException extends RuntimeException {
+import javax.persistence.OptimisticLockException;
+import org.springframework.dao.DataAccessException;
+
+public class NotAuthorException extends IllegalArgumentException {
 
     public NotAuthorException(String message, Throwable cause) {
         super(message, cause);

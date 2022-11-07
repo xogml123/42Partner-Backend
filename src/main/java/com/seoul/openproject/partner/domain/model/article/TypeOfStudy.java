@@ -3,6 +3,7 @@ package com.seoul.openproject.partner.domain.model.article;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import lombok.RequiredArgsConstructor;
 
+//20글자 제한
 @RequiredArgsConstructor
 public enum TypeOfStudy {
 

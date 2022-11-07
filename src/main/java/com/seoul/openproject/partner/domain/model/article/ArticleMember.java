@@ -52,9 +52,6 @@ public class ArticleMember extends BaseEntity {
     @Column(name = "IS_AUTHOR", nullable = false, updatable = false)
     private Boolean isAuthor;
 
-//    @Column(name = "anonimity", nullable = false)
-//    private Boolean anonymity;
-
 
 
 

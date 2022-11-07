@@ -40,6 +40,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 
 
 @Builder(access = AccessLevel.PRIVATE)
@@ -56,6 +57,8 @@ public class Article extends BaseEntity {
 //    private
     //********************************* static final 상수 필드 *********************************/
 
+    @Autowired
+    private MessageSource messageSource;
     /**
      * email 뒤에 붙는 문자열
      */
@@ -201,7 +204,7 @@ public class Article extends BaseEntity {
     }
 
     public ArticleMember participate(Member member) {
-        if (this.participantNumMax <= this.participantNum) {
+        if (this.isParticipantNumMaxChangeable(this.participantNumMax)) {
             throw new IllegalArgumentException("모집인원이 초과되었습니다.");
         }
         if (this.getArticleMembers().stream()
