@@ -99,8 +99,7 @@ public class SlackBotService {
         if (jsonResponse.getBoolean("ok")){
             return Optional.ofNullable(jsonResponse.getJSONObject("channel").getString("id"));
         }else{
-            return Optional.ofNullable();
+            return Optional.empty();
         }
-
     }
 }

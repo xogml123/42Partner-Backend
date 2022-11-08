@@ -4,6 +4,7 @@ package com.seoul.openproject.partner.domain.model.match;
 import com.seoul.openproject.partner.domain.model.BaseEntity;
 import com.seoul.openproject.partner.domain.model.article.Article;
 import com.seoul.openproject.partner.domain.model.matchcondition.MatchConditionMatch;
+import com.seoul.openproject.partner.domain.model.member.Member;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -21,6 +22,7 @@ import javax.persistence.InheritanceType;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 import lombok.AccessLevel;
@@ -82,7 +84,7 @@ public class Match extends BaseEntity {
     private MethodCategory methodCategory;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ARTICLE_ID", nullable = false, updatable = false)
+    @JoinColumn(name = "ARTICLE_ID", updatable = false)
     private Article article;
 
     @Builder.Default
@@ -98,7 +100,7 @@ public class Match extends BaseEntity {
     /********************************* 연관관계 매핑 *********************************/
 
 
-    @Singular
+    @Builder.Default
     @OneToMany(mappedBy = "match", fetch = FetchType.LAZY)
     private List<MatchConditionMatch> matchConditionMatches = new ArrayList<>();
 
