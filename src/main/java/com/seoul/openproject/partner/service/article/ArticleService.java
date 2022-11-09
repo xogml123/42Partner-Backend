@@ -2,8 +2,7 @@ package com.seoul.openproject.partner.service.article;
 
 import com.seoul.openproject.partner.domain.model.activity.Activity;
 import com.seoul.openproject.partner.domain.model.activity.ActivityType;
-import com.seoul.openproject.partner.domain.model.article.TypeOfStudy;
-import com.seoul.openproject.partner.domain.model.match.ContentCategory;
+import com.seoul.openproject.partner.domain.model.matchcondition.TypeOfStudy;
 import com.seoul.openproject.partner.domain.model.match.Match;
 import com.seoul.openproject.partner.domain.model.match.MatchCondition.MatchConditionDto;
 import com.seoul.openproject.partner.domain.model.match.MatchMember;
@@ -16,9 +15,9 @@ import com.seoul.openproject.partner.domain.model.article.Article.ArticleDto;
 import com.seoul.openproject.partner.domain.model.article.Article.ArticleOnlyIdResponse;
 import com.seoul.openproject.partner.domain.model.article.Article.ArticleReadOneResponse;
 import com.seoul.openproject.partner.domain.model.article.Article.ArticleReadResponse;
-import com.seoul.openproject.partner.domain.model.article.Place;
-import com.seoul.openproject.partner.domain.model.article.TimeOfEating;
-import com.seoul.openproject.partner.domain.model.article.WayOfEating;
+import com.seoul.openproject.partner.domain.model.matchcondition.Place;
+import com.seoul.openproject.partner.domain.model.matchcondition.TimeOfEating;
+import com.seoul.openproject.partner.domain.model.matchcondition.WayOfEating;
 import com.seoul.openproject.partner.domain.model.matchcondition.MatchConditionMatch;
 import com.seoul.openproject.partner.domain.model.member.Member;
 import com.seoul.openproject.partner.domain.model.member.Member.MemberDto;
@@ -27,7 +26,7 @@ import com.seoul.openproject.partner.error.exception.ErrorCode;
 import com.seoul.openproject.partner.error.exception.NoEntityException;
 import com.seoul.openproject.partner.error.exception.NotAuthorException;
 import com.seoul.openproject.partner.error.exception.SlackException;
-import com.seoul.openproject.partner.repository.ActivityRepository;
+import com.seoul.openproject.partner.repository.activity.ActivityRepository;
 import com.seoul.openproject.partner.repository.article.ArticleRepository;
 import com.seoul.openproject.partner.repository.article.ArticleSearch;
 import com.seoul.openproject.partner.repository.articlemember.ArticleMemberRepository;
@@ -36,7 +35,7 @@ import com.seoul.openproject.partner.repository.match.MatchRepository;
 import com.seoul.openproject.partner.repository.matchcondition.MatchConditionMatchRepository;
 import com.seoul.openproject.partner.repository.matchcondition.MatchConditionRepository;
 import com.seoul.openproject.partner.repository.member.MemberRepository;
-import com.seoul.openproject.partner.repository.ArticleMatchConditionRepository;
+import com.seoul.openproject.partner.repository.matchcondition.ArticleMatchConditionRepository;
 import com.seoul.openproject.partner.mapper.MatchConditionMapper;
 import com.seoul.openproject.partner.mapper.MemberMapper;
 import com.seoul.openproject.partner.repository.user.UserRepository;
@@ -79,8 +78,7 @@ public class ArticleService {
 
     @Transactional
     public ArticleOnlyIdResponse createArticle(Article.ArticleDto articleRequest) {
-        String memberId = articleRequest.getMemberId();
-        Member member = memberRepository.findByApiId(memberId)
+        Member member = memberRepository.findByApiId(articleRequest.getMemberId())
             .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
 
         ArticleMember articleMemberAuthor = ArticleMember.of(member, true);
@@ -215,7 +213,7 @@ public class ArticleService {
         //매칭 완료
         Match match = matchRepository.save(
             Match.of(MatchStatus.MATCHED, article.getContentCategory(), MethodCategory.MANUAL,
-                article));
+                article, article.getParticipantNum()));
         matchConditionMatchRepository.saveAll(article.getArticleMatchConditions().stream()
             .map(arm ->
                 MatchConditionMatch.of(match, arm.getMatchCondition()))
@@ -270,16 +268,14 @@ public class ArticleService {
             place = new ArrayList<>();
         }
         matchConditionStrings.addAll(place.stream()
-            .map(p ->
-                p.name())
+            .map(Enum::name)
             .collect(Collectors.toList()));
         List<TimeOfEating> timeOfEating = articleRequest.getTimeOfEatingList();
         if (timeOfEating == null) {
             timeOfEating = new ArrayList<>();
         }
         matchConditionStrings.addAll(timeOfEating.stream()
-            .map(p ->
-                p.name())
+            .map(Enum::name)
             .collect(Collectors.toList()));
 
         List<WayOfEating> wayOfEating = articleRequest.getWayOfEatingList();
@@ -287,8 +283,7 @@ public class ArticleService {
             wayOfEating = new ArrayList<>();
         }
         matchConditionStrings.addAll(wayOfEating.stream()
-            .map(p ->
-                p.name())
+            .map(Enum::name)
             .collect(Collectors.toList()));
 
         List<TypeOfStudy> typeOfStudy = articleRequest.getTypeOfStudyList();
@@ -296,8 +291,7 @@ public class ArticleService {
             typeOfStudy = new ArrayList<>();
         }
         matchConditionStrings.addAll(typeOfStudy.stream()
-            .map(p ->
-                p.name())
+            .map(Enum::name)
             .collect(Collectors.toList()));
 
         return matchConditionStrings;

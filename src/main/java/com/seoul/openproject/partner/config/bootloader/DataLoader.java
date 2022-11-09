@@ -1,10 +1,10 @@
 package com.seoul.openproject.partner.config.bootloader;
 
-import com.seoul.openproject.partner.domain.model.article.Place;
-import com.seoul.openproject.partner.domain.model.article.TimeOfEating;
-import com.seoul.openproject.partner.domain.model.article.TypeOfEating;
-import com.seoul.openproject.partner.domain.model.article.TypeOfStudy;
-import com.seoul.openproject.partner.domain.model.article.WayOfEating;
+import com.seoul.openproject.partner.domain.model.matchcondition.Place;
+import com.seoul.openproject.partner.domain.model.matchcondition.TimeOfEating;
+import com.seoul.openproject.partner.domain.model.matchcondition.TypeOfEating;
+import com.seoul.openproject.partner.domain.model.matchcondition.TypeOfStudy;
+import com.seoul.openproject.partner.domain.model.matchcondition.WayOfEating;
 import com.seoul.openproject.partner.domain.model.match.ConditionCategory;
 import com.seoul.openproject.partner.domain.model.match.MatchCondition;
 import com.seoul.openproject.partner.domain.model.user.Authority;
@@ -179,30 +179,30 @@ public class DataLoader implements CommandLineRunner {
 
     @Transactional
     public void createMatchCondition(){
-        matchConditionRepository.save(MatchCondition.of(WayOfEating.DELIVERY.name(), ConditionCategory.WAY_OF_EATING));
-        matchConditionRepository.save(MatchCondition.of(WayOfEating.EATOUT.name(), ConditionCategory.WAY_OF_EATING));
-        matchConditionRepository.save(MatchCondition.of(WayOfEating.TAKEOUT.name(), ConditionCategory.WAY_OF_EATING));
+        matchConditionRepository.save(MatchCondition.of(WayOfEating.DELIVERY.name(), ConditionCategory.WayOfEating));
+        matchConditionRepository.save(MatchCondition.of(WayOfEating.EATOUT.name(), ConditionCategory.WayOfEating));
+        matchConditionRepository.save(MatchCondition.of(WayOfEating.TAKEOUT.name(), ConditionCategory.WayOfEating));
 
-        matchConditionRepository.save(MatchCondition.of(Place.SEOCHO.name(), ConditionCategory.PLACE));
-        matchConditionRepository.save(MatchCondition.of(Place.GAEPO.name(), ConditionCategory.PLACE));
-        matchConditionRepository.save(MatchCondition.of(Place.OUT_OF_CLUSTER.name(), ConditionCategory.PLACE));
+        matchConditionRepository.save(MatchCondition.of(Place.SEOCHO.name(), ConditionCategory.Place));
+        matchConditionRepository.save(MatchCondition.of(Place.GAEPO.name(), ConditionCategory.Place));
+        matchConditionRepository.save(MatchCondition.of(Place.OUT_OF_CLUSTER.name(), ConditionCategory.Place));
 
-        matchConditionRepository.save(MatchCondition.of(TimeOfEating.BREAKFAST.name(), ConditionCategory.TIME_OF_EATING));
-        matchConditionRepository.save(MatchCondition.of(TimeOfEating.LUNCH.name(), ConditionCategory.TIME_OF_EATING));
-        matchConditionRepository.save(MatchCondition.of(TimeOfEating.DUNCH.name(), ConditionCategory.TIME_OF_EATING));
-        matchConditionRepository.save(MatchCondition.of(TimeOfEating.DINNER.name(), ConditionCategory.TIME_OF_EATING));
-        matchConditionRepository.save(MatchCondition.of(TimeOfEating.MIDNIGHT.name(), ConditionCategory.TIME_OF_EATING));
+        matchConditionRepository.save(MatchCondition.of(TimeOfEating.BREAKFAST.name(), ConditionCategory.TimeOfEating));
+        matchConditionRepository.save(MatchCondition.of(TimeOfEating.LUNCH.name(), ConditionCategory.TimeOfEating));
+        matchConditionRepository.save(MatchCondition.of(TimeOfEating.DUNCH.name(), ConditionCategory.TimeOfEating));
+        matchConditionRepository.save(MatchCondition.of(TimeOfEating.DINNER.name(), ConditionCategory.TimeOfEating));
+        matchConditionRepository.save(MatchCondition.of(TimeOfEating.MIDNIGHT.name(), ConditionCategory.TimeOfEating));
 
-        matchConditionRepository.save(MatchCondition.of(TypeOfEating.KOREAN.name(), ConditionCategory.TYPE_OF_EATING));
-        matchConditionRepository.save(MatchCondition.of(TypeOfEating.JAPANESE.name(), ConditionCategory.TYPE_OF_EATING));
-        matchConditionRepository.save(MatchCondition.of(TypeOfEating.CHINESE.name(), ConditionCategory.TYPE_OF_EATING));
-        matchConditionRepository.save(MatchCondition.of(TypeOfEating.WESTERN.name(), ConditionCategory.TYPE_OF_EATING));
-        matchConditionRepository.save(MatchCondition.of(TypeOfEating.ASIAN.name(), ConditionCategory.TYPE_OF_EATING));
-        matchConditionRepository.save(MatchCondition.of(TypeOfEating.EXOTIC.name(), ConditionCategory.TYPE_OF_EATING));
-        matchConditionRepository.save(MatchCondition.of(TypeOfEating.CONVENIENCE.name(), ConditionCategory.TYPE_OF_EATING));
+        matchConditionRepository.save(MatchCondition.of(TypeOfEating.KOREAN.name(), ConditionCategory.TypeOfEating));
+        matchConditionRepository.save(MatchCondition.of(TypeOfEating.JAPANESE.name(), ConditionCategory.TypeOfEating));
+        matchConditionRepository.save(MatchCondition.of(TypeOfEating.CHINESE.name(), ConditionCategory.TypeOfEating));
+        matchConditionRepository.save(MatchCondition.of(TypeOfEating.WESTERN.name(), ConditionCategory.TypeOfEating));
+        matchConditionRepository.save(MatchCondition.of(TypeOfEating.ASIAN.name(), ConditionCategory.TypeOfEating));
+        matchConditionRepository.save(MatchCondition.of(TypeOfEating.EXOTIC.name(), ConditionCategory.TypeOfEating));
+        matchConditionRepository.save(MatchCondition.of(TypeOfEating.CONVENIENCE.name(), ConditionCategory.TypeOfEating));
 
-        matchConditionRepository.save(MatchCondition.of(TypeOfStudy.INNER_CIRCLE.name(), ConditionCategory.TYPE_OF_STUDY));
-        matchConditionRepository.save(MatchCondition.of(TypeOfStudy.NOT_INNER_CIRCLE.name(), ConditionCategory.TYPE_OF_STUDY));
+        matchConditionRepository.save(MatchCondition.of(TypeOfStudy.INNER_CIRCLE.name(), ConditionCategory.TypeOfStudy));
+        matchConditionRepository.save(MatchCondition.of(TypeOfStudy.NOT_INNER_CIRCLE.name(), ConditionCategory.TypeOfStudy));
 
 
     }

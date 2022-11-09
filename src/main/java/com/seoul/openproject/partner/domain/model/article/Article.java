@@ -5,6 +5,10 @@ import com.seoul.openproject.partner.domain.model.match.MatchCondition.MatchCond
 import com.seoul.openproject.partner.domain.model.matchcondition.ArticleMatchCondition;
 import com.seoul.openproject.partner.domain.model.BaseEntity;
 import com.seoul.openproject.partner.domain.model.match.MatchCondition;
+import com.seoul.openproject.partner.domain.model.matchcondition.Place;
+import com.seoul.openproject.partner.domain.model.matchcondition.TimeOfEating;
+import com.seoul.openproject.partner.domain.model.matchcondition.TypeOfStudy;
+import com.seoul.openproject.partner.domain.model.matchcondition.WayOfEating;
 import com.seoul.openproject.partner.domain.model.member.Member;
 import com.seoul.openproject.partner.domain.model.member.Member.MemberDto;
 import com.seoul.openproject.partner.domain.model.opnion.Opinion;
@@ -144,8 +148,11 @@ public class Article extends BaseEntity {
     /********************************* 생성 메서드 *********************************/
 
     public static Article of(LocalDate date, String title, String content, Boolean anonymity,
-        Integer participantNumMax, ContentCategory contentCategory, ArticleMember articleMember,
-        List<ArticleMatchCondition> articleMatchConditions) {
+        Integer participantNumMax, ContentCategory contentCategory
+//        ,
+//        ArticleMember articleMember,
+//        List<ArticleMatchCondition> articleMatchConditions
+    ) {
         Article article = Article.builder()
             .date(date)
             .title(title)
@@ -154,10 +161,10 @@ public class Article extends BaseEntity {
             .participantNumMax(participantNumMax)
             .contentCategory(contentCategory)
             .build();
-        articleMember.setArticle(article);
-        for (ArticleMatchCondition articleMatchCondition : articleMatchConditions) {
-            articleMatchCondition.setArticle(article);
-        }
+//        articleMember.setArticle(article);
+//        for (ArticleMatchCondition articleMatchCondition : articleMatchConditions) {
+//            articleMatchCondition.setArticle(article);
+//        }
         return article;
     }
 
@@ -312,16 +319,21 @@ public class Article extends BaseEntity {
         @NotNull
         private LocalDate date;
 
+        @Builder.Default
         @Schema(name = "place", example = "SEOCHO(서초 클러스터), GAEPO(개포 클러스터), OUT_OF_CLUSTER(클러스터 외부)", description = "앞에 영어를 배열로 보내면 됨.")
-        private List<Place> placeList;
+        private List<Place> placeList = new ArrayList<>();
+
+        @Builder.Default
         @Schema(name = "timeOfEating", example = "BREAKFAST(아침 식사), LUNCH(점심 식사), DUNCH(점저), DINNER(저녁 식사), MIDNIGHT(야식)", description = "앞에 영어를 배열로 보내면 됨.")
-        private List<TimeOfEating> timeOfEatingList;
+        private List<TimeOfEating> timeOfEatingList = new ArrayList<>();
 
+        @Builder.Default
         @Schema(name = "wayOfEating", example = " DELIVERY(배달), EATOUT(외식), TAKEOUT(포장)", description = "앞에 영어를 배열로 보내면 됨.")
-        private List<WayOfEating> wayOfEatingList;
+        private List<WayOfEating> wayOfEatingList = new ArrayList<>();
 
-        @Schema(name = "wayOfEating", example = " INNER_CIRCLE(본 과정), NOT_INNER_CIRCLE(비본 과정);", description = "앞에 영어를 배열로 보내면 됨.")
-        private List<TypeOfStudy> typeOfStudyList;
+        @Builder.Default
+        @Schema(name = "typeofOfStudy", example = " INNER_CIRCLE(본 과정), NOT_INNER_CIRCLE(비본 과정)", description = "앞에 영어를 배열로 보내면 됨.")
+        private List<TypeOfStudy> typeOfStudyList = new ArrayList<>();
 
         @Schema(name = "content", example = "서초 클러스터 2시에 치킨 먹으러갈겁니다.", description = "글 본문")
         @NotNull
@@ -358,13 +370,21 @@ public class Article extends BaseEntity {
         @NotNull
         private LocalDate date;
 
+        @Builder.Default
         @Schema(name = "place", example = "SEOCHO(서초 클러스터), GAEPO(개포 클러스터), OUT_OF_CLUSTER(클러스터 외부)", description = "앞에 영어를 배열로 보내면 됨.")
-        private List<Place> place;
-        @Schema(name = "timeOfEating", example = "BREAKFAST(아침 식사), LUNCH(점심 식사), DUNCH(점저), DINNER(저녁 식사), MIDNIGHT(야식)", description = "앞에 영어를 배열로 보내면 됨.")
-        private List<TimeOfEating> timeOfEating;
+        private List<Place> placeList = new ArrayList<>();
 
+        @Builder.Default
+        @Schema(name = "timeOfEating", example = "BREAKFAST(아침 식사), LUNCH(점심 식사), DUNCH(점저), DINNER(저녁 식사), MIDNIGHT(야식)", description = "앞에 영어를 배열로 보내면 됨.")
+        private List<TimeOfEating> timeOfEatingList = new ArrayList<>();
+
+        @Builder.Default
         @Schema(name = "wayOfEating", example = " DELIVERY(배달), EATOUT(외식), TAKEOUT(포장)", description = "앞에 영어를 배열로 보내면 됨.")
-        private List<WayOfEating> wayOfEating;
+        private List<WayOfEating> wayOfEatingList = new ArrayList<>();
+
+        @Builder.Default
+        @Schema(name = "typeofOfStudy", example = " INNER_CIRCLE(본 과정), NOT_INNER_CIRCLE(비본 과정)", description = "앞에 영어를 배열로 보내면 됨.")
+        private List<TypeOfStudy> typeOfStudyList = new ArrayList<>();
 
         @Schema(name = "content", example = "서초 클러스터 2시에 치킨 먹으러갈겁니다.", description = "글 본문")
         @NotNull
@@ -433,8 +453,20 @@ public class Article extends BaseEntity {
 
 
         @Builder.Default
-        @Schema(name = "matchConditions", example = " ", description = "매치 조건 배열")
-        private List<MatchCondition.MatchConditionDto> matchConditions = new ArrayList<>();
+        @Schema(name = "place", example = "SEOCHO(서초 클러스터), GAEPO(개포 클러스터), OUT_OF_CLUSTER(클러스터 외부)", description = "앞에 영어를 배열로 보내면 됨.")
+        private List<Place> placeList = new ArrayList<>();
+
+        @Builder.Default
+        @Schema(name = "timeOfEating", example = "BREAKFAST(아침 식사), LUNCH(점심 식사), DUNCH(점저), DINNER(저녁 식사), MIDNIGHT(야식)", description = "앞에 영어를 배열로 보내면 됨.")
+        private List<TimeOfEating> timeOfEatingList = new ArrayList<>();
+
+        @Builder.Default
+        @Schema(name = "wayOfEating", example = " DELIVERY(배달), EATOUT(외식), TAKEOUT(포장)", description = "앞에 영어를 배열로 보내면 됨.")
+        private List<WayOfEating> wayOfEatingList = new ArrayList<>();
+
+        @Builder.Default
+        @Schema(name = "typeofOfStudy", example = " INNER_CIRCLE(본 과정), NOT_INNER_CIRCLE(비본 과정)", description = "앞에 영어를 배열로 보내면 됨.")
+        private List<TypeOfStudy> typeOfStudyList = new ArrayList<>();
 
 
         @Builder.Default
@@ -517,8 +549,20 @@ public class Article extends BaseEntity {
         private ContentCategory contentCategory;
 
         @Builder.Default
-        @Schema(name = "matchConditions", example = " ", description = "매치 조건 배열")
-        private List<MatchCondition.MatchConditionDto> matchConditions = new ArrayList<>();
+        @Schema(name = "place", example = "SEOCHO(서초 클러스터), GAEPO(개포 클러스터), OUT_OF_CLUSTER(클러스터 외부)", description = "앞에 영어를 배열로 보내면 됨.")
+        private List<Place> placeList = new ArrayList<>();
+
+        @Builder.Default
+        @Schema(name = "timeOfEating", example = "BREAKFAST(아침 식사), LUNCH(점심 식사), DUNCH(점저), DINNER(저녁 식사), MIDNIGHT(야식)", description = "앞에 영어를 배열로 보내면 됨.")
+        private List<TimeOfEating> timeOfEatingList = new ArrayList<>();
+
+        @Builder.Default
+        @Schema(name = "wayOfEating", example = " DELIVERY(배달), EATOUT(외식), TAKEOUT(포장)", description = "앞에 영어를 배열로 보내면 됨.")
+        private List<WayOfEating> wayOfEatingList = new ArrayList<>();
+
+        @Builder.Default
+        @Schema(name = "typeofOfStudy", example = " INNER_CIRCLE(본 과정), NOT_INNER_CIRCLE(비본 과정)", description = "앞에 영어를 배열로 보내면 됨.")
+        private List<TypeOfStudy> typeOfStudyList = new ArrayList<>();
 
         public static ArticleReadResponse of(Article article,
             List<MatchConditionDto> matchConditionDtos) {

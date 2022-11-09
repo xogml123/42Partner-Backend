@@ -5,6 +5,9 @@ import com.seoul.openproject.partner.domain.model.BaseEntity;
 import com.seoul.openproject.partner.domain.model.article.Article;
 import com.seoul.openproject.partner.domain.model.matchcondition.MatchConditionMatch;
 import com.seoul.openproject.partner.domain.model.member.Member;
+import io.swagger.v3.oas.annotations.media.Schema;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -25,11 +28,17 @@ import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.Singular;
 
 
@@ -83,6 +92,13 @@ public class Match extends BaseEntity {
     @Column(nullable = false, updatable = false)
     private MethodCategory methodCategory;
 
+    @Column(nullable = false)
+    private Integer participantNum;
+
+    /********************************* 비영속 필드 *********************************/
+
+    /********************************* 연관관계 매핑 *********************************/
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ARTICLE_ID", updatable = false)
     private Article article;
@@ -92,14 +108,6 @@ public class Match extends BaseEntity {
     @Column(nullable = false, updatable = false)
     private List<MatchMember> matchMembers = new ArrayList<>();
 
-
-
-
-    /********************************* 비영속 필드 *********************************/
-
-    /********************************* 연관관계 매핑 *********************************/
-
-
     @Builder.Default
     @OneToMany(mappedBy = "match", fetch = FetchType.LAZY)
     private List<MatchConditionMatch> matchConditionMatches = new ArrayList<>();
@@ -108,16 +116,50 @@ public class Match extends BaseEntity {
 
     /********************************* 생성 메서드 *********************************/
 
-    public static Match of(MatchStatus matchStatus, ContentCategory contentCategory, MethodCategory methodCategory, Article article) {
+    public static Match of(MatchStatus matchStatus, ContentCategory contentCategory, MethodCategory methodCategory, Article article, Integer participantNum) {
         return Match.builder()
             .matchStatus(matchStatus)
             .contentCategory(contentCategory)
+            .participantNum(participantNum)
             .methodCategory(methodCategory)
             .article(article)
             .build();
     }
 
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    @Builder
+    public static class MatchDto {
 
+
+        @Schema(name = "matchId", example = "4f3dda35-3739-406c-ad22-eed438831d66", description = "매치 ID")
+        @NotBlank
+        @Size(min = 1, max = 100)
+        private String matchId;
+
+        @Schema(name = "createdAt", example = "2022-10-03T00:00:00", description = "작성 시간")
+        private LocalDateTime createdAt;
+
+        @Schema(name = "matchStatus", example = "MATCHED(\"매칭 완료\"), CANCELED(\"취소\");", description = " 매칭 완료, 취소 여부(현 상황에서는 매칭 완료 인것만 보내짐.)")
+        @NotNull
+        private MatchStatus matchStatus;
+
+        @Schema(name = "contentCategory", example = "MEAL or STUDY", description = "식사, 공부 글인지 여부")
+        @NotNull
+        private ContentCategory contentCategory;
+
+        @Schema(name = "methodCategory", example = "RANDOM, MANUAL", description = "랜덤, 인지 방매칭인지 여부")
+        @NotNull
+        private MethodCategory methodCategory;
+
+        @Schema(name = "participantNum", example = " 2", description = "현재 방에 참여중인 인원")
+        @NotNull
+        private Integer participantNum;
+///////////////////
+
+
+    }
 
     /********************************* 비니지스 로직 *********************************/
 

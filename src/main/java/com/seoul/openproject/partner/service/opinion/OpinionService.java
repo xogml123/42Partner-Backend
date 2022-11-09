@@ -8,7 +8,7 @@ import com.seoul.openproject.partner.domain.model.opnion.Opinion.OpinionResponse
 import com.seoul.openproject.partner.domain.model.opnion.Opinion.OpinionUpdateRequest;
 import com.seoul.openproject.partner.dto.ListResponse;
 import com.seoul.openproject.partner.mapper.OpinionMapper;
-import com.seoul.openproject.partner.repository.OpinionRepository;
+import com.seoul.openproject.partner.repository.opinion.OpinionRepository;
 import com.seoul.openproject.partner.repository.article.ArticleRepository;
 import com.seoul.openproject.partner.repository.member.MemberRepository;
 import java.util.List;

@@ -1,7 +1,13 @@
 package com.seoul.openproject.partner.domain.model.match;
 
+import com.seoul.openproject.partner.domain.model.matchcondition.Place;
+
 public enum ConditionCategory {
-    PLACE,
-    TIME_OF_EATING, TYPE_OF_EATING, WAY_OF_EATING,
-    TYPE_OF_STUDY
+    Place,
+    TimeOfEating, TypeOfEating, WayOfEating,
+    TypeOfStudy;
+
+//    public static ConditionCategory from(String s) {
+//        return ConditionCategory.valueOf(s);
+//    }
 }

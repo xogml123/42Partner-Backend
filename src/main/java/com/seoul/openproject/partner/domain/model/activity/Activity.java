@@ -6,6 +6,7 @@ import com.seoul.openproject.partner.domain.model.match.ContentCategory;
 import com.seoul.openproject.partner.domain.model.match.Match;
 import com.seoul.openproject.partner.domain.model.match.MethodCategory;
 import com.seoul.openproject.partner.domain.model.member.Member;
+import io.swagger.v3.oas.annotations.media.Schema;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -18,11 +19,15 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -97,7 +102,23 @@ public class Activity extends BaseEntity {
             .build();
     }
 
+
     /********************************* 비니지스 로직 *********************************/
+
+
+    /********************************* DTO *********************************/
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    @Builder
+    public static class ActivityScoreResponse {
+
+
+        @Schema(name = "score", example = "1523", description = "활동 점수")
+        @NotNull
+        private Integer score;
+    }
+
 
 }
 

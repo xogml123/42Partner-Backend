@@ -1,5 +1,5 @@
 package com.seoul.openproject.partner.domain.model.match;
 
 public enum ContentCategory {
-    MEAL, STDUY
+    MEAL, STUDY
 }
