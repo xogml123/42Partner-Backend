@@ -4,7 +4,6 @@ package com.seoul.openproject.partner.domain.model.matchcondition;
 
 import com.seoul.openproject.partner.domain.model.BaseTimeVersionEntity;
 import com.seoul.openproject.partner.domain.model.article.Article;
-import com.seoul.openproject.partner.domain.model.match.MatchCondition;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -69,10 +68,12 @@ public class ArticleMatchCondition extends BaseTimeVersionEntity {
 
     /********************************* 생성 메서드 *********************************/
 
-    public static ArticleMatchCondition of(MatchCondition matchCondition) {
-        return ArticleMatchCondition.builder()
-                .matchCondition(matchCondition)
-                .build();
+    public static ArticleMatchCondition of(MatchCondition matchCondition, Article article) {
+        ArticleMatchCondition articleMatchCondition = ArticleMatchCondition.builder()
+            .matchCondition(matchCondition)
+            .build();
+        articleMatchCondition.setArticle(article);
+        return articleMatchCondition;
     }
 
 

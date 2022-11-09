@@ -3,16 +3,14 @@ package com.seoul.openproject.partner.domain.model.match;
 
 import com.seoul.openproject.partner.domain.model.BaseEntity;
 import com.seoul.openproject.partner.domain.model.article.Article;
+import com.seoul.openproject.partner.domain.model.matchcondition.MatchCondition;
 import com.seoul.openproject.partner.domain.model.matchcondition.MatchConditionMatch;
-import com.seoul.openproject.partner.domain.model.member.Member;
 import io.swagger.v3.oas.annotations.media.Schema;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import javax.persistence.Column;
-import javax.persistence.DiscriminatorColumn;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
@@ -20,16 +18,11 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.Inheritance;
-import javax.persistence.InheritanceType;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
@@ -39,7 +32,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.Singular;
 
 
 @Builder(access = AccessLevel.PRIVATE)
@@ -128,8 +120,9 @@ public class Match extends BaseEntity {
 
     @Getter
     @Setter
-    @AllArgsConstructor
     @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor(access = AccessLevel.PRIVATE)
     public static class MatchDto {
 
 
@@ -153,11 +146,25 @@ public class Match extends BaseEntity {
         @NotNull
         private MethodCategory methodCategory;
 
-        @Schema(name = "participantNum", example = " 2", description = "현재 방에 참여중인 인원")
+        @Schema(name = "participantNum", example = "4", description = "현재 방에 참여중인 인원")
         @NotNull
         private Integer participantNum;
-///////////////////
 
+        @Schema(name = "matchConditionDto", example = "", description = "매칭 조건")
+        @NotNull
+        private MatchCondition.MatchConditionDto matchConditionDto;
+
+        public static MatchDto of(Match match, MatchCondition.MatchConditionDto matchConditionDto) {
+            return MatchDto.builder()
+                .matchId(match.getApiId())
+                .createdAt(match.getCreatedAt())
+                .matchStatus(match.getMatchStatus())
+                .contentCategory(match.getContentCategory())
+                .methodCategory(match.getMethodCategory())
+                .participantNum(match.getParticipantNum())
+                .matchConditionDto(matchConditionDto)
+                .build();
+        }
 
     }
 

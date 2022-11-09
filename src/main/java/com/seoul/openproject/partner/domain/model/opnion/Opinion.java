@@ -65,7 +65,6 @@ public class Opinion extends BaseEntity {
     @Column(nullable = false)
     private String content;
 
-    @Column(nullable = false, updatable = false)
     private String parentApiId;
 
     @Column(nullable = false, updatable = false)
@@ -124,8 +123,9 @@ public class Opinion extends BaseEntity {
 
     @Getter
     @Setter
-    @AllArgsConstructor
     @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor(access = AccessLevel.PRIVATE)
     public static class OpinionOnlyIdResponse {
         @Schema(name = "opinionId", example = "4f3dda35-3739-406c-ad22-eed438831d66", description = "댓글 ID")
         @NotBlank
@@ -134,8 +134,9 @@ public class Opinion extends BaseEntity {
 
     @Getter
     @Setter
-    @AllArgsConstructor
     @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor(access = AccessLevel.PRIVATE)
     public static class OpinionDto{
 
         @Schema(name= "articleId" , example = "4f3dda35-3739-406c-ad22-eed438831d66", description = "댓글을 단 글의 id")
@@ -148,18 +149,20 @@ public class Opinion extends BaseEntity {
         private String content;
 
         @Schema(name= "parentId" , example = "4f3dda35-3739-406c-ad22-eed438831d66", description = "부모 댓글의 id")
-        @NotBlank
         private String parentId;
 
         @Schema(name= "level" , example = "1", description = "첫 댓글이 1이고 대댓글이 2")
         @NotNull
         private Integer level;
+
+
     }
 
     @Getter
     @Setter
-    @AllArgsConstructor
     @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor(access = AccessLevel.PRIVATE)
     public static class OpinionUpdateRequest{
 
         @Schema(name= "content" , example = "서초 클러스터 2시에 치킨 먹으러갈겁니다.", description = "댓글 본문")
@@ -171,8 +174,9 @@ public class Opinion extends BaseEntity {
 
     @Getter
     @Setter
-    @AllArgsConstructor
     @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor(access = AccessLevel.PRIVATE)
     public static class OpinionResponse {
 
         @Schema(name= "opinionId" , example = "4f3dda35-3739-406c-ad22-eed438831d66", description = "댓글 id")

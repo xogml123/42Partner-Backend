@@ -80,11 +80,13 @@ public class ArticleMember extends BaseEntity {
 
     /********************************* 생성 메서드 *********************************/
 
-    public static ArticleMember of(Member member, boolean isAuthor) {
-        return ArticleMember.builder()
+    public static ArticleMember of(Member member, boolean isAuthor, Article article) {
+        ArticleMember articleMember = ArticleMember.builder()
             .member(member)
             .isAuthor(isAuthor)
             .build();
+        articleMember.setArticle(article);
+        return articleMember;
     }
 
     /********************************* 비니지스 로직 *********************************/

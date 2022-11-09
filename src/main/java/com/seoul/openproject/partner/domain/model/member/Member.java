@@ -105,8 +105,9 @@ public class Member extends BaseEntity {
 
     @Getter
     @Setter
-    @AllArgsConstructor
     @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor(access = AccessLevel.PRIVATE)
     public static class MemberDto {
 
 

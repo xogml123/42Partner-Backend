@@ -2,9 +2,10 @@ package com.seoul.openproject.partner.service.article;
 
 import com.seoul.openproject.partner.domain.model.activity.Activity;
 import com.seoul.openproject.partner.domain.model.activity.ActivityType;
+import com.seoul.openproject.partner.domain.model.matchcondition.MatchCondition;
+import com.seoul.openproject.partner.domain.model.matchcondition.MatchCondition.MatchConditionDto;
 import com.seoul.openproject.partner.domain.model.matchcondition.TypeOfStudy;
 import com.seoul.openproject.partner.domain.model.match.Match;
-import com.seoul.openproject.partner.domain.model.match.MatchCondition.MatchConditionDto;
 import com.seoul.openproject.partner.domain.model.match.MatchMember;
 import com.seoul.openproject.partner.domain.model.match.MatchStatus;
 import com.seoul.openproject.partner.domain.model.match.MethodCategory;
@@ -77,24 +78,23 @@ public class ArticleService {
     private final MatchConditionMapper matchConditionMapper;
 
     @Transactional
-    public ArticleOnlyIdResponse createArticle(Article.ArticleDto articleRequest) {
-        Member member = memberRepository.findByApiId(articleRequest.getMemberId())
-            .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
-
-        ArticleMember articleMemberAuthor = ArticleMember.of(member, true);
-        List<ArticleMatchCondition> articleMatchConditionList = allMatchConditionToArticleMatchCondition(
-            articleRequest);
-
+    public ArticleOnlyIdResponse createArticle(String userId, Article.ArticleDto articleRequest) {
+        Member member = userRepository.findByApiId(userId).orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND)).getMember();
         Article article = articleRepository.save(
             Article.of(articleRequest.getDate(),
                 articleRequest.getTitle(),
                 articleRequest.getContent(),
                 articleRequest.getAnonymity(),
                 articleRequest.getParticipantNumMax(),
-                articleRequest.getContentCategory(),
-                articleMemberAuthor,
-                articleMatchConditionList));
-        return new ArticleOnlyIdResponse(article.getApiId());
+                articleRequest.getContentCategory()));
+
+        ArticleMember articleMemberAuthor = articleMemberRepository.save(
+            ArticleMember.of(member, true, article));
+
+        List<ArticleMatchCondition> articleMatchConditionList = allMatchConditionToArticleMatchCondition(
+            articleRequest, article);
+        articleMatchConditionRepository.saveAll(articleMatchConditionList);
+        return ArticleOnlyIdResponse.of(article.getApiId());
     }
 
     @Transactional
@@ -102,7 +102,7 @@ public class ArticleService {
 
         articleRepository.deleteByApiId(articleId);
 
-        return new ArticleOnlyIdResponse(articleId);
+        return ArticleOnlyIdResponse.of(articleId);
     }
 
     @Transactional
@@ -111,17 +111,20 @@ public class ArticleService {
                 articleId)
             .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
 
-
-        List<ArticleMatchCondition> articleMatchConditions = allMatchConditionToArticleMatchCondition(
-            articleRequest);
+        //기존 조건 삭제
+        article.getArticleMatchConditions().clear();
         articleMatchConditionRepository.deleteAll(article.getArticleMatchConditions());
+
+        //새로운 조건 객체 생성
+        List<ArticleMatchCondition> articleMatchConditions = allMatchConditionToArticleMatchCondition(
+            articleRequest, article);
 
         //article delete, match여부, participantNumMax적정한지 확인.
         article.update(articleRequest.getDate(), articleRequest.getTitle(),
             articleRequest.getContent(),
             articleRequest.getParticipantNumMax(), articleMatchConditions);
         articleMatchConditionRepository.saveAll(articleMatchConditions);
-        return new ArticleOnlyIdResponse(article.getApiId());
+        return ArticleOnlyIdResponse.of(article.getApiId());
     }
 
 
@@ -134,12 +137,18 @@ public class ArticleService {
             .map(am -> (
                 memberMapper.entityToMemberDto(am.getMember(), am)))
             .collect(Collectors.toList());
-        List<MatchConditionDto> matchConditionDtos = article.getArticleMatchConditions().stream()
-            .map(arc -> (
-                matchConditionMapper.entityToMatchConditionDto(arc.getMatchCondition())
-            ))
+
+        List<MatchCondition> matchConditions = article.getArticleMatchConditions().stream()
+            .map(amc ->
+                amc.getMatchCondition())
             .collect(Collectors.toList());
-        return ArticleReadOneResponse.of(article, memberDtos, matchConditionDtos);
+
+        return ArticleReadOneResponse.of(article, memberDtos,
+            MatchConditionDto.of(Place.extractPlaceFromMatchCondition(matchConditions),
+                TimeOfEating.extractTimeOfEatingFromMatchCondition(matchConditions),
+                WayOfEating.extractWayOfEatingFromMatchCondition(matchConditions),
+                TypeOfStudy.extractTypeOfStudyFromMatchCondition(matchConditions)
+            ));
 
     }
 
@@ -147,13 +156,15 @@ public class ArticleService {
         ArticleSearch condition) {
         return articleRepository.findSliceByCondition(pageable,
             condition).map((article) -> {
-                List<MatchConditionDto> matchConditionDtos = article.getArticleMatchConditions()
-                    .stream()
-                    .map(arc -> (
-                        matchConditionMapper.entityToMatchConditionDto(arc.getMatchCondition())
-                    ))
-                    .collect(Collectors.toList());
-                return ArticleReadResponse.of(article, matchConditionDtos);
+            List<MatchCondition> matchConditions = article.getArticleMatchConditions().stream()
+                .map(amc ->
+                    amc.getMatchCondition())
+                .collect(Collectors.toList());
+                return ArticleReadResponse.of(article, MatchConditionDto.of(Place.extractPlaceFromMatchCondition(matchConditions),
+                    TimeOfEating.extractTimeOfEatingFromMatchCondition(matchConditions),
+                    WayOfEating.extractWayOfEatingFromMatchCondition(matchConditions),
+                    TypeOfStudy.extractTypeOfStudyFromMatchCondition(matchConditions)
+                ));
             }
         );
     }
@@ -171,9 +182,7 @@ public class ArticleService {
         ArticleMember participateMember = article.participateMember(member);
 
         articleMemberRepository.save(participateMember);
-        return ArticleOnlyIdResponse.builder()
-            .articleId(article.getApiId())
-            .build();
+        return ArticleOnlyIdResponse.of(article.getApiId());
     }
 
     @Transactional
@@ -189,9 +198,7 @@ public class ArticleService {
 
         ArticleMember participateMember = article.participateCancelMember(member);
         articleMemberRepository.delete(participateMember);
-        return ArticleOnlyIdResponse.builder()
-            .articleId(article.getApiId())
-            .build();
+        return ArticleOnlyIdResponse.of(article.getApiId());
     }
 
     @Transactional
@@ -255,22 +262,20 @@ public class ArticleService {
             + "만약, 초대 되지않은 유저가 있다면 slack에서 초대해주세요.\n"
             + "slack에 등록된 email이 IntraId" + User.SEOUL_42
             + " 형식으로 되어있지 않으면 초대 및 알림이 발송 되지 않을 수 있습니다.");
-        return ArticleOnlyIdResponse.builder()
-            .articleId(article.getApiId())
-            .build();
+        return ArticleOnlyIdResponse.of(article.getApiId());
     }
 
 
     private List<String> allMatchConditionToStringList(Article.ArticleDto articleRequest) {
         List<String> matchConditionStrings = new ArrayList<>();
-        List<Place> place = articleRequest.getPlaceList();
+        List<Place> place = articleRequest.getMatchConditionDto().getPlaceList();
         if (place == null) {
             place = new ArrayList<>();
         }
         matchConditionStrings.addAll(place.stream()
             .map(Enum::name)
             .collect(Collectors.toList()));
-        List<TimeOfEating> timeOfEating = articleRequest.getTimeOfEatingList();
+        List<TimeOfEating> timeOfEating = articleRequest.getMatchConditionDto().getTimeOfEatingList();
         if (timeOfEating == null) {
             timeOfEating = new ArrayList<>();
         }
@@ -278,7 +283,7 @@ public class ArticleService {
             .map(Enum::name)
             .collect(Collectors.toList()));
 
-        List<WayOfEating> wayOfEating = articleRequest.getWayOfEatingList();
+        List<WayOfEating> wayOfEating = articleRequest.getMatchConditionDto().getWayOfEatingList();
         if (wayOfEating == null) {
             wayOfEating = new ArrayList<>();
         }
@@ -286,7 +291,7 @@ public class ArticleService {
             .map(Enum::name)
             .collect(Collectors.toList()));
 
-        List<TypeOfStudy> typeOfStudy = articleRequest.getTypeOfStudyList();
+        List<TypeOfStudy> typeOfStudy = articleRequest.getMatchConditionDto().getTypeOfStudyList();
         if (typeOfStudy == null) {
             typeOfStudy = new ArrayList<>();
         }
@@ -298,13 +303,14 @@ public class ArticleService {
     }
 
     private List<ArticleMatchCondition> allMatchConditionToArticleMatchCondition(
-        Article.ArticleDto articleRequest) {
+        Article.ArticleDto articleRequest, Article article) {
         return allMatchConditionToStringList(articleRequest).stream()
             .map((matchConditionString) ->
                 matchConditionRepository.findByValue(matchConditionString).orElseThrow(() ->
                     new NoEntityException(ErrorCode.ENTITY_NOT_FOUND)
                 ))
-            .map(ArticleMatchCondition::of)
+            .map((matchCondition) ->
+                ArticleMatchCondition.of(matchCondition, article))
             .collect(Collectors.toList());
     }
 

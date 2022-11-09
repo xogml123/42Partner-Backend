@@ -26,8 +26,8 @@ public class ActivityService {
         Member member = userRepository.findByApiId(userId).orElseThrow(() ->
                 new NoEntityException(ErrorCode.ENTITY_NOT_FOUND))
             .getMember();
-
-
-        return null;
+        return ActivityScoreResponse.of(
+            activityRepository.findSumScoreByMemberIdAndArticleSearch(member.getId(),
+                activitySearch));
     }
 }

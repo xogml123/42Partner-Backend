@@ -2,6 +2,10 @@ package com.seoul.openproject.partner.service.user;
 
 
 import com.seoul.openproject.partner.domain.model.user.User;
+import com.seoul.openproject.partner.domain.model.user.User.UserDto;
+import com.seoul.openproject.partner.domain.model.user.User.UserUpdateRequest;
+import com.seoul.openproject.partner.error.exception.ErrorCode;
+import com.seoul.openproject.partner.error.exception.NoEntityException;
 import com.seoul.openproject.partner.repository.user.UserRepository;
 import com.seoul.openproject.partner.mapper.UserMapper;
 import java.util.Locale;
@@ -25,8 +29,16 @@ public class UserService {
     public User.UserDto findById(String userId) {
 
         User user = userRepository.findByApiId(userId).orElseThrow(() ->
-            new EntityNotFoundException(messageSource.getMessage("exception.notfound", new Object[]{userId, User.class.toString()}, Locale.KOREAN)));
+            new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
 
         return userMapper.entityToUserDto(user);
+    }
+
+    @Transactional
+    public User.UserOnlyIdResponse updateEmail(String userId, UserUpdateRequest userUpdateRequest) {
+        User user = userRepository.findByApiId(userId).orElseThrow(() ->
+            new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
+        user.updateEmail(userUpdateRequest.getEmail());
+        return userMapper.entityToUserOnlyIdResponse(user);
     }
 }

@@ -2,8 +2,6 @@ package com.seoul.openproject.partner.domain.model.matchcondition;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.seoul.openproject.partner.domain.model.match.ConditionCategory;
-import com.seoul.openproject.partner.domain.model.match.MatchCondition;
-import java.sql.Time;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +21,7 @@ public enum TimeOfEating {
     public static List<TimeOfEating> extractTimeOfEatingFromMatchCondition(List<MatchCondition> matchConditions) {
         return matchConditions.stream()
             .filter(matchCondition -> {
-                String[] strings = TimeOfEating.class.getName().split(".");
+                String[] strings = TimeOfEating.class.getName().split("\\.");
                 return matchCondition.getConditionCategory().name()
                     .equalsIgnoreCase(strings[strings.length - 1]);
             })

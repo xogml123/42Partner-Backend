@@ -52,7 +52,7 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 @Entity
 public class User extends BaseTimeVersionEntity implements UserDetails, OAuth2User ,CredentialsContainer, Serializable {
     //********************************* static final 상수 필드 *********************************/
-
+    private static final long serialVersionUID = 159813599623625L;
     /**
      * email 뒤에 붙는 문자열
      */
@@ -260,6 +260,10 @@ public class User extends BaseTimeVersionEntity implements UserDetails, OAuth2Us
         this.password = encodedPassword;
     }
 
+    public void updateEmail(String email) {
+        this.email = email;
+    }
+
 //    public void updateUserByOAuthIfo(String imageUrl) {
 //        this.imageUrl = imageUrl;
 //
@@ -270,9 +274,10 @@ public class User extends BaseTimeVersionEntity implements UserDetails, OAuth2Us
 
     @Getter
     @Setter
-    @AllArgsConstructor
     @Builder
-    static public class UserDto {
+    @NoArgsConstructor
+    @AllArgsConstructor(access = AccessLevel.PRIVATE)
+    public static class UserDto {
         @Schema(name = "userId" , example = "db688a4a-2f70-4265-a1ea-d15fd6c5c914", description = "사용자 id, 로그인시에 보내지는 값")
         @NotBlank
         private String userId;
@@ -292,11 +297,31 @@ public class User extends BaseTimeVersionEntity implements UserDetails, OAuth2Us
         @Schema(name = "imageUrl" , example = "https://cdn.intra.42.fr/users/medium_takim.jpg", description = "intra profile image와 같게 회원가입됨.")
         @NotBlank
         private String imageUrl;
-//
-//        @Schema(name = "slackEmail" , example="abccc@gmail.com", description = "slack 알림을 위해 사용될 수 있음. 아직은 사용하지 않음.")
-//        private String slackEmail;
+
 
     }
 
+    @Getter
+    @Setter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor(access = AccessLevel.PRIVATE)
+    public static class UserUpdateRequest {
+
+        @Schema(name = "email" , example = "takim@student.42seoul.kr", description = "slack에 등록된 이메일로 변경")
+        @NotBlank
+        private String email;
+    }
+
+    @Getter
+    @Setter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor(access = AccessLevel.PRIVATE)
+    public static class UserOnlyIdResponse {
+        @Schema(name = "userId" , example = "db688a4a-2f70-4265-a1ea-d15fd6c5c914", description = "사용자 id, 로그인시에 보내지는 값")
+        @NotBlank
+        private String userId;
+    }
 }
 

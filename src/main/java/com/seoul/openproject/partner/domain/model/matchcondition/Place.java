@@ -2,7 +2,6 @@ package com.seoul.openproject.partner.domain.model.matchcondition;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.seoul.openproject.partner.domain.model.match.ConditionCategory;
-import com.seoul.openproject.partner.domain.model.match.MatchCondition;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +23,7 @@ public enum Place {
         return matchConditions.stream()
             .filter(matchCondition -> {
                 //Place
-                String[] strings = Place.class.getName().split(".");
+                String[] strings = Place.class.getName().split("\\.");
                 return matchCondition.getConditionCategory().name()
                     .equals(strings[strings.length - 1]);
             })

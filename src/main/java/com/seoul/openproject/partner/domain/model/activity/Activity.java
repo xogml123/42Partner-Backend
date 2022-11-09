@@ -109,14 +109,21 @@ public class Activity extends BaseEntity {
     /********************************* DTO *********************************/
     @Getter
     @Setter
-    @AllArgsConstructor
     @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor(access = AccessLevel.PRIVATE)
     public static class ActivityScoreResponse {
 
 
         @Schema(name = "score", example = "1523", description = "활동 점수")
         @NotNull
         private Integer score;
+
+        public static ActivityScoreResponse of(Integer score) {
+            return ActivityScoreResponse.builder()
+                .score(score)
+                .build();
+        }
     }
 
 

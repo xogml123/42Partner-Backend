@@ -2,11 +2,10 @@ package com.seoul.openproject.partner.config.bootloader;
 
 import com.seoul.openproject.partner.domain.model.matchcondition.Place;
 import com.seoul.openproject.partner.domain.model.matchcondition.TimeOfEating;
-import com.seoul.openproject.partner.domain.model.matchcondition.TypeOfEating;
 import com.seoul.openproject.partner.domain.model.matchcondition.TypeOfStudy;
 import com.seoul.openproject.partner.domain.model.matchcondition.WayOfEating;
 import com.seoul.openproject.partner.domain.model.match.ConditionCategory;
-import com.seoul.openproject.partner.domain.model.match.MatchCondition;
+import com.seoul.openproject.partner.domain.model.matchcondition.MatchCondition;
 import com.seoul.openproject.partner.domain.model.user.Authority;
 import com.seoul.openproject.partner.domain.model.user.Role;
 import com.seoul.openproject.partner.domain.model.user.RoleEnum;
@@ -18,6 +17,7 @@ import com.seoul.openproject.partner.repository.user.UserRoleRepository;
 import java.util.Arrays;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -36,6 +36,9 @@ public class DataLoader implements CommandLineRunner {
     private final UserRoleRepository userRoleRepository;
     private final MatchConditionRepository matchConditionRepository;
 
+    @Value("${spring.jpa.hibernate.data-loader}")
+    private String dataLoader;
+    private
     @Transactional
     public void createRoleAuthority() {
 //        Authority 생성
@@ -193,13 +196,13 @@ public class DataLoader implements CommandLineRunner {
         matchConditionRepository.save(MatchCondition.of(TimeOfEating.DINNER.name(), ConditionCategory.TimeOfEating));
         matchConditionRepository.save(MatchCondition.of(TimeOfEating.MIDNIGHT.name(), ConditionCategory.TimeOfEating));
 
-        matchConditionRepository.save(MatchCondition.of(TypeOfEating.KOREAN.name(), ConditionCategory.TypeOfEating));
-        matchConditionRepository.save(MatchCondition.of(TypeOfEating.JAPANESE.name(), ConditionCategory.TypeOfEating));
-        matchConditionRepository.save(MatchCondition.of(TypeOfEating.CHINESE.name(), ConditionCategory.TypeOfEating));
-        matchConditionRepository.save(MatchCondition.of(TypeOfEating.WESTERN.name(), ConditionCategory.TypeOfEating));
-        matchConditionRepository.save(MatchCondition.of(TypeOfEating.ASIAN.name(), ConditionCategory.TypeOfEating));
-        matchConditionRepository.save(MatchCondition.of(TypeOfEating.EXOTIC.name(), ConditionCategory.TypeOfEating));
-        matchConditionRepository.save(MatchCondition.of(TypeOfEating.CONVENIENCE.name(), ConditionCategory.TypeOfEating));
+//        matchConditionRepository.save(MatchCondition.of(TypeOfEating.KOREAN.name(), ConditionCategory.TypeOfEating));
+//        matchConditionRepository.save(MatchCondition.of(TypeOfEating.JAPANESE.name(), ConditionCategory.TypeOfEating));
+//        matchConditionRepository.save(MatchCondition.of(TypeOfEating.CHINESE.name(), ConditionCategory.TypeOfEating));
+//        matchConditionRepository.save(MatchCondition.of(TypeOfEating.WESTERN.name(), ConditionCategory.TypeOfEating));
+//        matchConditionRepository.save(MatchCondition.of(TypeOfEating.ASIAN.name(), ConditionCategory.TypeOfEating));
+//        matchConditionRepository.save(MatchCondition.of(TypeOfEating.EXOTIC.name(), ConditionCategory.TypeOfEating));
+//        matchConditionRepository.save(MatchCondition.of(TypeOfEating.CONVENIENCE.name(), ConditionCategory.TypeOfEating));
 
         matchConditionRepository.save(MatchCondition.of(TypeOfStudy.INNER_CIRCLE.name(), ConditionCategory.TypeOfStudy));
         matchConditionRepository.save(MatchCondition.of(TypeOfStudy.NOT_INNER_CIRCLE.name(), ConditionCategory.TypeOfStudy));
@@ -220,7 +223,9 @@ public class DataLoader implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
+        if (dataLoader.equals("1")) {
             createRoleAuthority();
             createMatchCondition();
+        }
     }
 }

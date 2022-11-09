@@ -48,8 +48,10 @@ public class ArticleController {
 //        + "(hasAuthority('article.create') AND @customAuthenticationManager.userIdMatches(authentication, #articleRequest))")
     @Operation(summary = "방 매칭 글쓰기", description = "방 매칭 글쓰기")
     @PostMapping("/articles")
-    public Article.ArticleOnlyIdResponse writeArticle(@Validated @Parameter @RequestBody Article.ArticleDto articleRequest) {
-        return articleService.createArticle(articleRequest);
+    public Article.ArticleOnlyIdResponse writeArticle(
+        @Parameter(hidden = true) @AuthenticationPrincipal User user,
+        @Validated @Parameter @RequestBody Article.ArticleDto articleRequest) {
+        return articleService.createArticle(user.getApiId(), articleRequest);
     }
 
     @Operation(summary = "방 매칭 글수정", description = "방 매칭 글 수정")
