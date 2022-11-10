@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -39,7 +40,7 @@ public class ArticleController {
 
     @Operation(summary = "방 목록조회", description = "방 목록 페이지, ")
     @GetMapping("/articles")
-    public Slice<ArticleReadResponse> readAllArticle(Pageable pageable, ArticleSearch condition) {
+    public Slice<ArticleReadResponse> readAllArticle(PageRequest pageable, ArticleSearch condition) {
         return articleService.readAllArticle(pageable, condition);
     }
 

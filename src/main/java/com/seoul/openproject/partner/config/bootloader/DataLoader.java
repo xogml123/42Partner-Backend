@@ -38,7 +38,6 @@ public class DataLoader implements CommandLineRunner {
 
     @Value("${spring.jpa.hibernate.data-loader}")
     private String dataLoader;
-    private
     @Transactional
     public void createRoleAuthority() {
 //        Authority 생성
