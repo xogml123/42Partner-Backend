@@ -5,11 +5,11 @@ import com.seoul.openproject.partner.domain.model.article.Article.ArticleReadRes
 import com.seoul.openproject.partner.domain.model.user.User;
 import com.seoul.openproject.partner.repository.article.ArticleSearch;
 import com.seoul.openproject.partner.service.article.ArticleService;
+import io.swagger.annotations.ApiParam;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -40,7 +40,7 @@ public class ArticleController {
 
     @Operation(summary = "방 목록조회", description = "방 목록 페이지, ")
     @GetMapping("/articles")
-    public Slice<ArticleReadResponse> readAllArticle(PageRequest pageable, ArticleSearch condition) {
+    public Slice<ArticleReadResponse> readAllArticle(Pageable pageable, ArticleSearch condition) {
         return articleService.readAllArticle(pageable, condition);
     }
 
@@ -50,7 +50,7 @@ public class ArticleController {
     @Operation(summary = "방 매칭 글쓰기", description = "방 매칭 글쓰기")
     @PostMapping("/articles")
     public Article.ArticleOnlyIdResponse writeArticle(
-        @Parameter(hidden = true) @AuthenticationPrincipal User user,
+        @ApiParam(hidden = true) @AuthenticationPrincipal User user,
         @Validated @Parameter @RequestBody Article.ArticleDto articleRequest) {
         return articleService.createArticle(user.getApiId(), articleRequest);
     }
