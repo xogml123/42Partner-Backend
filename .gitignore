@@ -1,7 +1,6 @@
 HELP.md
 .gradle
 build/
-!gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
 
@@ -63,3 +62,4 @@ hs_err_pid*
 
 ### application.yml ###
 application.*
+!gradle/wrapper/gradle-wrapper.jar
