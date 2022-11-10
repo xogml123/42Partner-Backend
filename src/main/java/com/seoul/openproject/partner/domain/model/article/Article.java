@@ -1,14 +1,15 @@
 package com.seoul.openproject.partner.domain.model.article;
 
 import com.seoul.openproject.partner.domain.model.match.ContentCategory;
+import com.seoul.openproject.partner.domain.model.matchcondition.MatchCondition.MatchConditionDto;
 import com.seoul.openproject.partner.domain.model.matchcondition.ArticleMatchCondition;
 import com.seoul.openproject.partner.domain.model.BaseEntity;
-import com.seoul.openproject.partner.domain.model.match.MatchCondition;
 import com.seoul.openproject.partner.domain.model.member.Member;
+import com.seoul.openproject.partner.domain.model.member.Member.MemberDto;
 import com.seoul.openproject.partner.domain.model.opnion.Opinion;
-import com.seoul.openproject.partner.mapper.MatchConditionMapper;
-import com.seoul.openproject.partner.mapper.MemberMapper;
-import io.swagger.v3.oas.annotations.media.Content;
+import com.seoul.openproject.partner.error.exception.ErrorCode;
+import com.seoul.openproject.partner.error.exception.InvalidInputException;
+import com.seoul.openproject.partner.error.exception.UnmodifiableArticleException;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -19,7 +20,9 @@ import java.util.stream.Collectors;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.EntityNotFoundException;
+
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -39,7 +42,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.beans.factory.annotation.Autowired;
 
 
 @Builder(access = AccessLevel.PRIVATE)
@@ -96,7 +98,7 @@ public class Article extends BaseEntity {
 
     @Builder.Default
     @Column(nullable = false)
-    private Boolean complete = false;
+    private Boolean isComplete = false;
 
     @Builder.Default
     @Column(nullable = false)
@@ -109,6 +111,7 @@ public class Article extends BaseEntity {
     @Column(nullable = false)
     private Boolean isDeleted = false;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, updatable = false)
     private ContentCategory contentCategory;
 
@@ -126,7 +129,8 @@ public class Article extends BaseEntity {
     private List<ArticleMatchCondition> articleMatchConditions = new ArrayList<>();
 
     @Builder.Default
-    @OneToMany(mappedBy = "article", fetch = FetchType.LAZY, cascade = {CascadeType.REMOVE, CascadeType.PERSIST})
+    @OneToMany(mappedBy = "article", fetch = FetchType.LAZY, cascade = {CascadeType.REMOVE,
+        CascadeType.PERSIST})
     @Column(nullable = false, updatable = false)
     private List<ArticleMember> articleMembers = new ArrayList<>();
 
@@ -140,8 +144,11 @@ public class Article extends BaseEntity {
     /********************************* 생성 메서드 *********************************/
 
     public static Article of(LocalDate date, String title, String content, Boolean anonymity,
-        Integer participantNumMax, ContentCategory contentCategory, ArticleMember articleMember,
-        List<ArticleMatchCondition> articleMatchConditions) {
+        Integer participantNumMax, ContentCategory contentCategory
+//        ,
+//        ArticleMember articleMember,
+//        List<ArticleMatchCondition> articleMatchConditions
+    ) {
         Article article = Article.builder()
             .date(date)
             .title(title)
@@ -150,10 +157,10 @@ public class Article extends BaseEntity {
             .participantNumMax(participantNumMax)
             .contentCategory(contentCategory)
             .build();
-        articleMember.setArticle(article);
-        for (ArticleMatchCondition articleMatchCondition : articleMatchConditions) {
-            articleMatchCondition.setArticle(article);
-        }
+//        articleMember.setArticle(article);
+//        for (ArticleMatchCondition articleMatchCondition : articleMatchConditions) {
+//            articleMatchCondition.setArticle(article);
+//        }
         return article;
     }
 
@@ -162,6 +169,9 @@ public class Article extends BaseEntity {
 
     public void update(LocalDate date, String title, String content, Integer participantNumMax,
         List<ArticleMatchCondition> articleMatchConditions) {
+        verifyDeleted();
+        verifyCompleted();
+        verifyChangeableParticipantNumMax(participantNumMax);
         this.date = date;
         this.title = title;
         this.content = content;
@@ -178,7 +188,7 @@ public class Article extends BaseEntity {
             .map((articleMember) ->
                 articleMember.getMember())
             .findFirst().orElseThrow(() -> (
-                new IllegalStateException("해당 게시글의 작성자가 존재하지 않습니다.")
+                new IllegalStateException(ErrorCode.NO_AUTHOR.getMessage())
             ));
     }
 
@@ -191,66 +201,110 @@ public class Article extends BaseEntity {
             .collect(Collectors.toList());
     }
 
-    public boolean isParticipantNumMaxChangeable(Integer participantNumMax) {
-        return this.participantNum <= participantNumMax;
-    }
 
     public boolean isDateToday() {
         return this.date.isEqual(LocalDate.now());
 
     }
 
-    public ArticleMember participate(Member member) {
-        if (this.participantNumMax <= this.participantNum) {
-            throw new IllegalArgumentException("모집인원이 초과되었습니다.");
+
+    private void verifyChangeableParticipantNumMax(Integer participantNumMax) {
+        if (this.participantNum > participantNumMax) {
+            throw new InvalidInputException(ErrorCode.NOT_CHANGEABLE_PARTICIPANT_NUM_MAX);
         }
+    }
+
+    private void verifyDeleted() {
+        if (this.isDeleted) {
+            throw new UnmodifiableArticleException(ErrorCode.DELETED_ARTICLE);
+        }
+    }
+
+    private void verifyFull() {
+        if (this.participantNum >= this.participantNumMax) {
+            throw new UnmodifiableArticleException(ErrorCode.FULL_ARTICLE);
+        }
+    }
+
+    private void verifyEmpty() {
+        if (this.participantNum <= 1) {
+            throw new UnmodifiableArticleException(ErrorCode.EMPTY_ARTICLE);
+        }
+    }
+
+    private void verifyCompleted() {
+        if (this.isComplete) {
+            throw new UnmodifiableArticleException(ErrorCode.COMPLETED_ARTICLE);
+        }
+    }
+
+
+    private void verifyParticipatableMember(Member member) {
+
         if (this.getArticleMembers().stream()
             .anyMatch((articleMember) ->
                 articleMember.getMember().equals(member))) {
-            throw new IllegalArgumentException("이미 참여한 게시글입니다.");
+            throw new InvalidInputException(ErrorCode.ALREADY_PARTICIPATED);
         }
-        ArticleMember articleMember = ArticleMember.of(member, false);
-        articleMember.setArticle(this);
-        this.participantNum++;
-        return articleMember;
     }
 
-    public ArticleMember participateCancel(Member member) {
-        ArticleMember articleMember = this.getArticleMembers().stream()
+
+    public void complete() {
+        verifyDeleted();
+        verifyCompleted();
+        this.isComplete = true;
+    }
+
+    public ArticleMember participateMember(Member member) {
+        verifyDeleted();
+        verifyCompleted();
+        verifyFull();
+        verifyParticipatableMember(member);
+        ArticleMember participateMember = ArticleMember.of(member, false, this);
+        this.participantNum++;
+        return participateMember;
+    }
+
+    public ArticleMember participateCancelMember(Member member) {
+        verifyDeleted();
+        verifyCompleted();
+        verifyEmpty();
+        ArticleMember participateMember = this.getArticleMembers().stream()
             .filter((articleMember1) ->
                 articleMember1.getMember().getApiId().equals(member.getApiId()))
             .findFirst().orElseThrow(() -> (
-                new EntityNotFoundException("해당 게시글의 참여자가 존재하지 않습니다.")
+                new InvalidInputException(ErrorCode.NOT_PARTICIPATED_MEMBER)
             ));
         this.participantNum--;
-        return articleMember;
+        return participateMember;
     }
 
-    public void complete() {
-        this.complete = true;
-    }
 
-    /********************************* DTO *********************************/
+    /********************************* Dto *********************************/
     @Getter
     @Setter
-    @AllArgsConstructor
     @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor(access = AccessLevel.PRIVATE)
     public static class ArticleOnlyIdResponse {
 
         @Schema(name = "articleId", example = "4f3dda35-3739-406c-ad22-eed438831d66", description = "게시글 ID")
         private String articleId;
+
+        public static ArticleOnlyIdResponse of(String articleId) {
+            return ArticleOnlyIdResponse.builder()
+                .articleId(articleId)
+                .build();
+        }
     }
 
     @Getter
     @Setter
-    @AllArgsConstructor
     @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor(access = AccessLevel.PRIVATE)
     public static class ArticleDto {
 
-        @Schema(name = "memberId", example = "4f3dda35-3739-406c-ad22-eed438831d66", description = "작성자 ID")
-        @NotBlank
-        @Size(min = 1, max = 100)
-        private String memberId;
 
         @Schema(name = "title", example = "개포에서 2시에 점심 먹으실 분 구합니다.", description = "글 제목")
         @NotBlank
@@ -261,13 +315,9 @@ public class Article extends BaseEntity {
         @NotNull
         private LocalDate date;
 
-        @Schema(name = "place", example = "SEOCHO(서초 클러스터), GAEPO(개포 클러스터), OUT_OF_CLUSTER(클러스터 외부)", description = "앞에 영어를 배열로 보내면 됨.")
-        private List<Place> place;
-        @Schema(name = "timeOfEating", example = "BREAKFAST(아침 식사), LUNCH(점심 식사), DUNCH(점저), DINNER(저녁 식사), MIDNIGHT(야식)", description = "앞에 영어를 배열로 보내면 됨.")
-        private List<TimeOfEating> timeOfEating;
-
-        @Schema(name = "wayOfEating", example = " DELIVERY(배달), EATOUT(외식), TAKEOUT(포장)", description = "앞에 영어를 배열로 보내면 됨.")
-        private List<WayOfEating> wayOfEating;
+        @Schema(name = "matchConditionDto", example = "", description = "매칭 조건")
+        @NotNull
+        private MatchConditionDto matchConditionDto;
 
         @Schema(name = "content", example = "서초 클러스터 2시에 치킨 먹으러갈겁니다.", description = "글 본문")
         @NotNull
@@ -284,15 +334,16 @@ public class Article extends BaseEntity {
         @Max(20)
         private Integer participantNumMax;
 
-        @Schema(name = "contentCategory", example = "MEAL or STUDY", description = "식사, 공부 글인지 여부")
+        @Schema(name = "contentCategory", example = "MEAL or STUDY", description = "식사, 공부 글인지 여부, 글 내용 변경 시 공부, 식사 카테고리를 변경할지는 클라이언트에서 결정")
         @NotNull
         private ContentCategory contentCategory;
     }
 
     @Getter
     @Setter
-    @AllArgsConstructor
     @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor(access = AccessLevel.PRIVATE)
     public static class ArticleUpdateRequest {
 
         @Schema(name = "title", example = "개포에서 2시에 점심 먹으실 분 구합니다.", description = "글 제목")
@@ -304,13 +355,9 @@ public class Article extends BaseEntity {
         @NotNull
         private LocalDate date;
 
-        @Schema(name = "place", example = "SEOCHO(서초 클러스터), GAEPO(개포 클러스터), OUT_OF_CLUSTER(클러스터 외부)", description = "앞에 영어를 배열로 보내면 됨.")
-        private List<Place> place;
-        @Schema(name = "timeOfEating", example = "BREAKFAST(아침 식사), LUNCH(점심 식사), DUNCH(점저), DINNER(저녁 식사), MIDNIGHT(야식)", description = "앞에 영어를 배열로 보내면 됨.")
-        private List<TimeOfEating> timeOfEating;
-
-        @Schema(name = "wayOfEating", example = " DELIVERY(배달), EATOUT(외식), TAKEOUT(포장)", description = "앞에 영어를 배열로 보내면 됨.")
-        private List<WayOfEating> wayOfEating;
+        @Schema(name = "matchConditionDto", example = "", description = "매칭 조건")
+        @NotNull
+        private MatchConditionDto matchConditionDto;
 
         @Schema(name = "content", example = "서초 클러스터 2시에 치킨 먹으러갈겁니다.", description = "글 본문")
         @NotNull
@@ -320,15 +367,16 @@ public class Article extends BaseEntity {
 
         @Schema(name = "participantNumMAx", example = "5", description = "방 최대 참여자 수")
         @NotNull
-        @Min(1)
+        @Min(2)
         @Max(20)
         private Integer participantNumMax;
     }
 
     @Getter
     @Setter
-    @AllArgsConstructor
     @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor(access = AccessLevel.PRIVATE)
     public static class ArticleReadOneResponse {
 
 
@@ -346,9 +394,8 @@ public class Article extends BaseEntity {
         @NotNull
         private LocalDate date;
 
-        @Schema(name = "createdAt", example = "", description = "작성 시간")
+        @Schema(name = "createdAt", example = "2022-10-03 00:00:00", description = "작성 시간")
         private LocalDateTime createdAt;
-
 
         @Schema(name = "content", example = "서초 클러스터 2시에 치킨 먹으러갈겁니다.", description = "글 본문")
         @NotNull
@@ -378,17 +425,16 @@ public class Article extends BaseEntity {
         private ContentCategory contentCategory;
 
 
-        @Builder.Default
-        @Schema(name = "matchConditions", example = " ", description = "매치 조건 배열")
-        private List<MatchCondition.MatchConditionDto> matchConditions = new ArrayList<>();
-
+        @Schema(name = "matchConditionDto", example = "", description = "매칭 조건")
+        @NotNull
+        private MatchConditionDto matchConditionDto;
 
         @Builder.Default
         @Schema(name = "participantsOrAuthor", example = " ", description = "방을 만든사람, 혹은 참여자가 담긴 배열")
         private List<Member.MemberDto> participantsOrAuthor = new ArrayList<>();
 
-        public static ArticleReadOneResponse of(Article article, MemberMapper memberMapper,
-            MatchConditionMapper matchConditionMapper) {
+        public static ArticleReadOneResponse of(Article article, List<MemberDto> memberDtos,
+            MatchConditionDto matchConditionDto) {
             return ArticleReadOneResponse.builder()
                 .articleId(article.getApiId())
                 .title(article.getTitle())
@@ -400,23 +446,17 @@ public class Article extends BaseEntity {
                 .participantNumMax(article.getParticipantNumMax())
                 .participantNum(article.getParticipantNum())
                 .contentCategory(article.getContentCategory())
-                .participantsOrAuthor(article.getArticleMembers().stream()
-                    .map(am -> (
-                        memberMapper.entityToMemberDto(am.getMember(), am)))
-                    .collect(Collectors.toList()))
-                .matchConditions(article.getArticleMatchConditions().stream()
-                    .map(arc -> (
-                        matchConditionMapper.entityToMatchConditionDto(arc.getMatchCondition())
-                    ))
-                    .collect(Collectors.toList()))
+                .participantsOrAuthor(memberDtos)
+                .matchConditionDto(matchConditionDto)
                 .build();
         }
     }
 
     @Getter
     @Setter
-    @AllArgsConstructor
     @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor(access = AccessLevel.PRIVATE)
     public static class ArticleReadResponse {
 
         @Schema(name = "nickname", example = "takim", description = "게시글 작성자 nickname")
@@ -444,7 +484,7 @@ public class Article extends BaseEntity {
         @NotNull
         private LocalDate date;
 
-        @Schema(name = "createdAt", example = "", description = "작성 시간")
+        @Schema(name = "createdAt", example = "2022-10-03 00:00:00", description = "작성 시간")
         private LocalDateTime createdAt;
 
         @Schema(name = "anonymity", example = "true", description = "익명 여부")
@@ -469,19 +509,18 @@ public class Article extends BaseEntity {
         @NotNull
         private ContentCategory contentCategory;
 
-        @Builder.Default
-        @Schema(name = "matchConditions", example = " ", description = "매치 조건 배열")
-        private List<MatchCondition.MatchConditionDto> matchConditions = new ArrayList<>();
+        @Schema(name = "matchConditionDto", example = "", description = "매칭 조건")
+        @NotNull
+        private MatchConditionDto matchConditionDto;
 
-        public static ArticleReadResponse of(Article article,
-            MatchConditionMapper matchConditionMapper) {
+        public static ArticleReadResponse of(Article article, MatchConditionDto matchConditionDto) {
             return ArticleReadResponse.builder()
                 .nickname(article.articleMembers.stream()
                     .filter(a ->
                         a.getIsAuthor())
                     .findAny()
                     .orElseThrow(() ->
-                        new EntityNotFoundException("해당 게시글에 작성자가 없습니다."))
+                        new IllegalStateException(ErrorCode.NO_AUTHOR.getMessage()))
                     .getMember().getNickname())
                 .articleId(article.getApiId())
                 .title(article.getTitle())
@@ -493,11 +532,7 @@ public class Article extends BaseEntity {
                 .participantNumMax(article.getParticipantNumMax())
                 .participantNum(article.getParticipantNum())
                 .contentCategory(article.getContentCategory())
-                .matchConditions(article.getArticleMatchConditions().stream()
-                    .map(arc -> (
-                        matchConditionMapper.entityToMatchConditionDto(arc.getMatchCondition())
-                    ))
-                    .collect(Collectors.toList()))
+                .matchConditionDto(matchConditionDto)
                 .build();
         }
 

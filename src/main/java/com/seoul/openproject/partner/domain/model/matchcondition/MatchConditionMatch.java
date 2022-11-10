@@ -3,7 +3,6 @@ package com.seoul.openproject.partner.domain.model.matchcondition;
 
 import com.seoul.openproject.partner.domain.model.BaseTimeVersionEntity;
 import com.seoul.openproject.partner.domain.model.match.Match;
-import com.seoul.openproject.partner.domain.model.match.MatchCondition;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -19,7 +18,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.domain.Sort;
 
 
 @Builder(access = AccessLevel.PRIVATE)

@@ -56,11 +56,11 @@ public class ArticleRepositoryCustomImpl implements ArticleRepositoryCustom {
 
     private BooleanExpression isComplete(Boolean isMatched) {
 
-        return isMatched == null ? null :article.complete.eq(isMatched);
+        return isMatched == null ? null :article.isComplete.eq(isMatched);
     }
 
     private BooleanExpression isContentCategory(ContentCategory contentCategory) {
-        return article.contentCategory.eq(contentCategory);
+        return contentCategory == null ? null: article.contentCategory.eq(contentCategory);
     }
 }
 

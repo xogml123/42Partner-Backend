@@ -1,4 +1,4 @@
-package com.seoul.openproject.partner.repository;
+package com.seoul.openproject.partner.repository.opinion;
 
 import com.seoul.openproject.partner.domain.model.opnion.Opinion;
 import java.util.List;

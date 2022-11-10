@@ -7,13 +7,15 @@ import com.seoul.openproject.partner.domain.model.opnion.Opinion.OpinionOnlyIdRe
 import com.seoul.openproject.partner.domain.model.opnion.Opinion.OpinionResponse;
 import com.seoul.openproject.partner.domain.model.opnion.Opinion.OpinionUpdateRequest;
 import com.seoul.openproject.partner.dto.ListResponse;
+import com.seoul.openproject.partner.error.exception.ErrorCode;
+import com.seoul.openproject.partner.error.exception.NoEntityException;
 import com.seoul.openproject.partner.mapper.OpinionMapper;
-import com.seoul.openproject.partner.repository.OpinionRepository;
+import com.seoul.openproject.partner.repository.opinion.OpinionRepository;
 import com.seoul.openproject.partner.repository.article.ArticleRepository;
 import com.seoul.openproject.partner.repository.member.MemberRepository;
+import com.seoul.openproject.partner.repository.user.UserRepository;
 import java.util.List;
 import java.util.stream.Collectors;
-import javax.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,17 +26,20 @@ import org.springframework.transaction.annotation.Transactional;
 public class OpinionService {
 
     private final OpinionRepository opinionRepository;
+    private final UserRepository userRepository;
     private final MemberRepository memberRepository;
     private final ArticleRepository articleRepository;
 
     private final OpinionMapper opinionMapper;
 
     @Transactional
-    public OpinionOnlyIdResponse createOpinion(OpinionDto request, Long userId) {
+    public OpinionOnlyIdResponse createOpinion(OpinionDto request, String userId) {
         Article article = articleRepository.findByApiIdAndIsDeletedIsFalse(request.getArticleId())
-            .orElseThrow(() -> new EntityNotFoundException(request.getArticleId() + " 게시글이 존재하지 않습니다."));
+            .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
         Opinion opinion = Opinion.of(request.getContent(),
-            memberRepository.findByUserId(userId),
+            userRepository.findByApiId(userId)
+                .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND))
+                .getMember(),
             article,
             request.getParentId(),
             request.getLevel()
@@ -46,7 +51,7 @@ public class OpinionService {
     @Transactional
     public OpinionOnlyIdResponse updateOpinion(OpinionUpdateRequest request, String opinionId) {
         Opinion opinion = opinionRepository.findByApiId(opinionId)
-            .orElseThrow(() -> new EntityNotFoundException(opinionId + "에 해당하는 댓글이 존재하지 않습니다."));
+            .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
         opinion.updateContent(request.getContent());
         return opinionMapper.entityToOpinionOnlyIdResponse(opinion);
     }
@@ -66,7 +71,7 @@ public class OpinionService {
     @Transactional
     public OpinionOnlyIdResponse recoverableDeleteOpinion(String opinionId) {
         Opinion opinion = opinionRepository.findByApiId(opinionId)
-            .orElseThrow(() -> new EntityNotFoundException(opinionId + "에 해당하는 댓글이 존재하지 않습니다."));
+            .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
         opinion.delete();
         return opinionMapper.entityToOpinionOnlyIdResponse(opinion);
     }
@@ -74,7 +79,7 @@ public class OpinionService {
     @Transactional
     public OpinionOnlyIdResponse completeDeleteOpinion(String opinionId) {
         Opinion opinion = opinionRepository.findByApiId(opinionId)
-            .orElseThrow(() -> new EntityNotFoundException(opinionId + "에 해당하는 댓글이 존재하지 않습니다."));
+            .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
         opinionRepository.delete(opinion);
         return opinionMapper.entityToOpinionOnlyIdResponse(opinion);
     }
