@@ -1,4 +1,4 @@
-package com.Seoul.OpenProject.Partner;
+package com.seoul.openproject.partner;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
