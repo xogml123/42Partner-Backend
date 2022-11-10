@@ -59,7 +59,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http.csrf().disable();
         http.cors().configurationSource(corsConfigurationSource());
         http.exceptionHandling().authenticationEntryPoint(authenticationEntryPoint);
-	http.headers()
+        http.headers()
             .httpStrictTransportSecurity().disable();
         http.authorizeRequests(
                 authorize -> authorize
