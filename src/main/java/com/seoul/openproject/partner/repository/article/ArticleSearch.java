@@ -14,6 +14,5 @@ public class ArticleSearch {
     private Boolean isMatched;
 
     @Schema(name = "contentCategory", example = "MEAL or STUDY", description = "식사, 공부 글인지 여부, 값을 꼭 지정해야함.")
-    @NotNull
     private ContentCategory contentCategory;
 }
