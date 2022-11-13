@@ -52,6 +52,13 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 @Entity
 public class User extends BaseTimeVersionEntity implements UserDetails, OAuth2User ,CredentialsContainer, Serializable {
     //********************************* static final 상수 필드 *********************************/
+    /**
+     * 직렬화를 할 때 SUID 선언이 없다면 내부에서 자동으로 유니크한 번호를 생성하여 관리하게 된다. SUID는 직렬화와 역직렬화 과정에서 값이 서로 맞는지
+     * 확인한 후에 처리를 하기 때문에 이 값이 맞지 않다면 InvalidClassException 예외가 발생한다.
+     *
+     * 자바의 직렬화 스펙 정의를 살펴보면 SUID 값은 필수가 아니며 선언되어 있지 않으면 클래스의 기본 해시값을 사용한다.
+     *
+     */
     private static final long serialVersionUID = 159813599623625L;
     /**
      * email 뒤에 붙는 문자열
