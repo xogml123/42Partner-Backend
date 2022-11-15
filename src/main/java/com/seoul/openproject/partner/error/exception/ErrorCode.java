@@ -7,13 +7,15 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 public enum ErrorCode {
 
     // Common
-    INVALID_INPUT_VALUE(400, "C001", " Invalid Input Value"),
-    METHOD_NOT_ALLOWED(405, "C002", " Invalid Method"),
+    INVALID_INPUT_VALUE(400, "C001", " 잘못된 입력값입니다."),
+    METHOD_NOT_ALLOWED(405, "C002", " 요청메서드가 허용되지 않습니다."),
 
-    ENTITY_NOT_FOUND(404, "C003", " Entity Not Found"),
-    INTERNAL_SERVER_ERROR(500, "C004", "Server Error"),
-    INVALID_TYPE_VALUE(400, "C005", " Invalid Type Value"),
-    HANDLE_ACCESS_DENIED(403, "C006", "Access is Denied"),
+    ENTITY_NOT_FOUND(404, "C003", " Entity가 존재하지 않습니다."),
+    INTERNAL_SERVER_ERROR(500, "C004", "서버에서 오류가 발생했습니다."),
+    INVALID_TYPE_VALUE(400, "C005", " 잘못된 타입입니다."),
+    HANDLE_ACCESS_DENIED(403, "C006", "권한이 없습니다."),
+
+    INVALID_JSON_FORMAT(400, "C007", "Json형식과 맞지 않습니다."),
 
 //    //InfraException
       //비동기 이기 때문에 예외 발생 시 에러코드를 리턴하지 않고 로그 정도만 남김
@@ -40,7 +42,9 @@ public enum ErrorCode {
     //ArticleMember
     NO_AUTHOR(500, "AR006", "작성자가 없습니다."),
     NOT_PARTICIPATED_MEMBER(409, "AR007", "이 멤버가 참여하지 않은 방입니다."),
-    ;
+
+    //random Match
+    RANDOM_MATCH_ALREADY_EXIST(409, "RM001", "이미 랜덤 매칭에 참여하고 있습니다");
     private final String code;
     private final String message;
     private final int status;

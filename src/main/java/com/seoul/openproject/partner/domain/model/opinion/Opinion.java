@@ -1,4 +1,4 @@
-package com.seoul.openproject.partner.domain.model.opnion;
+package com.seoul.openproject.partner.domain.model.opinion;
 
 import com.seoul.openproject.partner.domain.model.BaseEntity;
 import com.seoul.openproject.partner.domain.model.article.Article;
@@ -182,6 +182,10 @@ public class Opinion extends BaseEntity {
         @Schema(name= "opinionId" , example = "4f3dda35-3739-406c-ad22-eed438831d66", description = "댓글 id")
         @NotBlank
         private String opinionId;
+
+        @Schema(name= "userId" , example = "4f3dda35-3739-406c-ad22-eed438831d66", description = "댓글쓴 사람 id")
+        @NotBlank
+        private String userId;
 
         @Schema(name= "nickname" , example = "takim", description = "작성자 이름")
         @NotBlank

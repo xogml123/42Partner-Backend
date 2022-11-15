@@ -1,6 +1,6 @@
 package com.seoul.openproject.partner.repository.opinion;
 
-import com.seoul.openproject.partner.domain.model.opnion.Opinion;
+import com.seoul.openproject.partner.domain.model.opinion.Opinion;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.EntityGraph;

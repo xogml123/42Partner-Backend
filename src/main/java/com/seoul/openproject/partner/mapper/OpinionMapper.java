@@ -1,6 +1,6 @@
 package com.seoul.openproject.partner.mapper;
 
-import com.seoul.openproject.partner.domain.model.opnion.Opinion;
+import com.seoul.openproject.partner.domain.model.opinion.Opinion;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -11,6 +11,7 @@ public interface OpinionMapper {
     Opinion.OpinionOnlyIdResponse entityToOpinionOnlyIdResponse(Opinion opinion);
 
     @Mapping(target="opinionId", source = "apiId")
+    @Mapping(target="userId", source = "memberAuthor.user.apiId")
     @Mapping(target="nickname", source = "memberAuthor.nickname")
     @Mapping(target="parentId", source = "parentApiId")
     @Mapping(target="createdAt", source = "createdAt")

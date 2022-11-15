@@ -1,10 +1,10 @@
 package com.seoul.openproject.partner.controller.opinion;
 
 
-import com.seoul.openproject.partner.domain.model.opnion.Opinion;
-import com.seoul.openproject.partner.domain.model.opnion.Opinion.OpinionDto;
-import com.seoul.openproject.partner.domain.model.opnion.Opinion.OpinionOnlyIdResponse;
-import com.seoul.openproject.partner.domain.model.opnion.Opinion.OpinionUpdateRequest;
+import com.seoul.openproject.partner.domain.model.opinion.Opinion;
+import com.seoul.openproject.partner.domain.model.opinion.Opinion.OpinionDto;
+import com.seoul.openproject.partner.domain.model.opinion.Opinion.OpinionOnlyIdResponse;
+import com.seoul.openproject.partner.domain.model.opinion.Opinion.OpinionUpdateRequest;
 import com.seoul.openproject.partner.domain.model.user.User;
 import com.seoul.openproject.partner.dto.ListResponse;
 import com.seoul.openproject.partner.service.opinion.OpinionService;
@@ -58,13 +58,18 @@ public class OpinionController {
         return opinionService.findAllOpinionsInArticle(articleId);
     }
 
+    @Operation(summary = "댓글 하나 조회", description = "댓글 하나 조회")
+    @GetMapping("/opinions/{opinionId}")
+    public Opinion.OpinionResponse getOneOpinion(
+        @PathVariable String opinionId) {
+        return opinionService.getOneOpinion(opinionId);
+    }
+
     @Operation(summary = "댓글 완전 삭제", description = "댓글 완전 삭제 (관리자 전용)")
     @DeleteMapping("/opinions/{opinionId}")
     public Opinion.OpinionOnlyIdResponse completeDeleteOpinion(
         @PathVariable String opinionId) {
         return opinionService.completeDeleteOpinion(opinionId);
     }
-
-
 
 }

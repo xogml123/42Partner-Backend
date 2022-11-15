@@ -6,7 +6,7 @@ import com.seoul.openproject.partner.domain.model.matchcondition.ArticleMatchCon
 import com.seoul.openproject.partner.domain.model.BaseEntity;
 import com.seoul.openproject.partner.domain.model.member.Member;
 import com.seoul.openproject.partner.domain.model.member.Member.MemberDto;
-import com.seoul.openproject.partner.domain.model.opnion.Opinion;
+import com.seoul.openproject.partner.domain.model.opinion.Opinion;
 import com.seoul.openproject.partner.error.exception.ErrorCode;
 import com.seoul.openproject.partner.error.exception.InvalidInputException;
 import com.seoul.openproject.partner.error.exception.UnmodifiableArticleException;
@@ -149,7 +149,7 @@ public class Article extends BaseEntity {
 //        ArticleMember articleMember,
 //        List<ArticleMatchCondition> articleMatchConditions
     ) {
-        Article article = Article.builder()
+        return Article.builder()
             .date(date)
             .title(title)
             .content(content)
@@ -161,7 +161,6 @@ public class Article extends BaseEntity {
 //        for (ArticleMatchCondition articleMatchCondition : articleMatchConditions) {
 //            articleMatchCondition.setArticle(article);
 //        }
-        return article;
     }
 
     /********************************* 비니지스 로직 *********************************/
@@ -239,12 +238,21 @@ public class Article extends BaseEntity {
     }
 
 
-    private void verifyParticipatableMember(Member member) {
+    private void verifyParticipatedMember(Member member) {
 
         if (this.getArticleMembers().stream()
             .anyMatch((articleMember) ->
                 articleMember.getMember().equals(member))) {
             throw new InvalidInputException(ErrorCode.ALREADY_PARTICIPATED);
+        }
+    }
+
+    private void verifyUnparticipatedMember(Member member) {
+
+        if (this.getArticleMembers().stream()
+            .noneMatch((articleMember) ->
+                articleMember.getMember().equals(member))) {
+            throw new InvalidInputException(ErrorCode.NOT_PARTICIPATED_MEMBER);
         }
     }
 
@@ -259,7 +267,7 @@ public class Article extends BaseEntity {
         verifyDeleted();
         verifyCompleted();
         verifyFull();
-        verifyParticipatableMember(member);
+        verifyParticipatedMember(member);
         ArticleMember participateMember = ArticleMember.of(member, false, this);
         this.participantNum++;
         return participateMember;
@@ -269,14 +277,20 @@ public class Article extends BaseEntity {
         verifyDeleted();
         verifyCompleted();
         verifyEmpty();
+        verifyUnparticipatedMember(member);
         ArticleMember participateMember = this.getArticleMembers().stream()
             .filter((articleMember1) ->
-                articleMember1.getMember().getApiId().equals(member.getApiId()))
+                articleMember1.getMember().equals(member))
             .findFirst().orElseThrow(() -> (
                 new InvalidInputException(ErrorCode.NOT_PARTICIPATED_MEMBER)
             ));
         this.participantNum--;
         return participateMember;
+    }
+
+    public void recoverableDelete(){
+        verifyDeleted();
+        this.isDeleted = true;
     }
 
 

@@ -58,14 +58,24 @@ public class ArticleController {
     @Operation(summary = "방 매칭 글수정", description = "방 매칭 글 수정")
     @PutMapping("/articles/{articleId}")
     public Article.ArticleOnlyIdResponse updateArticle(@Validated @Parameter @RequestBody Article.ArticleDto articleRequest,
-        @PathVariable String articleId) {
-        return articleService.updateArticle(articleRequest, articleId);
+        @PathVariable String articleId,
+        @Parameter(hidden = true) @AuthenticationPrincipal User user) {
+        return articleService.updateArticle(articleRequest, user.getApiId(), articleId);
     }
 
     @Operation(summary = "방 매칭 삭제", description = "방 매칭 삭제")
     @DeleteMapping("/articles/{articleId}")
-    public Article.ArticleOnlyIdResponse deleteArticle(@PathVariable String articleId) {
-        return articleService.deleteArticle(articleId);
+    public Article.ArticleOnlyIdResponse deleteArticle(@PathVariable String articleId,
+        @Parameter(hidden = true) @AuthenticationPrincipal User user) {
+        return articleService.deleteArticle(user.getApiId(), articleId);
+    }
+
+    @Operation(summary = "방 매칭 글 임시 삭제", description = "방 매칭 글 임시 삭제")
+    @PostMapping("/articles/{articleId}/recoverable-delete")
+    public Article.ArticleOnlyIdResponse recoverableDeleteArticle(@PathVariable String articleId,
+        @Parameter(hidden = true) @AuthenticationPrincipal User user
+    ) {
+        return articleService.changeIsDelete(user.getApiId(), articleId);
     }
 
     @Operation(summary = "방 매칭 참여", description = "방 매칭 참여")

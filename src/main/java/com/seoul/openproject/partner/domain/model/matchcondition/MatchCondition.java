@@ -13,6 +13,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -73,7 +74,7 @@ public class MatchCondition extends BaseTimeVersionEntity {
 
     @Getter
     @Setter
-    @Builder(access = AccessLevel.PRIVATE)
+    @Builder
     @NoArgsConstructor
     @AllArgsConstructor(access = AccessLevel.PRIVATE)
     public static class MatchConditionDto {
@@ -105,6 +106,28 @@ public class MatchCondition extends BaseTimeVersionEntity {
                 .typeOfStudyList(typeOfStudyList)
                 .build();
         }
+    }
+
+    @Getter
+    @Setter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor(access = AccessLevel.PRIVATE)
+    public static class MatchConditionRandomMatchDto {
+
+        @Builder.Default
+        @Schema(name = "place", example = "SEOCHO(서초 클러스터), GAEPO(개포 클러스터), OUT_OF_CLUSTER(클러스터 외부)", description = "앞에 영어를 배열로 보내면 됨.")
+        @NotNull
+        private List<Place> placeList = new ArrayList<>();
+
+        @Builder.Default
+        @Schema(name = "wayOfEatingList", example = " DELIVERY(배달), EATOUT(외식), TAKEOUT(포장)", description = "앞에 영어를 배열로 보내면 됨.")
+        private List<WayOfEating> wayOfEatingList = new ArrayList<>();
+
+        @Builder.Default
+        @Schema(name = "typeofOfStudyList", example = " INNER_CIRCLE(본 과정), NOT_INNER_CIRCLE(비본 과정)", description = "앞에 영어를 배열로 보내면 됨.")
+        private List<TypeOfStudy> typeOfStudyList = new ArrayList<>();
+
     }
 
 }

@@ -22,6 +22,7 @@ import com.seoul.openproject.partner.domain.model.matchcondition.WayOfEating;
 import com.seoul.openproject.partner.domain.model.matchcondition.MatchConditionMatch;
 import com.seoul.openproject.partner.domain.model.member.Member;
 import com.seoul.openproject.partner.domain.model.member.Member.MemberDto;
+import com.seoul.openproject.partner.domain.model.user.RoleEnum;
 import com.seoul.openproject.partner.domain.model.user.User;
 import com.seoul.openproject.partner.error.exception.ErrorCode;
 import com.seoul.openproject.partner.error.exception.NoEntityException;
@@ -98,15 +99,29 @@ public class ArticleService {
     }
 
     @Transactional
-    public ArticleOnlyIdResponse deleteArticle(String articleId) {
-
+    public ArticleOnlyIdResponse deleteArticle(String userId, String articleId) {
+        verifyAuthorOfArticle(userId, articleId);
         articleRepository.deleteByApiId(articleId);
 
         return ArticleOnlyIdResponse.of(articleId);
     }
 
     @Transactional
-    public ArticleOnlyIdResponse updateArticle(ArticleDto articleRequest, String articleId) {
+    public ArticleOnlyIdResponse changeIsDelete(String userId, String articleId) {
+
+        verifyAuthorOfArticle(userId, articleId);
+        Article article = articleRepository.findByApiId(articleId)
+            .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
+
+        article.recoverableDelete();
+        return ArticleOnlyIdResponse.of(articleId);
+    }
+
+    @Transactional
+    public ArticleOnlyIdResponse updateArticle(ArticleDto articleRequest,String userId,  String articleId) {
+
+        verifyAuthorOfArticle(userId, articleId);
+
         Article article = articleRepository.findDistinctFetchArticleMembersByApiId(
                 articleId)
             .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
@@ -203,18 +218,13 @@ public class ArticleService {
 
     @Transactional
     public ArticleOnlyIdResponse completeArticle(String userId, String articleId) {
+        //글 작성자아닌 경우
+        verifyAuthorOfArticle(userId, articleId);
+
         Article article = articleRepository.findDistinctFetchArticleMembersByApiId(
                 articleId)
             .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
 
-        Member requestMember = userRepository.findByApiId(userId)
-            .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND))
-            .getMember();
-        Member memberAuthor = article.getAuthorMember();
-        //글 작성자아닌 경우
-        if (!requestMember.equals(memberAuthor)) {
-            throw new NotAuthorException(ErrorCode.NOT_ARTICLE_AUTHOR);
-        }
         //글이 이미 삭제된 경우,
         article.complete();
         //매칭 완료
@@ -313,5 +323,17 @@ public class ArticleService {
                 ArticleMatchCondition.of(matchCondition, article))
             .collect(Collectors.toList());
     }
+
+    private void verifyAuthorOfArticle(String userId, String articleId) {
+        User user = userRepository.findByApiId(userId)
+            .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
+        Article article = articleRepository.findByApiId(articleId)
+            .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
+        if (!user.getUserRoles().contains(RoleEnum.ROLE_ADMIN) &&
+            !article.getAuthorMember().equals(user.getMember())){
+            throw new NotAuthorException(ErrorCode.NOT_ARTICLE_AUTHOR);
+        }
+    }
+
 
 }

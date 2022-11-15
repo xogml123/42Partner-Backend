@@ -1,6 +1,7 @@
 package com.seoul.openproject.partner.repository.article;
 
 import com.seoul.openproject.partner.domain.model.article.Article;
+import com.seoul.openproject.partner.domain.model.article.Article.ArticleOnlyIdResponse;
 import java.util.Optional;
 import javax.persistence.LockModeType;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -22,6 +23,8 @@ public interface ArticleRepository extends JpaRepository<Article, Long> , Articl
     Optional<Article> findDistinctFetchArticleMembersByApiId(String articleId);
 
     Optional<Article> findByApiIdAndIsDeletedIsFalse(String articleId);
+
+    Optional<Article> findByApiId(String articleId);
 
 //    @Lock(value = LockModeType.PESSIMISTIC_WRITE)
 //    Optional<Article> findPessimisticWriteLockByApiId(String articleId);
