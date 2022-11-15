@@ -5,6 +5,8 @@ import com.seoul.openproject.partner.error.exception.ErrorCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageConversionException;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.BindException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
@@ -29,6 +31,18 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 
+    /**
+     * json 형식 자체가 맞지 않을 경우 발생.
+     * 콤마가 빠지거나 list형식인데 대괄호가 없거나
+     * @param e
+     * @return
+     */
+    @ExceptionHandler(HttpMessageConversionException.class)
+    protected ResponseEntity<ErrorResponse> handleHttpMessageConversionException(HttpMessageConversionException e) {
+        log.error("handleHttpMessageConversionException", e);
+        final ErrorResponse response = ErrorResponse.of(ErrorCode.INVALID_INPUT_VALUE);
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
     /**
      * @ModelAttribut 으로 binding error 발생시 BindException 발생한다.
      * ref https://docs.spring.io/spring/docs/current/spring-framework-reference/web.html#mvc-ann-modelattrib-method-args
@@ -61,7 +75,6 @@ public class GlobalExceptionHandler {
         final ErrorResponse response = ErrorResponse.of(ErrorCode.METHOD_NOT_ALLOWED);
         return new ResponseEntity<>(response, HttpStatus.METHOD_NOT_ALLOWED);
     }
-
     /**
      * Authentication 객체가 필요한 권한을 보유하지 않은 경우 발생합
      */

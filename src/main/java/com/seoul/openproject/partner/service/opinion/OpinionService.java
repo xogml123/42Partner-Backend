@@ -1,11 +1,11 @@
 package com.seoul.openproject.partner.service.opinion;
 
 import com.seoul.openproject.partner.domain.model.article.Article;
-import com.seoul.openproject.partner.domain.model.opnion.Opinion;
-import com.seoul.openproject.partner.domain.model.opnion.Opinion.OpinionDto;
-import com.seoul.openproject.partner.domain.model.opnion.Opinion.OpinionOnlyIdResponse;
-import com.seoul.openproject.partner.domain.model.opnion.Opinion.OpinionResponse;
-import com.seoul.openproject.partner.domain.model.opnion.Opinion.OpinionUpdateRequest;
+import com.seoul.openproject.partner.domain.model.opinion.Opinion;
+import com.seoul.openproject.partner.domain.model.opinion.Opinion.OpinionDto;
+import com.seoul.openproject.partner.domain.model.opinion.Opinion.OpinionOnlyIdResponse;
+import com.seoul.openproject.partner.domain.model.opinion.Opinion.OpinionResponse;
+import com.seoul.openproject.partner.domain.model.opinion.Opinion.OpinionUpdateRequest;
 import com.seoul.openproject.partner.dto.ListResponse;
 import com.seoul.openproject.partner.error.exception.ErrorCode;
 import com.seoul.openproject.partner.error.exception.NoEntityException;

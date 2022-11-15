@@ -6,7 +6,7 @@ import com.seoul.openproject.partner.domain.model.matchcondition.ArticleMatchCon
 import com.seoul.openproject.partner.domain.model.BaseEntity;
 import com.seoul.openproject.partner.domain.model.member.Member;
 import com.seoul.openproject.partner.domain.model.member.Member.MemberDto;
-import com.seoul.openproject.partner.domain.model.opnion.Opinion;
+import com.seoul.openproject.partner.domain.model.opinion.Opinion;
 import com.seoul.openproject.partner.error.exception.ErrorCode;
 import com.seoul.openproject.partner.error.exception.InvalidInputException;
 import com.seoul.openproject.partner.error.exception.UnmodifiableArticleException;
@@ -149,7 +149,7 @@ public class Article extends BaseEntity {
 //        ArticleMember articleMember,
 //        List<ArticleMatchCondition> articleMatchConditions
     ) {
-        Article article = Article.builder()
+        return Article.builder()
             .date(date)
             .title(title)
             .content(content)
@@ -161,7 +161,6 @@ public class Article extends BaseEntity {
 //        for (ArticleMatchCondition articleMatchCondition : articleMatchConditions) {
 //            articleMatchCondition.setArticle(article);
 //        }
-        return article;
     }
 
     /********************************* 비니지스 로직 *********************************/

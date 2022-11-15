@@ -1,4 +1,4 @@
-package com.seoul.openproject.partner.domain.model.opnion;
+package com.seoul.openproject.partner.domain.model.opinion;
 
 import com.seoul.openproject.partner.domain.model.BaseEntity;
 import com.seoul.openproject.partner.domain.model.article.Article;

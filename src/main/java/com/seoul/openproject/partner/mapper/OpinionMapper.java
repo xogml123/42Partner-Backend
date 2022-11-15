@@ -1,6 +1,6 @@
 package com.seoul.openproject.partner.mapper;
 
-import com.seoul.openproject.partner.domain.model.opnion.Opinion;
+import com.seoul.openproject.partner.domain.model.opinion.Opinion;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
