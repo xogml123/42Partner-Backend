@@ -46,7 +46,9 @@ public class ArticleRepositoryCustomImpl implements ArticleRepositoryCustom {
             .offset(pageable.getOffset())
             .limit(pageable.getPageSize() + 1)
             .fetch();
-        articles.remove(articles.size() - 1);
+        if (articles.size() == pageable.getPageSize() + 1) {
+            articles.remove(articles.size() - 1);
+        }
         return new SliceImpl<>(articles, pageable, articles.size() == pageable.getPageSize() + 1);
     }
 

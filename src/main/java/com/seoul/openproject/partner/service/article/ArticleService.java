@@ -47,12 +47,14 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 @Service
@@ -265,7 +267,7 @@ public class ArticleService {
                 slackIds.add(slackId.get());
             }
         }
-
+        log.info("slackIds : {}", slackIds.toString());
         String MPIMId = slackBotService.createMPIM(slackIds)
             .orElseThrow(() -> new SlackException(ErrorCode.SLACK_ERROR));
         slackBotService.sendMessage(MPIMId, "매칭이 완료되었습니다. 대화방에서 매칭을 확인해주세요.\n"

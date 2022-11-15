@@ -17,7 +17,7 @@ class ArticleServiceTest {
 
     @Autowired
     private  ArticleService articleService;
-    private static final String takimId = "cca054b7-8d31-4bb1-9126-f9dc22426187";
+    private static final String takimId = "6acb1d9c-f135-4dd8-9c08-be6b4c3c7fee";
     private static final String sorkimId = "6281e9f9-90af-4d44-9e87-a7f83d83b6ab";
     private static final String hyenamId = "bdf8e1ea-4c40-4073-9c68-01ea8c1a0a09";
     private static final String adminId = "f4fba3ae-4bc5-471d-a486-6a7495ae86e8";
@@ -38,7 +38,7 @@ class ArticleServiceTest {
             .build()).getArticleId();
 
         articleService.participateArticle(sorkimId, articleId);
-        articleService.participateArticle(hyenamId, articleId);
+//        articleService.participateArticle(hyenamId, articleId);
 
         articleService.completeArticle(takimId, articleId);
     }

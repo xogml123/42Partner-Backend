@@ -2,11 +2,9 @@ package com.seoul.openproject.partner.repository.match;
 
 import static com.seoul.openproject.partner.domain.model.match.QMatch.match;
 import static com.seoul.openproject.partner.domain.model.match.QMatchMember.matchMember;
-import static com.seoul.openproject.partner.domain.model.matchcondition.QMatchConditionMatch.matchConditionMatch;
 
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
-import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.PathBuilder;
 import com.querydsl.jpa.impl.JPAQuery;
@@ -48,7 +46,9 @@ public class MatchRepositoryCustomImpl implements MatchRepositoryCustom{
             .offset(pageable.getOffset())
             .limit(pageable.getPageSize() + 1)
             .fetch();
-        matches.remove(matches.size() - 1);
+        if (matches.size() == pageable.getPageSize() + 1) {
+            matches.remove(matches.size() - 1);
+        }
         return new SliceImpl<>(matches, pageable, matches.size() == pageable.getPageSize() + 1);
     }
 

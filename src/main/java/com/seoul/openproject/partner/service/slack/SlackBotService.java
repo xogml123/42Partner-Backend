@@ -3,6 +3,7 @@ package com.seoul.openproject.partner.service.slack;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
+@Slf4j
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 @Service
@@ -99,6 +101,7 @@ public class SlackBotService {
         if (jsonResponse.getBoolean("ok")){
             return Optional.ofNullable(jsonResponse.getJSONObject("channel").getString("id"));
         }else{
+            log.info("error = " + jsonResponse.getString("error"));
             return Optional.empty();
         }
     }
