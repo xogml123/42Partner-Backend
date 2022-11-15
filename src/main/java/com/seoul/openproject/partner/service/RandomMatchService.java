@@ -130,19 +130,19 @@ public class RandomMatchService {
                 .addAll(List.of(WayOfEating.values()));
         }
         // redis 조건에 따라 여러 데이터 생성
-        for (Place place : matchConditionRandomMatchDto.getPlaceList()) {
-            if (randomMatchDto.getContentCategory().equals(ContentCategory.STUDY)) {
-                for (TypeOfStudy typeOfStudy : matchConditionRandomMatchDto.getTypeOfStudyList()) {
-                    randomMatches.add(new StudyRandomMatch(ContentCategory.MEAL,
-                        place, member, typeOfStudy, now));
-                }
-            } else if (randomMatchDto.getContentCategory().equals(ContentCategory.MEAL)) {
-                for (WayOfEating wayOfEating : matchConditionRandomMatchDto.getWayOfEatingList()) {
-                    randomMatches.add(new MealRandomMatch(ContentCategory.MEAL,
-                        place, member, wayOfEating, now));
-                }
-            }
-        }
+//        for (Place place : matchConditionRandomMatchDto.getPlaceList()) {
+//            if (randomMatchDto.getContentCategory().equals(ContentCategory.STUDY)) {
+//                for (TypeOfStudy typeOfStudy : matchConditionRandomMatchDto.getTypeOfStudyList()) {
+//                    randomMatches.add(new StudyRandomMatch(ContentCategory.MEAL,
+//                        place, member, typeOfStudy, now));
+//                }
+//            } else if (randomMatchDto.getContentCategory().equals(ContentCategory.MEAL)) {
+//                for (WayOfEating wayOfEating : matchConditionRandomMatchDto.getWayOfEatingList()) {
+//                    randomMatches.add(new MealRandomMatch(ContentCategory.MEAL,
+//                        place, member, wayOfEating, now));
+//                }
+//            }
+//        }
         return randomMatches;
     }
 

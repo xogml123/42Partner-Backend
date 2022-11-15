@@ -58,8 +58,8 @@ public class OpinionController {
         return opinionService.findAllOpinionsInArticle(articleId);
     }
 
-    @Operation(summary = "댓글 수정", description = "댓글 수정")
-    @PutMapping("/opinions/{opinionId}")
+    @Operation(summary = "댓글 하나 조회", description = "댓글 하나 조회")
+    @GetMapping("/opinions/{opinionId}")
     public Opinion.OpinionResponse getOneOpinion(
         @PathVariable String opinionId) {
         return opinionService.getOneOpinion(opinionId);
@@ -71,7 +71,5 @@ public class OpinionController {
         @PathVariable String opinionId) {
         return opinionService.completeDeleteOpinion(opinionId);
     }
-
-
 
 }

@@ -238,12 +238,21 @@ public class Article extends BaseEntity {
     }
 
 
-    private void verifyParticipatableMember(Member member) {
+    private void verifyParticipatedMember(Member member) {
 
         if (this.getArticleMembers().stream()
             .anyMatch((articleMember) ->
                 articleMember.getMember().equals(member))) {
             throw new InvalidInputException(ErrorCode.ALREADY_PARTICIPATED);
+        }
+    }
+
+    private void verifyUnparticipatedMember(Member member) {
+
+        if (this.getArticleMembers().stream()
+            .noneMatch((articleMember) ->
+                articleMember.getMember().equals(member))) {
+            throw new InvalidInputException(ErrorCode.NOT_PARTICIPATED_MEMBER);
         }
     }
 
@@ -258,7 +267,7 @@ public class Article extends BaseEntity {
         verifyDeleted();
         verifyCompleted();
         verifyFull();
-        verifyParticipatableMember(member);
+        verifyParticipatedMember(member);
         ArticleMember participateMember = ArticleMember.of(member, false, this);
         this.participantNum++;
         return participateMember;
@@ -268,14 +277,20 @@ public class Article extends BaseEntity {
         verifyDeleted();
         verifyCompleted();
         verifyEmpty();
+        verifyUnparticipatedMember(member);
         ArticleMember participateMember = this.getArticleMembers().stream()
             .filter((articleMember1) ->
-                articleMember1.getMember().getApiId().equals(member.getApiId()))
+                articleMember1.getMember().equals(member))
             .findFirst().orElseThrow(() -> (
                 new InvalidInputException(ErrorCode.NOT_PARTICIPATED_MEMBER)
             ));
         this.participantNum--;
         return participateMember;
+    }
+
+    public void recoverableDelete(){
+        verifyDeleted();
+        this.isDeleted = true;
     }
 
 
