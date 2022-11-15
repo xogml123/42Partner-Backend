@@ -83,4 +83,11 @@ public class OpinionService {
         opinionRepository.delete(opinion);
         return opinionMapper.entityToOpinionOnlyIdResponse(opinion);
     }
+
+    public OpinionResponse getOneOpinion(String opinionId) {
+
+        Opinion opinion = opinionRepository.findByApiId(opinionId)
+            .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
+        return opinionMapper.entityToOpinionResponse(opinion);
+    }
 }

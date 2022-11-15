@@ -58,6 +58,13 @@ public class OpinionController {
         return opinionService.findAllOpinionsInArticle(articleId);
     }
 
+    @Operation(summary = "댓글 수정", description = "댓글 수정")
+    @PutMapping("/opinions/{opinionId}")
+    public Opinion.OpinionResponse getOneOpinion(
+        @PathVariable String opinionId) {
+        return opinionService.getOneOpinion(opinionId);
+    }
+
     @Operation(summary = "댓글 완전 삭제", description = "댓글 완전 삭제 (관리자 전용)")
     @DeleteMapping("/opinions/{opinionId}")
     public Opinion.OpinionOnlyIdResponse completeDeleteOpinion(
