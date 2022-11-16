@@ -2,13 +2,17 @@ package com.seoul.openproject.partner.service;
 
 import com.seoul.openproject.partner.domain.model.match.ContentCategory;
 import com.seoul.openproject.partner.domain.model.matchcondition.MatchCondition.MatchConditionRandomMatchDto;
+import com.seoul.openproject.partner.domain.model.matchcondition.Place;
 import com.seoul.openproject.partner.domain.model.matchcondition.TypeOfStudy;
 import com.seoul.openproject.partner.domain.model.matchcondition.WayOfEating;
 import com.seoul.openproject.partner.domain.model.member.Member;
+import com.seoul.openproject.partner.domain.model.random.MealRandomMatch;
 import com.seoul.openproject.partner.domain.model.random.RandomMatch;
 import com.seoul.openproject.partner.domain.model.random.RandomMatch.RandomMatchCancelRequest;
 import com.seoul.openproject.partner.domain.model.random.RandomMatch.RandomMatchDto;
+import com.seoul.openproject.partner.domain.model.random.StudyRandomMatch;
 import com.seoul.openproject.partner.error.exception.ErrorCode;
+import com.seoul.openproject.partner.error.exception.InvalidInputException;
 import com.seoul.openproject.partner.error.exception.NoEntityException;
 import com.seoul.openproject.partner.error.exception.RandomMatchAlreadyExistException;
 import com.seoul.openproject.partner.repository.random.RandomMatchRedisRepository;
@@ -16,9 +20,11 @@ import com.seoul.openproject.partner.repository.random.RandomMatchRepository;
 import com.seoul.openproject.partner.repository.user.UserRepository;
 import com.seoul.openproject.partner.utils.RedisKeyFactory;
 import com.seoul.openproject.partner.utils.RedisKeyFactory.Key;
+import com.seoul.openproject.partner.utils.TimeUtils;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import javax.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -43,7 +49,7 @@ public class RandomMatchService {
         Member member = userRepository.findByApiId(userId).orElseThrow(() -> new NoEntityException(
             ErrorCode.ENTITY_NOT_FOUND)).getMember();
         //"2020-12-01T00:00:00"
-        LocalDateTime now = LocalDateTime.parse(LocalDateTime.now().toString().split("\\.")[0]);
+        LocalDateTime now = TimeUtils.nowWithoutNano();
         //이미 30분 이내에 랜덤 매칭 신청을 한 경우 인지 체크
         verifyAlreadyApplied(randomMatchDto.getContentCategory(), member, now);
 
@@ -56,8 +62,8 @@ public class RandomMatchService {
 
         // 여러 매칭 조건들 redis 에 저장.
         randomMatches.forEach(randomMatch ->
-            randomMatchRedisRepository.addToSortedSet(RedisKeyFactory.RANDOM_MATCHES,
-                randomMatch.toStringKey(), 0.0)
+            randomMatchRedisRepository.addToSortedSet(randomMatch.toKey(),
+                randomMatch.toValue(), 0.0)
         );
 
         return new ResponseEntity<>(HttpStatus.CREATED);
@@ -66,10 +72,10 @@ public class RandomMatchService {
     private void verifyAlreadyApplied(ContentCategory contentCategory, Member member,
         LocalDateTime now) {
         if ((contentCategory.equals(ContentCategory.MEAL) &&
-            randomMatchRepository.findMealByCreatedAtBeforeAndIsMatched(now.minusMinutes(30),
+            randomMatchRepository.findMealByCreatedAtBeforeAndIsCanceled(now.minusMinutes(30),
                 member.getId(), false).size() > 0) ||
             (contentCategory.equals(ContentCategory.STUDY) &&
-                randomMatchRepository.findStudyByCreatedAtBeforeAndIsMatched(now.minusMinutes(30),
+                randomMatchRepository.findStudyByCreatedAtBeforeAndIsCanceled(now.minusMinutes(30),
                     member.getId(), false).size() > 0)) {
 
             throw new RandomMatchAlreadyExistException(ErrorCode.RANDOM_MATCH_ALREADY_EXIST);
@@ -86,10 +92,14 @@ public class RandomMatchService {
         ContentCategory contentCategory = request.getContentCategory();
         if (contentCategory == ContentCategory.MEAL) {
             randomMatches.addAll(
-                randomMatchRepository.findMealByCreatedAtBeforeAndIsMatched(now.minusMinutes(30), memberId, false));
+                randomMatchRepository.findMealByCreatedAtBeforeAndIsCanceled(now.minusMinutes(30), memberId, false));
         }else if (contentCategory == ContentCategory.STUDY) {
             randomMatches.addAll(
-                randomMatchRepository.findStudyByCreatedAtBeforeAndIsMatched(now.minusMinutes(30), memberId, false));
+                randomMatchRepository.findStudyByCreatedAtBeforeAndIsCanceled(now.minusMinutes(30), memberId, false));
+        }
+        // 활성화된 randomMatch가 db에 없으면 취소할 매치가 없는 경우 exception
+        if (randomMatches.isEmpty()) {
+            throw new InvalidInputException(ErrorCode.ALREADY_CANCELED_RANDOM_MATCH);
         }
 
         for (RandomMatch randomMatch : randomMatches) {
@@ -98,14 +108,18 @@ public class RandomMatchService {
         log.info("{}", RedisKeyFactory.toKey(Key.MEMBER, memberId.toString()));
 
         //redis 모두 삭제시도
-        randomMatchRedisRepository.deleteAllSortedSet(RedisKeyFactory.RANDOM_MATCHES,
-            randomMatches.stream()
-                .map(randomMatch -> randomMatch.toStringKey())
-                .toArray(String[]::new));
+        randomMatches
+                .forEach((randomMatch ->
+                    randomMatchRedisRepository.deleteSortedSet(randomMatch.toKey(),
+                        randomMatch.toValue())));
+//        randomMatchRedisRepository.deleteAllSortedSet(RedisKeyFactory.RANDOM_MATCHES,
+//            randomMatches.stream()
+//                .map(randomMatch -> randomMatch.toStringKey())
+//                .toArray(String[]::new));
         //db상에서 만료
-        randomMatches.stream()
+        randomMatches
             .forEach(randomMatch ->
-                randomMatch.expire());
+                randomMatch.cancel());
 
         return ResponseEntity.status(HttpStatus.OK).build();
     }
@@ -133,19 +147,19 @@ public class RandomMatchService {
                 .addAll(List.of(WayOfEating.values()));
         }
         // redis 조건에 따라 여러 데이터 생성
-//        for (Place place : matchConditionRandomMatchDto.getPlaceList()) {
-//            if (randomMatchDto.getContentCategory().equals(ContentCategory.STUDY)) {
-//                for (TypeOfStudy typeOfStudy : matchConditionRandomMatchDto.getTypeOfStudyList()) {
-//                    randomMatches.add(new StudyRandomMatch(ContentCategory.MEAL,
-//                        place, member, typeOfStudy, now));
-//                }
-//            } else if (randomMatchDto.getContentCategory().equals(ContentCategory.MEAL)) {
-//                for (WayOfEating wayOfEating : matchConditionRandomMatchDto.getWayOfEatingList()) {
-//                    randomMatches.add(new MealRandomMatch(ContentCategory.MEAL,
-//                        place, member, wayOfEating, now));
-//                }
-//            }
-//        }
+        for (Place place : matchConditionRandomMatchDto.getPlaceList()) {
+            if (randomMatchDto.getContentCategory().equals(ContentCategory.STUDY)) {
+                for (TypeOfStudy typeOfStudy : matchConditionRandomMatchDto.getTypeOfStudyList()) {
+                    randomMatches.add(new StudyRandomMatch(ContentCategory.STUDY,
+                        place, member, typeOfStudy, now));
+                }
+            } else if (randomMatchDto.getContentCategory().equals(ContentCategory.MEAL)) {
+                for (WayOfEating wayOfEating : matchConditionRandomMatchDto.getWayOfEatingList()) {
+                    randomMatches.add(new MealRandomMatch(ContentCategory.MEAL,
+                        place, member, wayOfEating, now));
+                }
+            }
+        }
         return randomMatches;
     }
 

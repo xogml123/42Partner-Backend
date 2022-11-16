@@ -338,7 +338,7 @@ public class DataLoader implements CommandLineRunner {
         if (dataLoader.equals("1")) {
             createRoleAuthority();
             createMatchCondition();
-            createDefaultUsers();
+//            createDefaultUsers();
         }
     }
 }

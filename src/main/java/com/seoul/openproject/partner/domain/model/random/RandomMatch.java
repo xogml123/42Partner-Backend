@@ -70,7 +70,7 @@ public abstract class RandomMatch implements Serializable {
      *
      */
     public static final String CONDITION_PAD_CHAR = "-";
-    public static final String ID_DELIMITER = ":";
+    public static final String ID_DELIMITER = "/";
 
 
     @Id
@@ -90,7 +90,7 @@ public abstract class RandomMatch implements Serializable {
     protected LocalDateTime createdAt;
 
     @Column(nullable = false)
-    protected boolean isCanceled;
+    protected boolean isCanceled = false;
 
     /********************************* 연관관계 매핑 *********************************/
     @ManyToOne(fetch = FetchType.LAZY)
@@ -108,6 +108,8 @@ public abstract class RandomMatch implements Serializable {
     /********************************* 비지니스 로직 *********************************/
 
     public abstract String toStringKey();
+
+    public abstract String toKey();
     public abstract String toNumberKey();
     public abstract String toAsciiKey();
 
@@ -115,19 +117,20 @@ public abstract class RandomMatch implements Serializable {
      * 같은 조건일 경우 userId크기에 따라 특정 유저가 항상 우선순위에 앞서거나 뒤쳐지기 때문에 랜덤한 문자열을 추가함.
      * 30분마다 사라지는 데이터이므로 3바이트 크기의 문자열이면 충분함.
      */
-    protected String keyPrefix(){
+    public String toValue(){
         return createdAt +
             ID_DELIMITER +
             member.getId().toString();
     }
 
     public void cancel() {
-        verifyCancel()
+        verifyCancel();
+        this.isCanceled = true;
     }
 
     private void verifyCancel() {
         if (isCanceled) {
-            throw new InvalidInputException(ErrorCode.);
+            throw new InvalidInputException(ErrorCode.ALREADY_CANCELED_RANDOM_MATCH);
         }
     }
 

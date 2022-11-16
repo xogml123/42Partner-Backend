@@ -14,19 +14,19 @@ public interface RandomMatchRepository extends JpaRepository<RandomMatch, Long> 
     @Query("select rm from MealRandomMatch rm "
         + "where rm.member.id = :memberId "
         + "and rm.createdAt > :before "
-        + "and rm.isCanceled = :isMatched")
-    List<RandomMatch> findStudyByCreatedAtBeforeAndIsMatched(
+        + "and rm.isCanceled = :isCanceled")
+    List<RandomMatch> findMealByCreatedAtBeforeAndIsCanceled(
         @Param(value = "before") LocalDateTime before,
         @Param(value = "memberId") Long memberId,
-        @Param(value  = "isMatched") boolean isMatched);
+        @Param(value  = "isCanceled") boolean isCanceled);
 
     @EntityGraph(attributePaths = {"member"})
     @Query("select rm from StudyRandomMatch rm "
         + "where rm.member.id = :memberId "
         + "and rm.createdAt > :before "
-        + "and rm.isCanceled = :isMatched")
-    List<RandomMatch> findMealByCreatedAtBeforeAndIsMatched(
+        + "and rm.isCanceled = :isCanceled")
+    List<RandomMatch> findStudyByCreatedAtBeforeAndIsCanceled(
         @Param(value = "before") LocalDateTime before,
         @Param(value = "memberId") Long memberId,
-        @Param(value  = "isMatched") boolean isMatched);
+        @Param(value  = "isCanceled") boolean isCanceled);
 }
