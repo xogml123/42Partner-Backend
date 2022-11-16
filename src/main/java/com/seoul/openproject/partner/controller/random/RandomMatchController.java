@@ -1,5 +1,7 @@
 package com.seoul.openproject.partner.controller.random;
 
+import com.seoul.openproject.partner.domain.model.random.RandomMatch;
+import com.seoul.openproject.partner.domain.model.random.RandomMatch.RandomMatchCancelRequest;
 import com.seoul.openproject.partner.domain.model.random.RandomMatch.RandomMatchDto;
 import com.seoul.openproject.partner.domain.model.user.User;
 import com.seoul.openproject.partner.service.RandomMatchService;
@@ -35,10 +37,10 @@ public class RandomMatchController {
     }
 
     @Operation(summary = "랜덤 매칭 취소", description = "랜덤 매칭 취소")
-    @DeleteMapping("/random-matches/mine")
-    public ResponseEntity<Void> cancelRandomMatch(
+    @PostMapping("/random-matches/mine")
+    public ResponseEntity<Void> cancelRandomMatch(@Validated @Parameter @RequestBody RandomMatchCancelRequest randomMatchCancelRequest,
         @ApiParam(hidden = true) @AuthenticationPrincipal User user) {
         //contentCategory에 따라 필드 검증
-        return randomMatchService.deleteRandomMatch(user.getApiId());
+        return randomMatchService.deleteRandomMatch(user.getApiId(), randomMatchCancelRequest);
     }
 }

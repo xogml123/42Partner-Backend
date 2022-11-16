@@ -5,6 +5,8 @@ import com.seoul.openproject.partner.domain.model.match.ContentCategory;
 import com.seoul.openproject.partner.domain.model.matchcondition.MatchCondition;
 import com.seoul.openproject.partner.domain.model.matchcondition.Place;
 import com.seoul.openproject.partner.domain.model.member.Member;
+import com.seoul.openproject.partner.error.exception.ErrorCode;
+import com.seoul.openproject.partner.error.exception.InvalidInputException;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -87,6 +89,9 @@ public abstract class RandomMatch implements Serializable {
     @Column(nullable = false, updatable = false)
     protected LocalDateTime createdAt;
 
+    @Column(nullable = false)
+    protected boolean isCanceled;
+
     /********************************* 연관관계 매핑 *********************************/
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "MEMBER_ID", nullable = false, updatable = false)
@@ -116,6 +121,16 @@ public abstract class RandomMatch implements Serializable {
             member.getId().toString();
     }
 
+    public void cancel() {
+        verifyCancel()
+    }
+
+    private void verifyCancel() {
+        if (isCanceled) {
+            throw new InvalidInputException(ErrorCode.);
+        }
+    }
+
     /********************************* DTO *********************************/
 
     @Getter
@@ -135,4 +150,14 @@ public abstract class RandomMatch implements Serializable {
 
     }
 
+    @Getter
+    @Setter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor(access = AccessLevel.PRIVATE)
+    public static class RandomMatchCancelRequest {
+        @Schema(name = "contentCategory", example = "MEAL or STUDY", description = "식사, 공부 글인지 여부")
+        @NotNull
+        private ContentCategory contentCategory;
+    }
 }
