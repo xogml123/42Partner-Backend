@@ -1,0 +1,45 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '2.7.5'
+    id 'io.spring.dependency-management' version '1.0.15.RELEASE'
+}
+
+group = 'partner42'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '11'
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter'
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+//common 모듈은 다른 곳에서 참조하는 모듈이기 때문에
+//실행가능한 jar파일을 만들필요가 없기 때문에 false로 바꿈. (application.class가 없음.)
+tasks.bootJar { enabled = false}
+//xxx-plain.jar로 빌드됨.
+//plain이 붙은것은 dependency를 가지고 있지 않으므로 실행이 불가능.
+//즉 개별 모듈만으로 빌드해서 jar파일로 만듬.
+tasks.jar {enabled = true}
+//-x test는 테스트 코드를 빼고 빌드하는 command
+// ./gradlew clean :module-api:buildNeeded --stacktrace --info --refresh-dependencies -x test
+// clean: 이미 빌드되어있는 파일을 지움
+// :module-api:buildNeeded module-api를 빌드함.
+// --stacktrace --info : info 수준의 로그를 봄.
+// --refresh-dependencies : 디펜던시를 다시 리프레시함
+// -x test : 테스트는 배제
