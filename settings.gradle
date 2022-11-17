@@ -1,1 +1,3 @@
 rootProject.name = '42Partner'
+include 'module-api'
+include 'module-common'
