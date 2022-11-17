@@ -1,9 +1,6 @@
 package com.seoul.openproject.partner.service.article;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import com.seoul.openproject.partner.domain.model.article.Article.ArticleDto;
-import com.seoul.openproject.partner.domain.model.article.Article.ArticleOnlyIdResponse;
 import com.seoul.openproject.partner.domain.model.match.ContentCategory;
 import com.seoul.openproject.partner.domain.model.matchcondition.MatchCondition.MatchConditionDto;
 import java.time.LocalDate;

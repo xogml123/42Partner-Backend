@@ -1,6 +1,6 @@
 //package com.seoul.openproject.partner.service.slack;
 //
-//import com.seoul.openproject.partner.domain.model.user.User;
+//import User;
 //import java.util.ArrayList;
 //import java.util.Optional;
 //import org.junit.jupiter.api.Test;

@@ -4,6 +4,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 
+@EnableJpaAuditing
 @SpringBootApplication(
 	scanBasePackages = {"partner42.moduleapi", "partner42.modulecommon"}
 )
