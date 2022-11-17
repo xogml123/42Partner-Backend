@@ -1,7 +1,8 @@
 package partner42.modulecommon.repository.article;
 
-import static com.seoul.openproject.partner.domain.model.article.QArticle.article;
-import static com.seoul.openproject.partner.domain.model.article.QArticleMember.articleMember;
+
+import static partner42.modulecommon.domain.model.article.QArticle.article;
+import static partner42.modulecommon.domain.model.article.QArticleMember.articleMember;
 
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
@@ -9,8 +10,6 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.PathBuilder;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import partner42.modulecommon.domain.model.article.Article;
-import partner42.modulecommon.domain.model.match.ContentCategory;
 import io.swagger.v3.oas.annotations.Parameter;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +18,8 @@ import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
+import partner42.modulecommon.domain.model.article.Article;
+import partner42.modulecommon.domain.model.match.ContentCategory;
 
 @RequiredArgsConstructor
 @Repository
@@ -28,17 +29,17 @@ public class ArticleRepositoryCustomImpl implements ArticleRepositoryCustom {
 
     @Override
     public Slice<Article> findSliceByCondition(@Parameter() Pageable pageable, ArticleSearch condition) {
-        JPAQuery<Article> query = queryFactory.select(QArticle.article).distinct()
-            .from(QArticle.article)
-            .join(QArticle.article.articleMembers, QArticleMember.articleMember).fetchJoin()
+        JPAQuery<Article> query = queryFactory.select(article).distinct()
+            .from(article)
+            .join(article.articleMembers, articleMember).fetchJoin()
             .where(
                 isDeletedIsFalse(),
                 isComplete(condition.getIsMatched()),
                 isContentCategory(condition.getContentCategory())
             );
         for (Sort.Order o : pageable.getSort()) {
-            PathBuilder pathBuilder = new PathBuilder(QArticle.article.getType(),
-                QArticle.article.getMetadata());
+            PathBuilder pathBuilder = new PathBuilder(article.getType(),
+                article.getMetadata());
             query.orderBy(new OrderSpecifier(o.isAscending() ? Order.ASC : Order.DESC,
                 pathBuilder.get(o.getProperty())));
         }
@@ -53,16 +54,16 @@ public class ArticleRepositoryCustomImpl implements ArticleRepositoryCustom {
     }
 
     private BooleanExpression isDeletedIsFalse() {
-        return QArticle.article.isDeleted.isFalse();
+        return article.isDeleted.isFalse();
     }
 
     private BooleanExpression isComplete(Boolean isMatched) {
 
-        return isMatched == null ? null : QArticle.article.isComplete.eq(isMatched);
+        return isMatched == null ? null : article.isComplete.eq(isMatched);
     }
 
     private BooleanExpression isContentCategory(ContentCategory contentCategory) {
-        return contentCategory == null ? null: QArticle.article.contentCategory.eq(contentCategory);
+        return contentCategory == null ? null: article.contentCategory.eq(contentCategory);
     }
 }
 

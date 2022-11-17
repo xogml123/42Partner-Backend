@@ -1,18 +1,5 @@
 package partner42.moduleapi.service.match;
 
-import com.seoul.openproject.partner.domain.model.match.Match.MatchDto;
-import com.seoul.openproject.partner.domain.model.matchcondition.MatchCondition;
-import com.seoul.openproject.partner.domain.model.matchcondition.MatchCondition.MatchConditionDto;
-import com.seoul.openproject.partner.domain.model.matchcondition.Place;
-import com.seoul.openproject.partner.domain.model.matchcondition.TimeOfEating;
-import com.seoul.openproject.partner.domain.model.matchcondition.TypeOfStudy;
-import com.seoul.openproject.partner.domain.model.matchcondition.WayOfEating;
-import com.seoul.openproject.partner.repository.match.MatchSearch;
-import com.seoul.openproject.partner.domain.model.member.Member;
-import com.seoul.openproject.partner.error.exception.ErrorCode;
-import com.seoul.openproject.partner.error.exception.NoEntityException;
-import com.seoul.openproject.partner.repository.match.MatchRepository;
-import com.seoul.openproject.partner.repository.user.UserRepository;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +7,19 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import partner42.moduleapi.dto.match.MatchDto;
+import partner42.moduleapi.dto.matchcondition.MatchConditionDto;
+import partner42.modulecommon.domain.model.matchcondition.MatchCondition;
+import partner42.modulecommon.domain.model.matchcondition.Place;
+import partner42.modulecommon.domain.model.matchcondition.TimeOfEating;
+import partner42.modulecommon.domain.model.matchcondition.TypeOfStudy;
+import partner42.modulecommon.domain.model.matchcondition.WayOfEating;
+import partner42.modulecommon.domain.model.member.Member;
+import partner42.modulecommon.exception.ErrorCode;
+import partner42.modulecommon.exception.NoEntityException;
+import partner42.modulecommon.repository.match.MatchRepository;
+import partner42.modulecommon.repository.match.MatchSearch;
+import partner42.modulecommon.repository.user.UserRepository;
 
 @RequiredArgsConstructor
 @Transactional(readOnly = true)

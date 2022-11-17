@@ -1,47 +1,5 @@
 package partner42.moduleapi.service.article;
 
-import com.seoul.openproject.partner.domain.model.activity.Activity;
-import com.seoul.openproject.partner.domain.model.activity.ActivityType;
-import com.seoul.openproject.partner.domain.model.matchcondition.MatchCondition;
-import com.seoul.openproject.partner.domain.model.matchcondition.MatchCondition.MatchConditionDto;
-import com.seoul.openproject.partner.domain.model.matchcondition.TypeOfStudy;
-import com.seoul.openproject.partner.domain.model.match.Match;
-import com.seoul.openproject.partner.domain.model.match.MatchMember;
-import com.seoul.openproject.partner.domain.model.match.MatchStatus;
-import com.seoul.openproject.partner.domain.model.match.MethodCategory;
-import com.seoul.openproject.partner.domain.model.matchcondition.ArticleMatchCondition;
-import com.seoul.openproject.partner.domain.model.article.ArticleMember;
-import com.seoul.openproject.partner.domain.model.article.Article;
-import com.seoul.openproject.partner.domain.model.article.Article.ArticleDto;
-import com.seoul.openproject.partner.domain.model.article.Article.ArticleOnlyIdResponse;
-import com.seoul.openproject.partner.domain.model.article.Article.ArticleReadOneResponse;
-import com.seoul.openproject.partner.domain.model.article.Article.ArticleReadResponse;
-import com.seoul.openproject.partner.domain.model.matchcondition.Place;
-import com.seoul.openproject.partner.domain.model.matchcondition.TimeOfEating;
-import com.seoul.openproject.partner.domain.model.matchcondition.WayOfEating;
-import com.seoul.openproject.partner.domain.model.matchcondition.MatchConditionMatch;
-import com.seoul.openproject.partner.domain.model.member.Member;
-import com.seoul.openproject.partner.domain.model.member.Member.MemberDto;
-import com.seoul.openproject.partner.domain.model.user.RoleEnum;
-import com.seoul.openproject.partner.domain.model.user.User;
-import com.seoul.openproject.partner.error.exception.ErrorCode;
-import com.seoul.openproject.partner.error.exception.NoEntityException;
-import com.seoul.openproject.partner.error.exception.NotAuthorException;
-import com.seoul.openproject.partner.error.exception.SlackException;
-import com.seoul.openproject.partner.repository.activity.ActivityRepository;
-import com.seoul.openproject.partner.repository.article.ArticleRepository;
-import com.seoul.openproject.partner.repository.article.ArticleSearch;
-import com.seoul.openproject.partner.repository.articlemember.ArticleMemberRepository;
-import com.seoul.openproject.partner.repository.match.MatchMemberRepository;
-import com.seoul.openproject.partner.repository.match.MatchRepository;
-import com.seoul.openproject.partner.repository.matchcondition.MatchConditionMatchRepository;
-import com.seoul.openproject.partner.repository.matchcondition.MatchConditionRepository;
-import com.seoul.openproject.partner.repository.member.MemberRepository;
-import com.seoul.openproject.partner.repository.matchcondition.ArticleMatchConditionRepository;
-import com.seoul.openproject.partner.mapper.MatchConditionMapper;
-import com.seoul.openproject.partner.mapper.MemberMapper;
-import com.seoul.openproject.partner.repository.user.UserRepository;
-import partner42.moduleapi.service.slack.SlackBotService;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -53,6 +11,48 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import partner42.moduleapi.dto.article.ArticleDto;
+import partner42.moduleapi.dto.article.ArticleOnlyIdResponse;
+import partner42.moduleapi.dto.article.ArticleReadOneResponse;
+import partner42.moduleapi.dto.article.ArticleReadResponse;
+import partner42.moduleapi.dto.matchcondition.MatchConditionDto;
+import partner42.moduleapi.dto.member.MemberDto;
+import partner42.moduleapi.mapper.MatchConditionMapper;
+import partner42.moduleapi.mapper.MemberMapper;
+import partner42.moduleapi.service.slack.SlackBotService;
+import partner42.modulecommon.domain.model.activity.Activity;
+import partner42.modulecommon.domain.model.activity.ActivityType;
+import partner42.modulecommon.domain.model.article.Article;
+import partner42.modulecommon.domain.model.article.ArticleMember;
+import partner42.modulecommon.domain.model.match.Match;
+import partner42.modulecommon.domain.model.match.MatchMember;
+import partner42.modulecommon.domain.model.match.MatchStatus;
+import partner42.modulecommon.domain.model.match.MethodCategory;
+import partner42.modulecommon.domain.model.matchcondition.ArticleMatchCondition;
+import partner42.modulecommon.domain.model.matchcondition.MatchCondition;
+import partner42.modulecommon.domain.model.matchcondition.MatchConditionMatch;
+import partner42.modulecommon.domain.model.matchcondition.Place;
+import partner42.modulecommon.domain.model.matchcondition.TimeOfEating;
+import partner42.modulecommon.domain.model.matchcondition.TypeOfStudy;
+import partner42.modulecommon.domain.model.matchcondition.WayOfEating;
+import partner42.modulecommon.domain.model.member.Member;
+import partner42.modulecommon.domain.model.user.RoleEnum;
+import partner42.modulecommon.domain.model.user.User;
+import partner42.modulecommon.exception.ErrorCode;
+import partner42.modulecommon.exception.NoEntityException;
+import partner42.modulecommon.exception.NotAuthorException;
+import partner42.modulecommon.exception.SlackException;
+import partner42.modulecommon.repository.activity.ActivityRepository;
+import partner42.modulecommon.repository.article.ArticleRepository;
+import partner42.modulecommon.repository.article.ArticleSearch;
+import partner42.modulecommon.repository.articlemember.ArticleMemberRepository;
+import partner42.modulecommon.repository.match.MatchMemberRepository;
+import partner42.modulecommon.repository.match.MatchRepository;
+import partner42.modulecommon.repository.matchcondition.ArticleMatchConditionRepository;
+import partner42.modulecommon.repository.matchcondition.MatchConditionMatchRepository;
+import partner42.modulecommon.repository.matchcondition.MatchConditionRepository;
+import partner42.modulecommon.repository.member.MemberRepository;
+import partner42.modulecommon.repository.user.UserRepository;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -81,8 +81,9 @@ public class ArticleService {
     private final MatchConditionMapper matchConditionMapper;
 
     @Transactional
-    public ArticleOnlyIdResponse createArticle(String userId, Article.ArticleDto articleRequest) {
-        Member member = userRepository.findByApiId(userId).orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND)).getMember();
+    public ArticleOnlyIdResponse createArticle(String userId, ArticleDto articleRequest) {
+        Member member = userRepository.findByApiId(userId).orElseThrow(() -> new NoEntityException(
+            ErrorCode.ENTITY_NOT_FOUND)).getMember();
         Article article = articleRepository.save(
             Article.of(articleRequest.getDate(),
                 articleRequest.getTitle(),
@@ -278,7 +279,7 @@ public class ArticleService {
     }
 
 
-    private List<String> allMatchConditionToStringList(Article.ArticleDto articleRequest) {
+    private List<String> allMatchConditionToStringList(ArticleDto articleRequest) {
         List<String> matchConditionStrings = new ArrayList<>();
         List<Place> place = articleRequest.getMatchConditionDto().getPlaceList();
         if (place == null) {
@@ -315,7 +316,7 @@ public class ArticleService {
     }
 
     private List<ArticleMatchCondition> allMatchConditionToArticleMatchCondition(
-        Article.ArticleDto articleRequest, Article article) {
+        ArticleDto articleRequest, Article article) {
         return allMatchConditionToStringList(articleRequest).stream()
             .map((matchConditionString) ->
                 matchConditionRepository.findByValue(matchConditionString).orElseThrow(() ->

@@ -1,9 +1,9 @@
 package partner42.moduleapi.dto;
 
-import com.seoul.openproject.partner.domain.model.user.RoleEnum;
 import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
+import partner42.modulecommon.domain.model.user.RoleEnum;
 
 @Getter
 @Setter

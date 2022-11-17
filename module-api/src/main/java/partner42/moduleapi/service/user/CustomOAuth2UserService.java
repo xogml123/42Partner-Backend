@@ -1,15 +1,5 @@
 package partner42.moduleapi.service.user;
 
-import com.seoul.openproject.partner.domain.model.tryjudge.MatchTryAvailabilityJudge;
-import com.seoul.openproject.partner.domain.model.member.Member;
-import com.seoul.openproject.partner.domain.model.user.Role;
-import com.seoul.openproject.partner.domain.model.user.RoleEnum;
-import com.seoul.openproject.partner.domain.model.user.User;
-import com.seoul.openproject.partner.domain.model.user.UserRole;
-import com.seoul.openproject.partner.repository.member.MemberRepository;
-import com.seoul.openproject.partner.repository.user.RoleRepository;
-import com.seoul.openproject.partner.repository.user.UserRepository;
-import com.seoul.openproject.partner.repository.user.UserRoleRepository;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -23,6 +13,16 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import partner42.modulecommon.domain.model.member.Member;
+import partner42.modulecommon.domain.model.tryjudge.MatchTryAvailabilityJudge;
+import partner42.modulecommon.domain.model.user.Role;
+import partner42.modulecommon.domain.model.user.RoleEnum;
+import partner42.modulecommon.domain.model.user.User;
+import partner42.modulecommon.domain.model.user.UserRole;
+import partner42.modulecommon.repository.member.MemberRepository;
+import partner42.modulecommon.repository.user.RoleRepository;
+import partner42.modulecommon.repository.user.UserRepository;
+import partner42.modulecommon.repository.user.UserRoleRepository;
 
 @Transactional(readOnly = true)
 @RequiredArgsConstructor

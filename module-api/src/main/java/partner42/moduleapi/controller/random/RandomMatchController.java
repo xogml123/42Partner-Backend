@@ -1,8 +1,5 @@
 package partner42.moduleapi.controller.random;
 
-import com.seoul.openproject.partner.domain.model.random.RandomMatch.RandomMatchDto;
-import com.seoul.openproject.partner.domain.model.user.User;
-import com.seoul.openproject.partner.service.RandomMatchService;
 import io.swagger.annotations.ApiParam;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -16,6 +13,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import partner42.moduleapi.dto.random.RandomMatchDto;
+import partner42.moduleapi.service.RandomMatchService;
+import partner42.modulecommon.domain.model.user.User;
 
 @Slf4j
 @RestController

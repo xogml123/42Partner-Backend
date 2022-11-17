@@ -1,34 +1,29 @@
 package partner42.moduleapi.service;
 
-import com.seoul.openproject.partner.domain.model.match.ContentCategory;
-import com.seoul.openproject.partner.domain.model.matchcondition.MatchCondition.MatchConditionRandomMatchDto;
-import com.seoul.openproject.partner.domain.model.matchcondition.Place;
-import com.seoul.openproject.partner.domain.model.matchcondition.TypeOfStudy;
-import com.seoul.openproject.partner.domain.model.matchcondition.WayOfEating;
-import com.seoul.openproject.partner.domain.model.member.Member;
-import com.seoul.openproject.partner.domain.model.random.MealRandomMatch;
-import com.seoul.openproject.partner.domain.model.random.RandomMatch;
-import com.seoul.openproject.partner.domain.model.random.RandomMatch.RandomMatchDto;
-import com.seoul.openproject.partner.domain.model.random.StudyRandomMatch;
-import com.seoul.openproject.partner.error.exception.ErrorCode;
-import com.seoul.openproject.partner.error.exception.NoEntityException;
-import com.seoul.openproject.partner.error.exception.RandomMatchAlreadyExistException;
-import com.seoul.openproject.partner.repository.random.RandomMatchRedisRepository;
-import com.seoul.openproject.partner.repository.random.RandomMatchRepository;
-import com.seoul.openproject.partner.repository.user.UserRepository;
-import com.seoul.openproject.partner.utils.RedisKeyFactory;
-import com.seoul.openproject.partner.utils.RedisKeyFactory.Key;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import javax.swing.text.AbstractDocument.Content;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import partner42.moduleapi.dto.matchcondition.MatchConditionRandomMatchDto;
+import partner42.moduleapi.dto.random.RandomMatchDto;
+import partner42.modulecommon.domain.model.match.ContentCategory;
+import partner42.modulecommon.domain.model.matchcondition.TypeOfStudy;
+import partner42.modulecommon.domain.model.matchcondition.WayOfEating;
+import partner42.modulecommon.domain.model.member.Member;
+import partner42.modulecommon.domain.model.random.RandomMatch;
+import partner42.modulecommon.exception.ErrorCode;
+import partner42.modulecommon.exception.NoEntityException;
+import partner42.modulecommon.exception.RandomMatchAlreadyExistException;
+import partner42.modulecommon.repository.random.RandomMatchRedisRepository;
+import partner42.modulecommon.repository.random.RandomMatchRepository;
+import partner42.modulecommon.repository.user.UserRepository;
+import partner42.modulecommon.utils.RedisKeyFactory;
+import partner42.modulecommon.utils.RedisKeyFactory.Key;
 
 @Slf4j
 @RequiredArgsConstructor

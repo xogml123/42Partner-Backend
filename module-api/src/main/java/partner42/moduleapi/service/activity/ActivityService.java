@@ -1,16 +1,16 @@
 package partner42.moduleapi.service.activity;
 
 
-import com.seoul.openproject.partner.repository.activity.ActivitySearch;
-import com.seoul.openproject.partner.domain.model.activity.Activity.ActivityScoreResponse;
-import com.seoul.openproject.partner.domain.model.member.Member;
-import com.seoul.openproject.partner.error.exception.ErrorCode;
-import com.seoul.openproject.partner.error.exception.NoEntityException;
-import com.seoul.openproject.partner.repository.activity.ActivityRepository;
-import com.seoul.openproject.partner.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import partner42.moduleapi.dto.activity.ActivityScoreResponse;
+import partner42.modulecommon.domain.model.member.Member;
+import partner42.modulecommon.exception.ErrorCode;
+import partner42.modulecommon.exception.NoEntityException;
+import partner42.modulecommon.repository.activity.ActivityRepository;
+import partner42.modulecommon.repository.activity.ActivitySearch;
+import partner42.modulecommon.repository.user.UserRepository;
 
 @RequiredArgsConstructor
 @Transactional(readOnly = true)

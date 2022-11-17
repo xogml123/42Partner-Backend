@@ -19,17 +19,40 @@ repositories {
 }
 
 dependencies {
+	//oauth
 	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+	//security
 	implementation 'org.springframework.boot:spring-boot-starter-security'
+	//validation
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
+	//web
 	implementation 'org.springframework.boot:spring-boot-starter-web'
+	//session
 	implementation 'org.springframework.session:spring-session-core'
 
-	implementation project(':module-common')
+	//lombok
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
+
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.security:spring-security-test'
+
+	//swagger
+	implementation 'io.springfox:springfox-boot-starter:3.0.0'
+
+	//mapstruct 설정은 lombok 밑에 설정해야만함.
+	implementation 'org.mapstruct:mapstruct:1.5.3.Final'
+	annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.3.Final'
+	//json변환 util
+	implementation 'org.json:json:20220924'
+
+	//jpa- pageble등 의존하는 경우 있음.
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+
+	//module-common  참조
+	implementation project(':module-common')
+
+
 }
 
 tasks.named('test') {

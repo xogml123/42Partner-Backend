@@ -1,7 +1,5 @@
-package partner42.moduleapi.config;
+package partner42.moduleapi.error;
 
-import com.seoul.openproject.partner.error.exception.BusinessException;
-import com.seoul.openproject.partner.error.exception.ErrorCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +11,8 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import partner42.modulecommon.exception.BusinessException;
+import partner42.modulecommon.exception.ErrorCode;
 
 @ControllerAdvice
 @Slf4j

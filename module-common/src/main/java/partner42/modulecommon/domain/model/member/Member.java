@@ -1,10 +1,6 @@
 package partner42.modulecommon.domain.model.member;
 
 
-import partner42.modulecommon.domain.model.tryjudge.MatchTryAvailabilityJudge;
-import partner42.modulecommon.domain.model.BaseEntity;
-import partner42.modulecommon.domain.model.user.User;
-import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.UUID;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -16,14 +12,14 @@ import javax.persistence.Id;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
+import partner42.modulecommon.domain.model.BaseEntity;
+import partner42.modulecommon.domain.model.tryjudge.MatchTryAvailabilityJudge;
+import partner42.modulecommon.domain.model.user.User;
 
 
 @Builder(access = AccessLevel.PRIVATE)
@@ -103,22 +99,5 @@ public class Member extends BaseEntity {
 
     /********************************* DTO *********************************/
 
-    @Getter
-    @Setter
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor(access = AccessLevel.PRIVATE)
-    public static class MemberDto {
 
-
-        @Schema(name = "nickname" , example = "꿈꾸는 나무", description = "글 작성자 혹은 참여자 (member)의 nickname")
-        @NotBlank
-        private String nickname;
-
-        @Schema(name = "isAuthor" , example = "true Or false", description = "작성자이면 true")
-        @NotNull
-        private Boolean isAuthor;
-
-
-    }
 }

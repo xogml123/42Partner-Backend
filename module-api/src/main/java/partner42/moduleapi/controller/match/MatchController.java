@@ -1,10 +1,5 @@
 package partner42.moduleapi.controller.match;
 
-import com.seoul.openproject.partner.domain.model.match.Match;
-import com.seoul.openproject.partner.domain.model.match.Match.MatchDto;
-import com.seoul.openproject.partner.domain.model.user.User;
-import com.seoul.openproject.partner.repository.match.MatchSearch;
-import com.seoul.openproject.partner.service.match.MatchService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +10,10 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import partner42.moduleapi.dto.match.MatchDto;
+import partner42.moduleapi.service.match.MatchService;
+import partner42.modulecommon.domain.model.user.User;
+import partner42.modulecommon.repository.match.MatchSearch;
 
 @Slf4j
 @RestController

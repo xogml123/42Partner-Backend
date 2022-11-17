@@ -1,14 +1,14 @@
 package partner42.modulecommon.repository.activity;
 
-import static com.seoul.openproject.partner.domain.model.activity.QActivity.*;
+
+import static partner42.modulecommon.domain.model.activity.QActivity.activity;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.seoul.openproject.partner.domain.model.activity.QActivity;
-import partner42.modulecommon.domain.model.match.ContentCategory;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
+import partner42.modulecommon.domain.model.match.ContentCategory;
 
 @RequiredArgsConstructor
 @Repository
@@ -20,9 +20,9 @@ public class ActivityRepositoryCustomImpl implements ActivityRepositoryCustom {
     public Integer findSumScoreByMemberIdAndArticleSearch(Long memberId,
         ActivitySearch activitySearch) {
         return queryFactory.select(
-                QActivity.activity.score.sum()
+                activity.score.sum()
             )
-            .from(QActivity.activity)
+            .from(activity)
             .where(isContentCategory(activitySearch.getContentCategory()),
                 isMemberId(memberId),
                 goeStartTime(activitySearch.getStartTime()),
@@ -32,18 +32,18 @@ public class ActivityRepositoryCustomImpl implements ActivityRepositoryCustom {
     }
 
     private BooleanExpression isContentCategory(ContentCategory contentCategory) {
-        return contentCategory == null ? null : QActivity.activity.contentCategory.eq(contentCategory);
+        return contentCategory == null ? null : activity.contentCategory.eq(contentCategory);
     }
 
     private BooleanExpression isMemberId(Long memberId) {
-        return memberId == null ? null : QActivity.activity.member.id.eq(memberId);
+        return memberId == null ? null : activity.member.id.eq(memberId);
     }
 
     private BooleanExpression goeStartTime(LocalDateTime startTime) {
-        return startTime == null ? null : QActivity.activity.createdAt.goe(startTime);
+        return startTime == null ? null : activity.createdAt.goe(startTime);
     }
 
     private BooleanExpression ltEndTime(LocalDateTime endTime) {
-        return endTime == null ? null : QActivity.activity.createdAt.lt(endTime);
+        return endTime == null ? null : activity.createdAt.lt(endTime);
     }
 }

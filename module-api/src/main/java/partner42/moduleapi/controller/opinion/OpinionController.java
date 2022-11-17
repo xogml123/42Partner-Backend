@@ -1,13 +1,6 @@
 package partner42.moduleapi.controller.opinion;
 
 
-import com.seoul.openproject.partner.domain.model.opinion.Opinion;
-import com.seoul.openproject.partner.domain.model.opinion.Opinion.OpinionDto;
-import com.seoul.openproject.partner.domain.model.opinion.Opinion.OpinionOnlyIdResponse;
-import com.seoul.openproject.partner.domain.model.opinion.Opinion.OpinionUpdateRequest;
-import com.seoul.openproject.partner.domain.model.user.User;
-import com.seoul.openproject.partner.dto.ListResponse;
-import com.seoul.openproject.partner.service.opinion.OpinionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +15,13 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import partner42.moduleapi.dto.ListResponse;
+import partner42.moduleapi.dto.opinion.OpinionDto;
+import partner42.moduleapi.dto.opinion.OpinionOnlyIdResponse;
+import partner42.moduleapi.dto.opinion.OpinionResponse;
+import partner42.moduleapi.dto.opinion.OpinionUpdateRequest;
+import partner42.moduleapi.service.opinion.OpinionService;
+import partner42.modulecommon.domain.model.user.User;
 
 @Slf4j
 @RestController
@@ -40,34 +40,34 @@ public class OpinionController {
 
     @Operation(summary = "댓글 수정", description = "댓글 수정")
     @PutMapping("/opinions/{opinionId}")
-    public Opinion.OpinionOnlyIdResponse updateOpinion(@Validated @Parameter @RequestBody OpinionUpdateRequest request,
+    public OpinionOnlyIdResponse updateOpinion(@Validated @Parameter @RequestBody OpinionUpdateRequest request,
         @PathVariable String opinionId) {
         return opinionService.updateOpinion(request, opinionId);
     }
 
     @Operation(summary = "댓글 임시 삭제", description = "댓글 임시 삭제")
     @PostMapping("/opinions/{opinionId}/recoverable-delete")
-    public Opinion.OpinionOnlyIdResponse recoverableDeleteOpinion(
+    public OpinionOnlyIdResponse recoverableDeleteOpinion(
         @PathVariable String opinionId) {
         return opinionService.recoverableDeleteOpinion(opinionId);
     }
 
     @Operation(summary = "댓글 전체 조회", description = "댓글 전체 조회")
     @GetMapping("/articles/{articleId}/opinions")
-    public ListResponse<Opinion.OpinionResponse> getAllOpinionsInArticle(@PathVariable String articleId) {
+    public ListResponse<OpinionResponse> getAllOpinionsInArticle(@PathVariable String articleId) {
         return opinionService.findAllOpinionsInArticle(articleId);
     }
 
     @Operation(summary = "댓글 하나 조회", description = "댓글 하나 조회")
     @GetMapping("/opinions/{opinionId}")
-    public Opinion.OpinionResponse getOneOpinion(
+    public OpinionResponse getOneOpinion(
         @PathVariable String opinionId) {
         return opinionService.getOneOpinion(opinionId);
     }
 
     @Operation(summary = "댓글 완전 삭제", description = "댓글 완전 삭제 (관리자 전용)")
     @DeleteMapping("/opinions/{opinionId}")
-    public Opinion.OpinionOnlyIdResponse completeDeleteOpinion(
+    public OpinionOnlyIdResponse completeDeleteOpinion(
         @PathVariable String opinionId) {
         return opinionService.completeDeleteOpinion(opinionId);
     }

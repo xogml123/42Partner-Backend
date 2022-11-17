@@ -1,11 +1,12 @@
 package partner42.moduleapi.mapper;
 
-import com.seoul.openproject.partner.domain.model.article.Article;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import partner42.moduleapi.dto.article.ArticleOnlyIdResponse;
+import partner42.modulecommon.domain.model.article.Article;
 
 @Mapper(componentModel = "spring")
 public interface ArticleMapper {
     @Mapping(target="articleId", source = "apiId")
-    Article.ArticleOnlyIdResponse entityToArticleOnlyIdResponse(Article article);
+    ArticleOnlyIdResponse entityToArticleOnlyIdResponse(Article article);
 }

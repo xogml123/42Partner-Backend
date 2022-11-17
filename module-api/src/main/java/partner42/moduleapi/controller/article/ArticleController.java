@@ -1,10 +1,5 @@
 package partner42.moduleapi.controller.article;
 
-import com.seoul.openproject.partner.domain.model.article.Article;
-import com.seoul.openproject.partner.domain.model.article.Article.ArticleReadResponse;
-import com.seoul.openproject.partner.domain.model.user.User;
-import com.seoul.openproject.partner.repository.article.ArticleSearch;
-import com.seoul.openproject.partner.service.article.ArticleService;
 import io.swagger.annotations.ApiParam;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -22,6 +17,13 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import partner42.moduleapi.dto.article.ArticleDto;
+import partner42.moduleapi.dto.article.ArticleOnlyIdResponse;
+import partner42.moduleapi.dto.article.ArticleReadOneResponse;
+import partner42.moduleapi.dto.article.ArticleReadResponse;
+import partner42.moduleapi.service.article.ArticleService;
+import partner42.modulecommon.domain.model.user.User;
+import partner42.modulecommon.repository.article.ArticleSearch;
 
 @Slf4j
 @RestController
@@ -33,7 +35,7 @@ public class ArticleController {
 
     @Operation(summary = "방 하나 상세조회", description = "방 상세페이지")
     @GetMapping("/articles/{articleId}")
-    public Article.ArticleReadOneResponse readOneArticle(
+    public ArticleReadOneResponse readOneArticle(
         @PathVariable String articleId) {
         return articleService.readOneArticle(articleId);
     }
@@ -49,15 +51,15 @@ public class ArticleController {
 //        + "(hasAuthority('article.create') AND @customAuthenticationManager.userIdMatches(authentication, #articleRequest))")
     @Operation(summary = "방 매칭 글쓰기", description = "방 매칭 글쓰기")
     @PostMapping("/articles")
-    public Article.ArticleOnlyIdResponse writeArticle(
+    public ArticleOnlyIdResponse writeArticle(
         @ApiParam(hidden = true) @AuthenticationPrincipal User user,
-        @Validated @Parameter @RequestBody Article.ArticleDto articleRequest) {
+        @Validated @Parameter @RequestBody ArticleDto articleRequest) {
         return articleService.createArticle(user.getApiId(), articleRequest);
     }
 
     @Operation(summary = "방 매칭 글수정", description = "방 매칭 글 수정")
     @PutMapping("/articles/{articleId}")
-    public Article.ArticleOnlyIdResponse updateArticle(@Validated @Parameter @RequestBody Article.ArticleDto articleRequest,
+    public ArticleOnlyIdResponse updateArticle(@Validated @Parameter @RequestBody ArticleDto articleRequest,
         @PathVariable String articleId,
         @Parameter(hidden = true) @AuthenticationPrincipal User user) {
         return articleService.updateArticle(articleRequest, user.getApiId(), articleId);
@@ -65,14 +67,14 @@ public class ArticleController {
 
     @Operation(summary = "방 매칭 삭제", description = "방 매칭 삭제")
     @DeleteMapping("/articles/{articleId}")
-    public Article.ArticleOnlyIdResponse deleteArticle(@PathVariable String articleId,
+    public ArticleOnlyIdResponse deleteArticle(@PathVariable String articleId,
         @Parameter(hidden = true) @AuthenticationPrincipal User user) {
         return articleService.deleteArticle(user.getApiId(), articleId);
     }
 
     @Operation(summary = "방 매칭 글 임시 삭제", description = "방 매칭 글 임시 삭제")
     @PostMapping("/articles/{articleId}/recoverable-delete")
-    public Article.ArticleOnlyIdResponse recoverableDeleteArticle(@PathVariable String articleId,
+    public ArticleOnlyIdResponse recoverableDeleteArticle(@PathVariable String articleId,
         @Parameter(hidden = true) @AuthenticationPrincipal User user
     ) {
         return articleService.changeIsDelete(user.getApiId(), articleId);
@@ -80,7 +82,7 @@ public class ArticleController {
 
     @Operation(summary = "방 매칭 참여", description = "방 매칭 참여")
     @PostMapping("/articles/{articleId}/participate")
-    public Article.ArticleOnlyIdResponse participateArticle(@PathVariable String articleId,
+    public ArticleOnlyIdResponse participateArticle(@PathVariable String articleId,
         @Parameter(hidden = true) @AuthenticationPrincipal User user
     ) {
         return articleService.participateArticle(user.getApiId(), articleId);
@@ -88,7 +90,7 @@ public class ArticleController {
 
     @Operation(summary = "방 매칭 참여 최소", description = "방 매칭 참여 최소")
     @PostMapping("/articles/{articleId}/participate-cancel")
-    public Article.ArticleOnlyIdResponse participateCancelArticle(@PathVariable String articleId,
+    public ArticleOnlyIdResponse participateCancelArticle(@PathVariable String articleId,
         @Parameter(hidden = true) @AuthenticationPrincipal User user
     ) {
         return articleService.participateCancelArticle(user.getApiId(), articleId);
@@ -97,7 +99,7 @@ public class ArticleController {
     //작성자인지 확인하는 권한 처리.
     @Operation(summary = "방 매칭 글 확정", description = "방 매칭 글 확정")
     @PostMapping("/articles/{articleId}/complete")
-    public Article.ArticleOnlyIdResponse completeArticle(@PathVariable String articleId,
+    public ArticleOnlyIdResponse completeArticle(@PathVariable String articleId,
         @Parameter(hidden = true) @AuthenticationPrincipal User user
     ) {
         return articleService.completeArticle(user.getApiId(), articleId);

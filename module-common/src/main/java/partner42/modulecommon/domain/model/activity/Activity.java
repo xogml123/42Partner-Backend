@@ -1,10 +1,5 @@
 package partner42.modulecommon.domain.model.activity;
 
-import partner42.modulecommon.domain.model.BaseEntity;
-import partner42.modulecommon.domain.model.match.ContentCategory;
-import partner42.modulecommon.domain.model.match.Match;
-import partner42.modulecommon.domain.model.member.Member;
-import io.swagger.v3.oas.annotations.media.Schema;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -17,15 +12,15 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
+import partner42.modulecommon.domain.model.BaseEntity;
+import partner42.modulecommon.domain.model.match.ContentCategory;
+import partner42.modulecommon.domain.model.match.Match;
+import partner42.modulecommon.domain.model.member.Member;
 
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -105,24 +100,7 @@ public class Activity extends BaseEntity {
 
 
     /********************************* DTO *********************************/
-    @Getter
-    @Setter
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor(access = AccessLevel.PRIVATE)
-    public static class ActivityScoreResponse {
 
-
-        @Schema(name = "score", example = "1523", description = "활동 점수")
-        @NotNull
-        private Integer score;
-
-        public static ActivityScoreResponse of(Integer score) {
-            return ActivityScoreResponse.builder()
-                .score(score)
-                .build();
-        }
-    }
 
 
 }

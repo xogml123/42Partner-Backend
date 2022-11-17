@@ -1,6 +1,5 @@
-package partner42.moduleapi.config;
+package partner42.moduleapi.error;
 
-import com.seoul.openproject.partner.error.exception.ErrorCode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -9,6 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import partner42.modulecommon.exception.ErrorCode;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)

@@ -1,11 +1,12 @@
 package partner42.moduleapi.mapper;
 
-import com.seoul.openproject.partner.domain.model.matchcondition.MatchCondition;
 import org.mapstruct.Mapper;
+import partner42.moduleapi.dto.matchcondition.MatchConditionDto;
+import partner42.modulecommon.domain.model.matchcondition.MatchCondition;
 
 @Mapper(componentModel = "spring")
 public interface MatchConditionMapper {
 
-    MatchCondition.MatchConditionDto entityToMatchConditionDto(MatchCondition article);
+    MatchConditionDto entityToMatchConditionDto(MatchCondition article);
 
 }

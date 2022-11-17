@@ -19,7 +19,6 @@ import partner42.modulecommon.repository.user.AuthorityRepository;
 import partner42.modulecommon.repository.user.RoleRepository;
 import partner42.modulecommon.repository.user.UserRepository;
 import partner42.modulecommon.repository.user.UserRoleRepository;
-import com.seoul.openproject.partner.service.user.CustomOAuth2UserService;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -47,7 +46,6 @@ public class DataLoader implements CommandLineRunner {
     private final UserRoleRepository userRoleRepository;
     private final MatchConditionRepository matchConditionRepository;
 
-    private final CustomOAuth2UserService customOAuth2UserService;
 
     private final MemberRepository memberRepository;
     @Value("${spring.jpa.hibernate.data-loader}")

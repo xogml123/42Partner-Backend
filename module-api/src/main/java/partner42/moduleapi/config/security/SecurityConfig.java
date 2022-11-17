@@ -1,10 +1,6 @@
 package partner42.moduleapi.config.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.seoul.openproject.partner.domain.model.user.RoleEnum;
-import com.seoul.openproject.partner.domain.model.user.User;
-import com.seoul.openproject.partner.dto.ErrorResponseDto;
-import com.seoul.openproject.partner.dto.LoginResponseDto;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +19,10 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
+import partner42.moduleapi.dto.ErrorResponseDto;
+import partner42.moduleapi.dto.LoginResponseDto;
+import partner42.modulecommon.domain.model.user.RoleEnum;
+import partner42.modulecommon.domain.model.user.User;
 
 // spring security 필터를 스프링 필터체인에 동록
 @Configuration

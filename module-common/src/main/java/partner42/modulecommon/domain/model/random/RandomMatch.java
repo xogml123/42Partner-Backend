@@ -1,11 +1,6 @@
 package partner42.modulecommon.domain.model.random;
 
 
-import partner42.modulecommon.domain.model.match.ContentCategory;
-import partner42.modulecommon.domain.model.matchcondition.MatchCondition;
-import partner42.modulecommon.domain.model.matchcondition.Place;
-import partner42.modulecommon.domain.model.member.Member;
-import io.swagger.v3.oas.annotations.media.Schema;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import javax.persistence.Column;
@@ -23,13 +18,12 @@ import javax.persistence.InheritanceType;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
-import javax.validation.constraints.NotNull;
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
+import partner42.modulecommon.domain.model.match.ContentCategory;
+import partner42.modulecommon.domain.model.matchcondition.Place;
+import partner42.modulecommon.domain.model.member.Member;
 
 
 @Getter
@@ -118,21 +112,6 @@ public abstract class RandomMatch implements Serializable {
 
     /********************************* DTO *********************************/
 
-    @Getter
-    @Setter
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor(access = AccessLevel.PRIVATE)
-    public static class RandomMatchDto {
 
-        @Schema(name = "contentCategory", example = "MEAL or STUDY", description = "식사, 공부 글인지 여부")
-        @NotNull
-        private ContentCategory contentCategory;
-
-        @Schema(name = "matchConditionRandomMatchDto", example = "", description = "매칭 조건")
-        @NotNull
-        private MatchCondition.MatchConditionRandomMatchDto matchConditionRandomMatchDto;
-
-    }
 
 }

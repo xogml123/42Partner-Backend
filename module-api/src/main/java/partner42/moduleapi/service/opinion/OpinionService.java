@@ -1,24 +1,24 @@
 package partner42.moduleapi.service.opinion;
 
-import com.seoul.openproject.partner.domain.model.article.Article;
-import com.seoul.openproject.partner.domain.model.opinion.Opinion;
-import com.seoul.openproject.partner.domain.model.opinion.Opinion.OpinionDto;
-import com.seoul.openproject.partner.domain.model.opinion.Opinion.OpinionOnlyIdResponse;
-import com.seoul.openproject.partner.domain.model.opinion.Opinion.OpinionResponse;
-import com.seoul.openproject.partner.domain.model.opinion.Opinion.OpinionUpdateRequest;
-import com.seoul.openproject.partner.dto.ListResponse;
-import com.seoul.openproject.partner.error.exception.ErrorCode;
-import com.seoul.openproject.partner.error.exception.NoEntityException;
-import com.seoul.openproject.partner.mapper.OpinionMapper;
-import com.seoul.openproject.partner.repository.opinion.OpinionRepository;
-import com.seoul.openproject.partner.repository.article.ArticleRepository;
-import com.seoul.openproject.partner.repository.member.MemberRepository;
-import com.seoul.openproject.partner.repository.user.UserRepository;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import partner42.moduleapi.dto.ListResponse;
+import partner42.moduleapi.dto.opinion.OpinionDto;
+import partner42.moduleapi.dto.opinion.OpinionOnlyIdResponse;
+import partner42.moduleapi.dto.opinion.OpinionResponse;
+import partner42.moduleapi.dto.opinion.OpinionUpdateRequest;
+import partner42.moduleapi.mapper.OpinionMapper;
+import partner42.modulecommon.domain.model.article.Article;
+import partner42.modulecommon.domain.model.opinion.Opinion;
+import partner42.modulecommon.exception.ErrorCode;
+import partner42.modulecommon.exception.NoEntityException;
+import partner42.modulecommon.repository.article.ArticleRepository;
+import partner42.modulecommon.repository.member.MemberRepository;
+import partner42.modulecommon.repository.opinion.OpinionRepository;
+import partner42.modulecommon.repository.user.UserRepository;
 
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
