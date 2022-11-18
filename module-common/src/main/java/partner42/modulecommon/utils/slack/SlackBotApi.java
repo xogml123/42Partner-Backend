@@ -1,4 +1,4 @@
-package partner42.moduleapi.service.slack;
+package partner42.modulecommon.utils.slack;
 
 import java.util.List;
 import java.util.Optional;
@@ -18,7 +18,7 @@ import org.springframework.web.client.RestTemplate;
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 @Service
-public class SlackBotService {
+public class SlackBotApi {
 
     @Value("${slack.bot.token}")
     private String slackToken;
