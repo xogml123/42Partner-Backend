@@ -1,7 +1,7 @@
 package partner42.moduleapi.config.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.stream.Collectors;
+import java.util.List;
 import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,12 +17,9 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
-import java.util.List;
 import partner42.moduleapi.dto.ErrorResponseDto;
 import partner42.moduleapi.dto.LoginResponseDto;
-import partner42.modulecommon.domain.model.user.RoleEnum;
-import partner42.modulecommon.domain.model.user.User;
+import partner42.moduleapi.dto.user.CustomAuthenticationPrincipal;
 
 // spring security 필터를 스프링 필터체인에 동록
 @Configuration
@@ -88,20 +85,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .userService(oAuth2UserService)
             .and()
             .successHandler((req, res, auth) -> {
-                User user = (User)auth.getPrincipal();
+                CustomAuthenticationPrincipal user = (CustomAuthenticationPrincipal)auth.getPrincipal();
                 LoginResponseDto body = new LoginResponseDto();
-                res.setStatus((boolean)(((User)auth.getPrincipal()).getAttributes().get("create_flag")) ?
+                res.setStatus((boolean)(user.getAttributes().get("create_flag")) ?
                     HttpServletResponse.SC_CREATED : HttpServletResponse.SC_OK);
                 res.setContentType("application/json");
                 res.setCharacterEncoding("utf-8");
                 body.setUserId(user.getApiId());
-                List<RoleEnum> roles = user.getUserRoles().stream()
-                    .map(ur ->
-                        ur.getRole().getValue()
-                    )
-                    .distinct()
-                    .collect(Collectors.toList());
-                body.setRole(roles);
                 res.getWriter().write(objectMapper.writeValueAsString(body));
             })
             .failureHandler((req, res, auth) -> {
