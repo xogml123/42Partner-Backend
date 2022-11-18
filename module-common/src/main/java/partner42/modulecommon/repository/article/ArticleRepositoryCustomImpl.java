@@ -10,7 +10,6 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.PathBuilder;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import io.swagger.v3.oas.annotations.Parameter;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -28,7 +27,7 @@ public class ArticleRepositoryCustomImpl implements ArticleRepositoryCustom {
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public Slice<Article> findSliceByCondition(@Parameter() Pageable pageable, ArticleSearch condition) {
+    public Slice<Article> findSliceByCondition(Pageable pageable, ArticleSearch condition) {
         JPAQuery<Article> query = queryFactory.select(article).distinct()
             .from(article)
             .join(article.articleMembers, articleMember).fetchJoin()

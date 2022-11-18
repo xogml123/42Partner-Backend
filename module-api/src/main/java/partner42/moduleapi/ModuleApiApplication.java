@@ -13,9 +13,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @EntityScan(basePackages = "partner42.modulecommon.domain")
 @EnableJpaRepositories(basePackages =  "partner42.modulecommon.repository")
 public class ModuleApiApplication {
-
 	public static void main(String[] args) {
 		SpringApplication.run(ModuleApiApplication.class, args);
 	}
-
 }

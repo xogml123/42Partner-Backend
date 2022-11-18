@@ -1,4 +1,4 @@
-package partner42.moduleapi.service;
+package partner42.moduleapi.service.random;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;

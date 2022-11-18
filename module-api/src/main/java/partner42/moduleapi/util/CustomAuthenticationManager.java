@@ -1,4 +1,4 @@
-package partner42.modulecommon.utils;
+package partner42.moduleapi.util;
 
 import partner42.modulecommon.domain.model.user.User;
 import org.springframework.security.core.Authentication;
