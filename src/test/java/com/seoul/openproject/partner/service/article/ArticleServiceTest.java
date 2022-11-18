@@ -1,8 +1,5 @@
 package com.seoul.openproject.partner.service.article;
 
-import com.seoul.openproject.partner.domain.model.article.Article.ArticleDto;
-import com.seoul.openproject.partner.domain.model.match.ContentCategory;
-import com.seoul.openproject.partner.domain.model.matchcondition.MatchCondition.MatchConditionDto;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import org.junit.jupiter.api.Test;

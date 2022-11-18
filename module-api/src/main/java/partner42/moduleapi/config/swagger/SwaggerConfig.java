@@ -32,7 +32,7 @@ public class SwaggerConfig {
             .alternateTypeRules(AlternateTypeRules
                 .newRule(typeResolver.resolve(Pageable.class), typeResolver.resolve(Page.class)))
             .select()
-            .apis(RequestHandlerSelectors.basePackage("com.seoul.openproject.partner.controller"))
+            .apis(RequestHandlerSelectors.basePackage("partner42.moduleapi.controller"))
             .paths(PathSelectors.any())
             .build()
             .apiInfo(apiInfo());

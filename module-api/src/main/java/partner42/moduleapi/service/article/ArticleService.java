@@ -19,7 +19,7 @@ import partner42.moduleapi.dto.matchcondition.MatchConditionDto;
 import partner42.moduleapi.dto.member.MemberDto;
 import partner42.moduleapi.mapper.MatchConditionMapper;
 import partner42.moduleapi.mapper.MemberMapper;
-import partner42.moduleapi.service.slack.SlackBotService;
+import partner42.modulecommon.utils.slack.SlackBotApi;
 import partner42.modulecommon.domain.model.activity.Activity;
 import partner42.modulecommon.domain.model.activity.ActivityType;
 import partner42.modulecommon.domain.model.article.Article;
@@ -75,7 +75,7 @@ public class ArticleService {
     private final ActivityRepository activityRepository;
 
 
-    private final SlackBotService slackBotService;
+    private final SlackBotApi slackBotApi;
 
     private final MemberMapper memberMapper;
     private final MatchConditionMapper matchConditionMapper;
@@ -262,16 +262,16 @@ public class ArticleService {
 
         ArrayList<String> slackIds = new ArrayList<>();
         for (ArticleMember articleMember : article.getArticleMembers()) {
-            Optional<String> slackId = slackBotService.getSlackIdByEmail(
+            Optional<String> slackId = slackBotApi.getSlackIdByEmail(
                 articleMember.getMember().getUser().getEmail());
             if (slackId.isPresent()) {
                 slackIds.add(slackId.get());
             }
         }
         log.info("slackIds : {}", slackIds.toString());
-        String MPIMId = slackBotService.createMPIM(slackIds)
+        String MPIMId = slackBotApi.createMPIM(slackIds)
             .orElseThrow(() -> new SlackException(ErrorCode.SLACK_ERROR));
-        slackBotService.sendMessage(MPIMId, "매칭이 완료되었습니다. 대화방에서 매칭을 확인해주세요.\n"
+        slackBotApi.sendMessage(MPIMId, "매칭이 완료되었습니다. 대화방에서 매칭을 확인해주세요.\n"
             + "만약, 초대 되지않은 유저가 있다면 slack에서 초대해주세요.\n"
             + "slack에 등록된 email이 IntraId" + User.SEOUL_42
             + " 형식으로 되어있지 않으면 초대 및 알림이 발송 되지 않을 수 있습니다.");

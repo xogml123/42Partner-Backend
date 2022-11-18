@@ -13,6 +13,7 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import partner42.moduleapi.dto.user.CustomAuthenticationPrincipal;
 import partner42.modulecommon.domain.model.member.Member;
 import partner42.modulecommon.domain.model.tryjudge.MatchTryAvailabilityJudge;
 import partner42.modulecommon.domain.model.user.Role;
@@ -53,8 +54,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
         String username = email;
         Optional<User> userOptional = userRepository.findByUsername(username);
-        User oAuth2User = signUpOrUpdateUser(login, email, imageUrl, username, userOptional, necessaryAttributes);
-        oAuth2User.getAttributes().putAll(necessaryAttributes);
+        OAuth2User oAuth2User = signUpOrUpdateUser(login, email, imageUrl, username, userOptional, necessaryAttributes);
         return oAuth2User;
     }
 
@@ -68,10 +68,11 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     }
 
 
-    private User signUpOrUpdateUser(String login, String email, String imageUrl, String username,
+    private OAuth2User signUpOrUpdateUser(String login, String email, String imageUrl, String username,
         Optional<User> userOptional, Map<String, Object> necessaryAttributes) {
+        OAuth2User oAuth2User;
         User user;
-        //회원가입
+        //회원가입, 중복 회원가입 예외 처리 필요할 것으로 보임.
         if (userOptional.isEmpty()) {
             //회원에 필용한 정보 생성 및 조회
 
@@ -97,7 +98,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 //            user.updateUserByOAuthIfo(imageUrl);
             necessaryAttributes.put("create_flag", false);
         }
-        return user;
+        oAuth2User = CustomAuthenticationPrincipal.of(user, necessaryAttributes);
+        return oAuth2User;
     }
 
 }

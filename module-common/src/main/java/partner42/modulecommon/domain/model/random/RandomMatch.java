@@ -110,6 +110,8 @@ public abstract class RandomMatch implements Serializable {
             member.getId().toString();
     }
 
+    private static List<>
+
     /********************************* DTO *********************************/
 
 

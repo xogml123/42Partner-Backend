@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import partner42.moduleapi.dto.random.RandomMatchDto;
-import partner42.moduleapi.service.RandomMatchService;
+import partner42.moduleapi.service.random.RandomMatchService;
 import partner42.modulecommon.domain.model.user.User;
 
 @Slf4j
