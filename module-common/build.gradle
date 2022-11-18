@@ -28,7 +28,6 @@ repositories {
 
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter'
-    implementation 'org.springframework.boot:spring-boot-starter-security'
 
     //lombok
     compileOnly 'org.projectlombok:lombok'
@@ -40,8 +39,7 @@ dependencies {
     runtimeOnly 'com.mysql:mysql-connector-j'
 //    implementation 'org.json:json:20220924'
 
-    implementation 'io.springfox:springfox-boot-starter:3.0.0'
-    implementation 'org.springframework.boot:spring-boot-starter-validation'
+
 
     //redis
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
@@ -53,19 +51,12 @@ dependencies {
     //devtools
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
 
-    //swagger
-    implementation 'io.springfox:springfox-boot-starter:3.0.0'
-
-    implementation 'org.springframework.boot:spring-boot-starter-web'
 
     // https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-core
     implementation 'com.fasterxml.jackson.core:jackson-core:2.14.0'
 
     // https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.13.3'
-    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
-
-
 
 }
 
