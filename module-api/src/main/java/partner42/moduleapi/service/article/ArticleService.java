@@ -337,6 +337,4 @@ public class ArticleService {
             throw new NotAuthorException(ErrorCode.NOT_ARTICLE_AUTHOR);
         }
     }
-
-
 }

@@ -24,8 +24,8 @@ public class MealRandomMatch extends RandomMatch{
 
 
     @Enumerated(value = EnumType.STRING)
-    @Column(nullable = false, updatable = false)
-    private WayOfEating wayOfEating ;
+    @Column(updatable = false)
+    private WayOfEating wayOfEating = null;
 
     public MealRandomMatch(ContentCategory contentCategory, Place place,
         Member member, WayOfEating wayOfEating, LocalDateTime createdAt) {
@@ -36,11 +36,20 @@ public class MealRandomMatch extends RandomMatch{
 
     @Override
     public String toStringKey(){
-        return StringUtils.rightPad(place.name(), RandomMatch.STRING_CONDITION_MAX_LENGTH,
+        return  toKey() +
+            toValue();
+    }
+
+    @Override
+    public String toKey() {
+        return
+            StringUtils.rightPad(contentCategory.name(),
+                RandomMatch.STRING_CONDITION_MAX_LENGTH,
+                RandomMatch.CONDITION_PAD_CHAR) +
+            StringUtils.rightPad(place.name(), RandomMatch.STRING_CONDITION_MAX_LENGTH,
             RandomMatch.CONDITION_PAD_CHAR) +
             StringUtils.rightPad(wayOfEating.name(), RandomMatch.STRING_CONDITION_MAX_LENGTH,
-                RandomMatch.CONDITION_PAD_CHAR) +
-            keyPrefix();
+                RandomMatch.CONDITION_PAD_CHAR);
     }
 
 
@@ -50,12 +59,12 @@ public class MealRandomMatch extends RandomMatch{
             RandomMatch.INTEGER_CONDITION_MAX_LENGTH, RandomMatch.CONDITION_PAD_CHAR) +
             StringUtils.rightPad(Integer.toString(wayOfEating.ordinal()),
                 RandomMatch.INTEGER_CONDITION_MAX_LENGTH, RandomMatch.CONDITION_PAD_CHAR) +
-            keyPrefix();
+            toValue();
     }
     @Override
     public String toAsciiKey(){
         return Character.toString(place.ordinal()) +
             Character.toString(wayOfEating.ordinal()) +
-            keyPrefix();
+            toValue();
     }
 }

@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import partner42.moduleapi.dto.random.RandomMatchCancelRequest;
 import partner42.moduleapi.dto.random.RandomMatchDto;
 import partner42.moduleapi.service.random.RandomMatchService;
 import partner42.modulecommon.domain.model.user.User;
@@ -35,10 +36,10 @@ public class RandomMatchController {
     }
 
     @Operation(summary = "랜덤 매칭 취소", description = "랜덤 매칭 취소")
-    @DeleteMapping("/random-matches/mine")
-    public ResponseEntity<Void> cancelRandomMatch(
+    @PostMapping("/random-matches/mine")
+    public ResponseEntity<Void> cancelRandomMatch(@Validated @Parameter @RequestBody RandomMatchCancelRequest randomMatchCancelRequest,
         @ApiParam(hidden = true) @AuthenticationPrincipal User user) {
         //contentCategory에 따라 필드 검증
-        return randomMatchService.deleteRandomMatch(user.getApiId());
+        return randomMatchService.deleteRandomMatch(user.getApiId(), randomMatchCancelRequest);
     }
 }

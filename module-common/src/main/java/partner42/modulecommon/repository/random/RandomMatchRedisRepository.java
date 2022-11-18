@@ -19,11 +19,15 @@ public class RandomMatchRedisRepository {
         redisTemplate.opsForSet().add(key, value);
     }
 
+    public void deleteSortedSet(String key, String value) {
+        redisTemplate.opsForZSet().remove(key, value);
+    }
+
     public void deleteAllSortedSet(String key, Object[] value) {
         redisTemplate.opsForZSet().remove(key, value);
     }
 
-    public void deleteSet(String key, String value) {
+    public void deleteSet(String key, Object[] value) {
         redisTemplate.opsForSet().remove(key, value);
     }
 }
