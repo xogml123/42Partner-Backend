@@ -19,8 +19,7 @@ import org.apache.commons.lang3.StringUtils;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(name = "MEAL_RANDOM_MATCH")
-public class MealRandomMatch extends RandomMatch{
-
+public class MealRandomMatch extends RandomMatch {
 
 
     @Enumerated(value = EnumType.STRING)
@@ -35,8 +34,8 @@ public class MealRandomMatch extends RandomMatch{
 
 
     @Override
-    public String toStringKey(){
-        return  toKey() +
+    public String toStringKey() {
+        return toKey() +
             toValue();
     }
 
@@ -46,23 +45,24 @@ public class MealRandomMatch extends RandomMatch{
             StringUtils.rightPad(contentCategory.name(),
                 RandomMatch.STRING_CONDITION_MAX_LENGTH,
                 RandomMatch.CONDITION_PAD_CHAR) +
-            StringUtils.rightPad(place.name(), RandomMatch.STRING_CONDITION_MAX_LENGTH,
-            RandomMatch.CONDITION_PAD_CHAR) +
-            StringUtils.rightPad(wayOfEating.name(), RandomMatch.STRING_CONDITION_MAX_LENGTH,
-                RandomMatch.CONDITION_PAD_CHAR);
+                StringUtils.rightPad(place.name(), RandomMatch.STRING_CONDITION_MAX_LENGTH,
+                    RandomMatch.CONDITION_PAD_CHAR) +
+                StringUtils.rightPad(wayOfEating.name(), RandomMatch.STRING_CONDITION_MAX_LENGTH,
+                    RandomMatch.CONDITION_PAD_CHAR);
     }
 
 
     @Override
-    public String toNumberKey(){
+    public String toNumberKey() {
         return StringUtils.rightPad(Integer.toString(place.ordinal()),
             RandomMatch.INTEGER_CONDITION_MAX_LENGTH, RandomMatch.CONDITION_PAD_CHAR) +
             StringUtils.rightPad(Integer.toString(wayOfEating.ordinal()),
                 RandomMatch.INTEGER_CONDITION_MAX_LENGTH, RandomMatch.CONDITION_PAD_CHAR) +
             toValue();
     }
+
     @Override
-    public String toAsciiKey(){
+    public String toAsciiKey() {
         return Character.toString(place.ordinal()) +
             Character.toString(wayOfEating.ordinal()) +
             toValue();

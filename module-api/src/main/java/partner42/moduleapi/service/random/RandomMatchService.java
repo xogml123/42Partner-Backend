@@ -13,7 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import partner42.moduleapi.dto.matchcondition.MatchConditionRandomMatchDto;
 import partner42.moduleapi.dto.random.RandomMatchCancelRequest;
 import partner42.moduleapi.dto.random.RandomMatchDto;
-import partner42.moduleapi.util.TimeUtils;
+import partner42.modulecommon.utils.CustomTimeUtils;
 import partner42.modulecommon.domain.model.match.ContentCategory;
 import partner42.modulecommon.domain.model.matchcondition.Place;
 import partner42.modulecommon.domain.model.matchcondition.TypeOfStudy;
@@ -49,7 +49,7 @@ public class RandomMatchService {
         Member member = userRepository.findByApiId(userId).orElseThrow(() -> new NoEntityException(
             ErrorCode.ENTITY_NOT_FOUND)).getMember();
         //"2020-12-01T00:00:00"
-        LocalDateTime now = TimeUtils.nowWithoutNano();
+        LocalDateTime now = CustomTimeUtils.nowWithoutNano();
         //이미 30분 이내에 랜덤 매칭 신청을 한 경우 인지 체크
         verifyAlreadyApplied(randomMatchDto.getContentCategory(), member, now);
 
