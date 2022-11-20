@@ -18,8 +18,6 @@ import partner42.modulecommon.utils.RandomUtils;
 @Slf4j
 @RequiredArgsConstructor
 @Component
-//동시성 문제가 없고, jobParameter 사용이 불필요 하기 때문에 singletonScope가 더 적합하다고 생각합니다.
-//@StepScope
 public class ExpiringTasklet implements Tasklet {
 
 
@@ -28,9 +26,10 @@ public class ExpiringTasklet implements Tasklet {
     @Override
     public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext)
         throws Exception {
-        //모든 방 목록 랜덤한 순서로 가져오기
-        List<String> conditionList = RandomMatch.CONDITION_LIST;
-        String[] randomConditionList = new String[conditionList.size()];
+        List<String> conditionList = new ArrayList<>();
+        conditionList.addAll(RandomMatch.MEAL_CONDITION_LIST);
+        conditionList.addAll(RandomMatch.STUDY_CONDITION_LIST);
+
         //삭제가 이루어지는 시간 기준
         LocalDateTime now = CustomTimeUtils.nowWithoutNano();
         //Redis에서 모든 방 조사해서 시간 지난 요청은 삭제
@@ -43,10 +42,10 @@ public class ExpiringTasklet implements Tasklet {
                     .forEach(participant -> {
 
                         //{2021-01-03 00:00:00}/{id}
-                        String[] timeAndId = participant.split(RandomMatch.ID_DELIMITER);
+                        String[] timeAndId = RandomMatch.splitApplyingInfo(participant);
                         LocalDateTime appliedTime = LocalDateTime.parse(timeAndId[0]);
                         //만료된 신청인 경우
-                        if (now.minusMinutes(RandomMatch.MAX_APPLY_TIME).isAfter(appliedTime)) {
+                        if (now.minusMinutes(RandomMatch.MAX_WAITING_TIME).isAfter(appliedTime)) {
                             deleteParticipants.add(participant);
                         }
                     });

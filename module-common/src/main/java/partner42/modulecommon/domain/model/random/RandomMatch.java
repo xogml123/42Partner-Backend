@@ -52,24 +52,27 @@ public abstract class RandomMatch implements Serializable {
      * 있음. 물론 조심 하면 될 부분일 수도 있고 redis에 저장한 데이터의 만료시간이 30분이므로 이 안에만 enum에 값이 추가 되고 바로 배포되는 경우가 아니라면 큰
      * 문제는 없을 수도 있음. 하지만, 숫자로 변경해서 구현 시 redis에서 어떤 매칭이 이루어지고 있는지 확인할 수 없음. 또한
      */
-    public static final Integer STRING_CONDITION_MAX_LENGTH = 20;
+    protected static final Integer STRING_CONDITION_MAX_LENGTH = 20;
     /**
      * 100000가지 조건 표현 가능.
      */
-    public static final Integer INTEGER_CONDITION_MAX_LENGTH = 5;
-    public static final Integer ASCII_RANGE = 256;
+    protected static final Integer INTEGER_CONDITION_MAX_LENGTH = 5;
+    protected static final Integer ASCII_RANGE = 256;
 
     /**
      * "-"가 모든 숫자, 알파벳 보다 아스키 코드값이 더 작으므로 오름 차순 정렬에서 더 긴 문자열이 더 앞에 위치함.
      */
-    public static final String CONDITION_PAD_CHAR = "-";
-    public static final String ID_DELIMITER = "/";
+    protected static final String CONDITION_PAD_CHAR = "-";
+    protected static final String ID_DELIMITER = "/";
 
-    public static final List<String> CONDITION_LIST = new ArrayList<>();
+    public static final List<String> MEAL_CONDITION_LIST = new ArrayList<>();
+    public static final List<String> STUDY_CONDITION_LIST = new ArrayList<>();
+
 
 
     //매칭 maximum대기 시간
-    public static final Integer MAX_APPLY_TIME = 30;
+    public static final Integer MAX_WAITING_TIME = 30;
+    public static final Integer MATCH_COUNT = 3;
 
 
     /**
@@ -89,14 +92,14 @@ public abstract class RandomMatch implements Serializable {
                         String s2 = s1 + StringUtils.rightPad(wayOfEating.name(),
                             RandomMatch.STRING_CONDITION_MAX_LENGTH,
                             RandomMatch.CONDITION_PAD_CHAR);
-                        CONDITION_LIST.add(s2);
+                        MEAL_CONDITION_LIST.add(s2);
                     }
                 } else if (contentCategory == ContentCategory.STUDY) {
                     for (TypeOfStudy typeOfStudy : TypeOfStudy.values()) {
                         String s2 = s1 + StringUtils.rightPad(typeOfStudy.name(),
                             RandomMatch.STRING_CONDITION_MAX_LENGTH,
                             RandomMatch.CONDITION_PAD_CHAR);
-                        CONDITION_LIST.add(s2);
+                        STUDY_CONDITION_LIST.add(s2);
                     }
                 }
             }
@@ -121,7 +124,7 @@ public abstract class RandomMatch implements Serializable {
     protected LocalDateTime createdAt;
 
     @Column(nullable = false)
-    protected boolean isCanceled = false;
+    protected Boolean isExpired = false;
 
     /********************************* 연관관계 매핑 *********************************/
     @ManyToOne(fetch = FetchType.LAZY)
@@ -158,14 +161,24 @@ public abstract class RandomMatch implements Serializable {
 
     public void cancel() {
         verifyCancel();
-        this.isCanceled = true;
+        this.isExpired = true;
     }
 
     private void verifyCancel() {
-        if (isCanceled) {
+        if (isExpired) {
             throw new InvalidInputException(ErrorCode.ALREADY_CANCELED_RANDOM_MATCH);
         }
     }
+
+    public static String[] splitApplyingInfo(String applyingInfo) {
+        return applyingInfo.split(RandomMatch.ID_DELIMITER);
+    }
+
+    public static String[] splitKeyInfo(String key) {
+        return key.split(RandomMatch.CONDITION_PAD_CHAR);
+    }
+
+
 
 
 
