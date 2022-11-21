@@ -81,8 +81,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 login URI: /oauth2/authorization/authclient - 설정을 하면 바꿀 수 있을 것 같음.
              */
             .oauth2Login()
+//            .loginProcessingUrl()
             .userInfoEndpoint()
             .userService(oAuth2UserService)
+//            .and()
+//            .redirectionEndpoint()
+//            .baseUri("localhost:3000/login")
             .and()
             .successHandler((req, res, auth) -> {
                 CustomAuthenticationPrincipal user = (CustomAuthenticationPrincipal)auth.getPrincipal();
@@ -93,6 +97,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 res.setCharacterEncoding("utf-8");
                 body.setUserId(user.getApiId());
                 res.getWriter().write(objectMapper.writeValueAsString(body));
+//                res.sendRedirect("http://localhost:3000");
             })
             .failureHandler((req, res, auth) -> {
                 res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
