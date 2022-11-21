@@ -3,6 +3,7 @@ package partner42.moduleapi.service.random;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -10,13 +11,19 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import partner42.moduleapi.dto.matchcondition.MatchConditionRandomMatchDto;
+import partner42.moduleapi.dto.random.RandomMatchCancelRequest;
 import partner42.moduleapi.dto.random.RandomMatchDto;
+import partner42.modulecommon.utils.CustomTimeUtils;
 import partner42.modulecommon.domain.model.match.ContentCategory;
+import partner42.modulecommon.domain.model.matchcondition.Place;
 import partner42.modulecommon.domain.model.matchcondition.TypeOfStudy;
 import partner42.modulecommon.domain.model.matchcondition.WayOfEating;
 import partner42.modulecommon.domain.model.member.Member;
+import partner42.modulecommon.domain.model.random.MealRandomMatch;
 import partner42.modulecommon.domain.model.random.RandomMatch;
+import partner42.modulecommon.domain.model.random.StudyRandomMatch;
 import partner42.modulecommon.exception.ErrorCode;
+import partner42.modulecommon.exception.InvalidInputException;
 import partner42.modulecommon.exception.NoEntityException;
 import partner42.modulecommon.exception.RandomMatchAlreadyExistException;
 import partner42.modulecommon.repository.random.RandomMatchRedisRepository;
@@ -41,7 +48,8 @@ public class RandomMatchService {
         RandomMatchDto randomMatchDto) {
         Member member = userRepository.findByApiId(userId).orElseThrow(() -> new NoEntityException(
             ErrorCode.ENTITY_NOT_FOUND)).getMember();
-        LocalDateTime now = LocalDateTime.now();
+        //"2020-12-01T00:00:00"
+        LocalDateTime now = CustomTimeUtils.nowWithoutNano();
         //이미 30분 이내에 랜덤 매칭 신청을 한 경우 인지 체크
         verifyAlreadyApplied(randomMatchDto.getContentCategory(), member, now);
 
@@ -53,10 +61,9 @@ public class RandomMatchService {
         randomMatchRepository.saveAll(randomMatches);
 
         // 여러 매칭 조건들 redis 에 저장.
-
         randomMatches.forEach(randomMatch ->
-            randomMatchRedisRepository.addToSortedSet(RedisKeyFactory.RANDOM_MATCHES,
-                randomMatch.toStringKey(), 0.0)
+            randomMatchRedisRepository.addToSortedSet(randomMatch.toKey(),
+                randomMatch.toValue(), 0.0)
         );
 
         return new ResponseEntity<>(HttpStatus.CREATED);
@@ -65,26 +72,35 @@ public class RandomMatchService {
     private void verifyAlreadyApplied(ContentCategory contentCategory, Member member,
         LocalDateTime now) {
         if ((contentCategory.equals(ContentCategory.MEAL) &&
-            randomMatchRepository.findMealByCreatedAtBefore(now.minusMinutes(30),
-                member.getId()).size() > 0) ||
+            randomMatchRepository.findMealByCreatedAtBeforeAndIsCanceled(now.minusMinutes(30),
+                member.getId(), false).size() > 0) ||
             (contentCategory.equals(ContentCategory.STUDY) &&
-                randomMatchRepository.findStudyByCreatedAtBefore(now.minusMinutes(30),
-                    member.getId()).size() > 0)) {
+                randomMatchRepository.findStudyByCreatedAtBeforeAndIsCanceled(now.minusMinutes(30),
+                    member.getId(), false).size() > 0)) {
 
             throw new RandomMatchAlreadyExistException(ErrorCode.RANDOM_MATCH_ALREADY_EXIST);
         }
     }
 
-    public ResponseEntity<Void> deleteRandomMatch(String userId) {
+    @Transactional
+    public ResponseEntity<Void> deleteRandomMatch(String userId, RandomMatchCancelRequest request) {
         Long memberId = userRepository.findByApiId(userId).orElseThrow(() -> new NoEntityException(
             ErrorCode.ENTITY_NOT_FOUND)).getMember().getId();
         List<RandomMatch> randomMatches = new ArrayList<>();
         LocalDateTime now = LocalDateTime.now();
-        //생성된 지 30분 이내에
-        randomMatches.addAll(
-            randomMatchRepository.findMealByCreatedAtBefore(now.minusMinutes(30), memberId));
-        randomMatches.addAll(
-            randomMatchRepository.findStudyByCreatedAtBefore(now.minusMinutes(30), memberId));
+        //생성된 지 30분 이내 + 취소되지 않은 신청 내역 있는지 확인.
+        ContentCategory contentCategory = request.getContentCategory();
+        if (contentCategory == ContentCategory.MEAL) {
+            randomMatches.addAll(
+                randomMatchRepository.findMealByCreatedAtBeforeAndIsCanceled(now.minusMinutes(30), memberId, false));
+        }else if (contentCategory == ContentCategory.STUDY) {
+            randomMatches.addAll(
+                randomMatchRepository.findStudyByCreatedAtBeforeAndIsCanceled(now.minusMinutes(30), memberId, false));
+        }
+        // 활성화된 randomMatch가 db에 없으면 취소할 매치가 없는 경우 exception
+        if (randomMatches.isEmpty()) {
+            throw new InvalidInputException(ErrorCode.ALREADY_CANCELED_RANDOM_MATCH);
+        }
 
         for (RandomMatch randomMatch : randomMatches) {
             log.info("{}", randomMatch.toStringKey());
@@ -92,12 +108,18 @@ public class RandomMatchService {
         log.info("{}", RedisKeyFactory.toKey(Key.MEMBER, memberId.toString()));
 
         //redis 모두 삭제시도
-        randomMatchRedisRepository.deleteAllSortedSet(RedisKeyFactory.RANDOM_MATCHES,
-            randomMatches.stream()
-                .map(randomMatch -> randomMatch.toStringKey())
-                .toArray(String[]::new));
-        //db상에서도 모두 삭제
-        randomMatchRepository.deleteAll(randomMatches);
+        randomMatches
+                .forEach((randomMatch ->
+                    randomMatchRedisRepository.deleteSortedSet(randomMatch.toKey(),
+                        randomMatch.toValue())));
+//        randomMatchRedisRepository.deleteAllSortedSet(RedisKeyFactory.RANDOM_MATCHES,
+//            randomMatches.stream()
+//                .map(randomMatch -> randomMatch.toStringKey())
+//                .toArray(String[]::new));
+        //db상에서 만료
+        randomMatches
+            .forEach(randomMatch ->
+                randomMatch.cancel());
 
         return ResponseEntity.status(HttpStatus.OK).build();
     }
@@ -125,19 +147,19 @@ public class RandomMatchService {
                 .addAll(List.of(WayOfEating.values()));
         }
         // redis 조건에 따라 여러 데이터 생성
-//        for (Place place : matchConditionRandomMatchDto.getPlaceList()) {
-//            if (randomMatchDto.getContentCategory().equals(ContentCategory.STUDY)) {
-//                for (TypeOfStudy typeOfStudy : matchConditionRandomMatchDto.getTypeOfStudyList()) {
-//                    randomMatches.add(new StudyRandomMatch(ContentCategory.MEAL,
-//                        place, member, typeOfStudy, now));
-//                }
-//            } else if (randomMatchDto.getContentCategory().equals(ContentCategory.MEAL)) {
-//                for (WayOfEating wayOfEating : matchConditionRandomMatchDto.getWayOfEatingList()) {
-//                    randomMatches.add(new MealRandomMatch(ContentCategory.MEAL,
-//                        place, member, wayOfEating, now));
-//                }
-//            }
-//        }
+        for (Place place : matchConditionRandomMatchDto.getPlaceList()) {
+            if (randomMatchDto.getContentCategory().equals(ContentCategory.STUDY)) {
+                for (TypeOfStudy typeOfStudy : matchConditionRandomMatchDto.getTypeOfStudyList()) {
+                    randomMatches.add(new StudyRandomMatch(ContentCategory.STUDY,
+                        place, member, typeOfStudy, now));
+                }
+            } else if (randomMatchDto.getContentCategory().equals(ContentCategory.MEAL)) {
+                for (WayOfEating wayOfEating : matchConditionRandomMatchDto.getWayOfEatingList()) {
+                    randomMatches.add(new MealRandomMatch(ContentCategory.MEAL,
+                        place, member, wayOfEating, now));
+                }
+            }
+        }
         return randomMatches;
     }
 

@@ -78,7 +78,7 @@ public class MatchMember extends BaseEntity {
 
     /********************************* 생성 메서드 *********************************/
 
-    public static MatchMember of(Match match, Member member, boolean isAuthor) {
+    public static MatchMember of(Match match, Member member, Boolean isAuthor) {
         MatchMember matchMember = MatchMember.builder()
             .isAuthor(isAuthor)
             .member(member)

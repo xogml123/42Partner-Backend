@@ -17,6 +17,8 @@ public enum ErrorCode {
 
     INVALID_JSON_FORMAT(400, "C007", "Json형식과 맞지 않습니다."),
 
+
+
 //    //InfraException
       //비동기 이기 때문에 예외 발생 시 에러코드를 리턴하지 않고 로그 정도만 남김
     SLACK_ERROR(500, "S001", "Slack Error"),
@@ -44,7 +46,9 @@ public enum ErrorCode {
     NOT_PARTICIPATED_MEMBER(409, "AR007", "이 멤버가 참여하지 않은 방입니다."),
 
     //random Match
-    RANDOM_MATCH_ALREADY_EXIST(409, "RM001", "이미 랜덤 매칭에 참여하고 있습니다");
+    RANDOM_MATCH_ALREADY_EXIST(409, "RM001", "이미 랜덤 매칭에 참여하고 있습니다"),
+    ALREADY_CANCELED_RANDOM_MATCH(409, "RM002", "취소할 수 있는 랜덤매칭 신청내역이 존재하지 않습니다.");
+
     private final String code;
     private final String message;
     private final int status;

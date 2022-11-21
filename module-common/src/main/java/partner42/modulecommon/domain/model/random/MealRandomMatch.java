@@ -19,13 +19,12 @@ import org.apache.commons.lang3.StringUtils;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(name = "MEAL_RANDOM_MATCH")
-public class MealRandomMatch extends RandomMatch{
-
+public class MealRandomMatch extends RandomMatch {
 
 
     @Enumerated(value = EnumType.STRING)
-    @Column(nullable = false, updatable = false)
-    private WayOfEating wayOfEating ;
+    @Column(updatable = false)
+    private WayOfEating wayOfEating = null;
 
     public MealRandomMatch(ContentCategory contentCategory, Place place,
         Member member, WayOfEating wayOfEating, LocalDateTime createdAt) {
@@ -35,27 +34,37 @@ public class MealRandomMatch extends RandomMatch{
 
 
     @Override
-    public String toStringKey(){
-        return StringUtils.rightPad(place.name(), RandomMatch.STRING_CONDITION_MAX_LENGTH,
-            RandomMatch.CONDITION_PAD_CHAR) +
-            StringUtils.rightPad(wayOfEating.name(), RandomMatch.STRING_CONDITION_MAX_LENGTH,
+    public String toStringKey() {
+        return toKey() +
+            toValue();
+    }
+
+    @Override
+    public String toKey() {
+        return
+            StringUtils.rightPad(contentCategory.name(),
+                RandomMatch.STRING_CONDITION_MAX_LENGTH,
                 RandomMatch.CONDITION_PAD_CHAR) +
-            keyPrefix();
+                StringUtils.rightPad(place.name(), RandomMatch.STRING_CONDITION_MAX_LENGTH,
+                    RandomMatch.CONDITION_PAD_CHAR) +
+                StringUtils.rightPad(wayOfEating.name(), RandomMatch.STRING_CONDITION_MAX_LENGTH,
+                    RandomMatch.CONDITION_PAD_CHAR);
     }
 
 
     @Override
-    public String toNumberKey(){
+    public String toNumberKey() {
         return StringUtils.rightPad(Integer.toString(place.ordinal()),
             RandomMatch.INTEGER_CONDITION_MAX_LENGTH, RandomMatch.CONDITION_PAD_CHAR) +
             StringUtils.rightPad(Integer.toString(wayOfEating.ordinal()),
                 RandomMatch.INTEGER_CONDITION_MAX_LENGTH, RandomMatch.CONDITION_PAD_CHAR) +
-            keyPrefix();
+            toValue();
     }
+
     @Override
-    public String toAsciiKey(){
+    public String toAsciiKey() {
         return Character.toString(place.ordinal()) +
             Character.toString(wayOfEating.ordinal()) +
-            keyPrefix();
+            toValue();
     }
 }

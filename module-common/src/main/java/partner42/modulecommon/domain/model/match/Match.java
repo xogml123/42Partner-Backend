@@ -89,8 +89,7 @@ public class Match extends BaseEntity {
     private Article article;
 
     @Builder.Default
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "match")
-    @Column(nullable = false, updatable = false)
+    @OneToMany(mappedBy = "match", fetch = FetchType.LAZY)
     private List<MatchMember> matchMembers = new ArrayList<>();
 
     @Builder.Default
