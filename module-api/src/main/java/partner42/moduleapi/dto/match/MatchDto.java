@@ -30,7 +30,7 @@ public class MatchDto {
     @Size(min = 1, max = 100)
     private String matchId;
 
-    @Schema(name = "createdAt", example = "2022-10-03T00:00:00", description = "작성 시간")
+    @Schema(name = "createdAt", example = "2022-10-03T00:00:00", description = "매칭이 이루어진 시간")
     private LocalDateTime createdAt;
 
     @Schema(name = "matchStatus", example = "MATCHED(\"매칭 완료\"), CANCELED(\"취소\");", description = " 매칭 완료, 취소 여부(현 상황에서는 매칭 완료 인것만 보내짐.)")

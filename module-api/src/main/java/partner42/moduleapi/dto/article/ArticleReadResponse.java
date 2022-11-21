@@ -31,6 +31,11 @@ public class ArticleReadResponse {
     @Size(min = 1, max = 100)
     private String nickname;
 
+    @Schema(name = "userId", example = "4f3dda35-3739-406c-ad22-eed438831d66", description = "작성자 ID")
+    @NotBlank
+    @Size(min = 1, max = 100)
+    private String userId;
+
     @Schema(name = "articleId", example = "4f3dda35-3739-406c-ad22-eed438831d66", description = "게시글 ID")
     @NotBlank
     @Size(min = 1, max = 100)
@@ -89,6 +94,7 @@ public class ArticleReadResponse {
                 .orElseThrow(() ->
                     new IllegalStateException(ErrorCode.NO_AUTHOR.getMessage()))
                 .getMember().getNickname())
+            .userId(article.getAuthorMember().getUser().getApiId())
             .articleId(article.getApiId())
             .title(article.getTitle())
             .content(article.getContent())

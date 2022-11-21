@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import partner42.moduleapi.dto.match.MatchDto;
@@ -23,7 +24,7 @@ public class MatchController {
 
     private final MatchService matchService;
 
-    @Operation(summary = "자신의 매치이력 조회", description = "자신의 매치이력 조회 ")
+    @Operation(summary = "자신의 매치이력 조회", description = "자신의 매치이력 조회")
     @GetMapping("/matches")
     public Slice<MatchDto> readMyMatches(
         @Parameter(hidden = true) @AuthenticationPrincipal User user,
@@ -32,4 +33,14 @@ public class MatchController {
     ) {
         return matchService.readMyMatches(user.getApiId(), matchSearch, pageable);
     }
+
+    @Operation(summary = "특정 매치이력 조회", description = "특정 매치이력 조회")
+    @GetMapping("/matches/{matchId}")
+    public MatchDto readOneMatch(
+        @Parameter(hidden = true) @AuthenticationPrincipal User user,
+        @PathVariable("matchId") String matchId
+    ) {
+        return matchService.readOneMatch(user.getApiId(), matchId);
+    }
+
 }

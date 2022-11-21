@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import partner42.moduleapi.dto.match.MatchDto;
 import partner42.moduleapi.dto.matchcondition.MatchConditionDto;
+import partner42.modulecommon.domain.model.match.Match;
 import partner42.modulecommon.domain.model.matchcondition.MatchCondition;
 import partner42.modulecommon.domain.model.matchcondition.Place;
 import partner42.modulecommon.domain.model.matchcondition.TimeOfEating;
@@ -49,6 +50,25 @@ public class MatchService {
                     WayOfEating.extractWayOfEatingFromMatchCondition(matchConditions),
                     TypeOfStudy.extractTypeOfStudyFromMatchCondition(matchConditions)));
             });
+
+    }
+
+    public MatchDto readOneMatch(String apiId, String matchId) {
+        //자기 매치인지 확인
+
+        Match match = matchRepository.findByApiId(apiId)
+            .orElseThrow(() ->
+                new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
+        List<MatchCondition> matchConditions = match.getMatchConditionMatches().stream()
+            .map((matchConditionMatch) ->
+                matchConditionMatch.getMatchCondition()
+            )
+            .collect(Collectors.toList());
+        return MatchDto.of(match, MatchConditionDto.of(
+            Place.extractPlaceFromMatchCondition(matchConditions),
+            TimeOfEating.extractTimeOfEatingFromMatchCondition(matchConditions),
+            WayOfEating.extractWayOfEatingFromMatchCondition(matchConditions),
+            TypeOfStudy.extractTypeOfStudyFromMatchCondition(matchConditions)));
 
     }
 }
