@@ -34,6 +34,11 @@ public class ArticleReadOneResponse {
     @Size(min = 1, max = 100)
     private String articleId;
 
+    @Schema(name = "userId", example = "4f3dda35-3739-406c-ad22-eed438831d66", description = "작성자 ID")
+    @NotBlank
+    @Size(min = 1, max = 100)
+    private String userId;
+
     @Schema(name = "title", example = "개포에서 2시에 점심 먹으실 분 구합니다.", description = "글 제목")
     @NotBlank
     @Size(min = 1, max = 255)
@@ -86,6 +91,7 @@ public class ArticleReadOneResponse {
         MatchConditionDto matchConditionDto) {
         return ArticleReadOneResponse.builder()
             .articleId(article.getApiId())
+            .userId(article.getAuthorMember().getUser().getApiId())
             .title(article.getTitle())
             .date(article.getDate())
             .createdAt(article.getCreatedAt())
