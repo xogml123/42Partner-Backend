@@ -97,7 +97,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 res.setCharacterEncoding("utf-8");
                 body.setUserId(user.getApiId());
                 res.getWriter().write(objectMapper.writeValueAsString(body));
-//                res.sendRedirect("http://localhost:3000");
+                res.sendRedirect("http://localhost:3000");
             })
             .failureHandler((req, res, auth) -> {
                 res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
