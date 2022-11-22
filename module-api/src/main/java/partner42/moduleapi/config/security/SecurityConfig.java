@@ -47,8 +47,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http.csrf().disable();
         http.cors().configurationSource(corsConfigurationSource());
         http.exceptionHandling().authenticationEntryPoint(authenticationEntryPoint);
-        http.headers()
-            .httpStrictTransportSecurity().disable();
+        //http 요청을 하더라도 https요청으로 하도록 브라우저에게 알려주는 헤더
+        //초기 개발시에만 비활성화
+//        http.headers()
+//            .httpStrictTransportSecurity().disable();
         http.authorizeRequests(
                 authorize -> authorize
                     .antMatchers("/v2/api-docs").permitAll()
@@ -97,7 +99,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 res.setCharacterEncoding("utf-8");
                 body.setUserId(user.getApiId());
                 res.getWriter().write(objectMapper.writeValueAsString(body));
-                res.sendRedirect("http://localhost:3000");
+//                res.sendRedirect("http://localhost:3000");
             })
             .failureHandler((req, res, auth) -> {
                 res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
