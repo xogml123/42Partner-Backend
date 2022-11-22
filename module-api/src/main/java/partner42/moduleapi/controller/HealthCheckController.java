@@ -11,17 +11,16 @@ import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
 @RestController
-@RequestMapping()
+@RequestMapping
 @RequiredArgsConstructor
 public class HealthCheckController {
 
     /**
      * loadbalance health check  시 활용.
-     * @param userId
      * @return
      */
     @GetMapping("/")
-    public ResponseEntity<String> test(@PathVariable String userId) {
+    public ResponseEntity<String> test() {
         return ResponseEntity.ok("test");
     }
 }

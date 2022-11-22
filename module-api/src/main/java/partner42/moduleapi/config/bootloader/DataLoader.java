@@ -18,6 +18,7 @@ import partner42.modulecommon.domain.model.user.Role;
 import partner42.modulecommon.domain.model.user.RoleEnum;
 import partner42.modulecommon.repository.matchcondition.MatchConditionRepository;
 import partner42.modulecommon.repository.member.MemberRepository;
+import partner42.modulecommon.repository.random.RandomMatchRedisRepository;
 import partner42.modulecommon.repository.user.AuthorityRepository;
 import partner42.modulecommon.repository.user.RoleRepository;
 import partner42.modulecommon.repository.user.UserRepository;
@@ -38,6 +39,8 @@ public class DataLoader implements CommandLineRunner {
 
 
     private final MemberRepository memberRepository;
+
+    private final RandomMatchRedisRepository randomMatchRedisRepository;
     @Value("${spring.jpa.hibernate.data-loader}")
     private String dataLoader;
     @Transactional
@@ -208,7 +211,6 @@ public class DataLoader implements CommandLineRunner {
 
         matchConditionRepository.save(MatchCondition.of(TypeOfStudy.INNER_CIRCLE.name(), ConditionCategory.TypeOfStudy));
         matchConditionRepository.save(MatchCondition.of(TypeOfStudy.NOT_INNER_CIRCLE.name(), ConditionCategory.TypeOfStudy));
-
 
     }
 //
