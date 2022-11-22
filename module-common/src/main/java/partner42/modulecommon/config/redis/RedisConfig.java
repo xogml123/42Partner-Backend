@@ -13,6 +13,7 @@ import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
+import org.springframework.data.redis.connection.RedisStaticMasterReplicaConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
@@ -21,13 +22,20 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 @Configuration
 public class RedisConfig {
     @Value("${spring.redis.host}")
-    private String redisHost;
+    private String masterHost;
 
     @Value("${spring.redis.port}")
-    private int redisPort;
+    private int masterPort;
+
 
     @Value("${spring.redis.password}")
     private String redisPwd;
+
+    @Value("${spring.redis.replica.host}")
+    String replicaHost;
+
+    @Value("${spring.redis.replica.port}")
+    int replicaPort;
 
     @Value("${redis.expire.default}")
     private long defaultExpireSecond;
@@ -56,6 +64,22 @@ public class RedisConfig {
         return mapper;
     }
 
+
+    /**
+     * Redis readReplica를 추가하기 위한 설정
+     * 현재 프로젝트에서는 조회 시 항상 최신 데이터를 얻어오는 것이 중요해서 primary한대만 두고 사용하지만,
+     * aws elasticache는 readReplica의 endPoint가 따로 있기 때문에 설정해준다.
+     * @return
+     */
+    @Bean
+    public RedisStaticMasterReplicaConfiguration redisStaticMasterReplicaConfiguration() {
+        RedisStaticMasterReplicaConfiguration redisStaticMasterReplicaConfiguration =
+            new RedisStaticMasterReplicaConfiguration(masterHost, masterPort);
+        redisStaticMasterReplicaConfiguration.addNode(replicaHost, replicaPort);
+        redisStaticMasterReplicaConfiguration.setPassword(redisPwd);
+        return redisStaticMasterReplicaConfiguration;
+    }
+
     /*
      * Redis Connection Factory library별 특징
      * 1. Jedis - 멀티쓰레드환경에서 쓰레드 안전을 보장하지 않는다.
@@ -71,8 +95,8 @@ public class RedisConfig {
     @Bean
     public RedisConnectionFactory redisConnectionFactory() {
         RedisStandaloneConfiguration redisStandaloneConfiguration = new RedisStandaloneConfiguration();
-        redisStandaloneConfiguration.setPort(redisPort);
-        redisStandaloneConfiguration.setHostName(redisHost);
+        redisStandaloneConfiguration.setPort(masterPort);
+        redisStandaloneConfiguration.setHostName(masterHost);
         redisStandaloneConfiguration.setPassword(redisPwd);
         LettuceConnectionFactory lettuceConnectionFactory =
             new LettuceConnectionFactory(redisStandaloneConfiguration);
