@@ -46,10 +46,12 @@ public class MatchRepositoryCustomImpl implements MatchRepositoryCustom{
             .offset(pageable.getOffset())
             .limit(pageable.getPageSize() + 1)
             .fetch();
+        boolean hasnext = false;
         if (matches.size() == pageable.getPageSize() + 1) {
+            hasnext = true;
             matches.remove(matches.size() - 1);
         }
-        return new SliceImpl<>(matches, pageable, matches.size() == pageable.getPageSize() + 1);
+        return new SliceImpl<>(matches, pageable, hasnext);
     }
 
     private BooleanExpression isMemberIn(Long memberId) {

@@ -52,16 +52,16 @@ public class RedirectAuthenticationSuccessHandler implements AuthenticationSucce
             .withClaim("authorities", new ArrayList<>(user.getAuthorities()))
             .sign(algorithm);
 
-//        String refreshToken = JWT.create()
-//            .withSubject(user.getApiId())
-//            .withIssuer(request.getRequestURL().toString())
-//            .withExpiresAt(
-//                new Date(System.currentTimeMillis() + Integer.parseInt(refreshTokenExpire)))
-//            .sign(algorithm);
+        String refreshToken = JWT.create()
+            .withSubject(user.getApiId())
+            .withIssuer(request.getRequestURL().toString())
+            .withExpiresAt(
+                new Date(System.currentTimeMillis() + Integer.parseInt(refreshTokenExpire)))
+            .sign(algorithm);
         response.sendRedirect(
             referer +
                 "?access_token=" + accessToken +
-//                "&refresh_token=" + refreshToken +
+                "&refresh_token=" + refreshToken +
             "&create_flag=" + createFlag);
     }
 }

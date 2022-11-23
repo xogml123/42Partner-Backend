@@ -1,7 +1,12 @@
 package partner42.moduleapi.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import java.util.ArrayList;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -22,5 +27,10 @@ public class HealthCheckController {
     @GetMapping("/")
     public ResponseEntity<String> test() {
         return ResponseEntity.ok("test");
+    }
+
+    @GetMapping("/health")
+    public Page<Object> test2() {
+        return new PageImpl<>(new ArrayList<>());
     }
 }

@@ -1,6 +1,7 @@
 package partner42.moduleapi.controller.opinion;
 
 
+import io.swagger.annotations.ApiParam;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import lombok.RequiredArgsConstructor;
@@ -41,15 +42,18 @@ public class OpinionController {
     @Operation(summary = "댓글 수정", description = "댓글 수정")
     @PutMapping("/opinions/{opinionId}")
     public OpinionOnlyIdResponse updateOpinion(@Validated @Parameter @RequestBody OpinionUpdateRequest request,
-        @PathVariable String opinionId) {
-        return opinionService.updateOpinion(request, opinionId);
+        @PathVariable String opinionId,
+        @ApiParam(hidden = true) @AuthenticationPrincipal String username) {
+        return opinionService.updateOpinion(request, opinionId, username);
     }
 
     @Operation(summary = "댓글 임시 삭제", description = "댓글 임시 삭제")
     @PostMapping("/opinions/{opinionId}/recoverable-delete")
     public OpinionOnlyIdResponse recoverableDeleteOpinion(
-        @PathVariable String opinionId) {
-        return opinionService.recoverableDeleteOpinion(opinionId);
+        @PathVariable String opinionId,
+        @ApiParam(hidden = true) @AuthenticationPrincipal String username
+        ) {
+        return opinionService.recoverableDeleteOpinion(opinionId, username);
     }
 
     @Operation(summary = "댓글 전체 조회", description = "댓글 전체 조회")
@@ -68,8 +72,9 @@ public class OpinionController {
     @Operation(summary = "댓글 완전 삭제", description = "댓글 완전 삭제 (관리자 전용)")
     @DeleteMapping("/opinions/{opinionId}")
     public OpinionOnlyIdResponse completeDeleteOpinion(
-        @PathVariable String opinionId) {
-        return opinionService.completeDeleteOpinion(opinionId);
+        @PathVariable String opinionId,
+        @ApiParam(hidden = true) @AuthenticationPrincipal String username) {
+        return opinionService.completeDeleteOpinion(opinionId, username);
     }
 
 }
