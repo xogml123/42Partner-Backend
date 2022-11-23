@@ -28,20 +28,20 @@ public class MatchController {
     @Operation(summary = "자신의 매치이력 조회", description = "자신의 매치이력 조회")
     @GetMapping("/matches")
     public SliceImpl<MatchDto> readMyMatches(
-        @Parameter(hidden = true) @AuthenticationPrincipal String userApiId,
+        @Parameter(hidden = true) @AuthenticationPrincipal String username,
         MatchSearch matchSearch,
         Pageable pageable
     ) {
-        return matchService.readMyMatches(userApiId, matchSearch, pageable);
+        return matchService.readMyMatches(username, matchSearch, pageable);
     }
 
     @Operation(summary = "특정 매치이력 조회", description = "특정 매치이력 조회")
     @GetMapping("/matches/{matchId}")
     public MatchDto readOneMatch(
-        @Parameter(hidden = true) @AuthenticationPrincipal String userApiId,
+        @Parameter(hidden = true) @AuthenticationPrincipal String username,
         @PathVariable("matchId") String matchId
     ) {
-        return matchService.readOneMatch(userApiId, matchId);
+        return matchService.readOneMatch(username, matchId);
     }
 
 }

@@ -33,11 +33,11 @@ public class OpinionService {
     private final OpinionMapper opinionMapper;
 
     @Transactional
-    public OpinionOnlyIdResponse createOpinion(OpinionDto request, String userId) {
+    public OpinionOnlyIdResponse createOpinion(OpinionDto request, String username) {
         Article article = articleRepository.findByApiIdAndIsDeletedIsFalse(request.getArticleId())
             .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
         Opinion opinion = Opinion.of(request.getContent(),
-            userRepository.findByApiId(userId)
+            userRepository.findByUsername(username)
                 .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND))
                 .getMember(),
             article,

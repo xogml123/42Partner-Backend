@@ -1,12 +1,14 @@
 package partner42.moduleapi.config.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Collection;
 import java.util.List;
 import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
@@ -55,9 +57,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http.cors().configurationSource(corsConfigurationSource());
         http.exceptionHandling().authenticationEntryPoint(authenticationEntryPoint);
         http.addFilterBefore(customAuthorizationFilter, UsernamePasswordAuthenticationFilter.class);
-            //session생성하지 않음. -> jwt 사용.
-//        http.sessionManagement()
-//            .sessionCreationPolicy(SessionCreationPolicy.NEVER);
+        //session생성하지 않음. -> jwt 사용.
+        http.sessionManagement()
+            .sessionCreationPolicy(SessionCreationPolicy.NEVER);
         //http 요청을 하더라도 https요청으로 하도록 브라우저에게 알려주는 헤더
         //초기개발시에만 비활성화
 //        http.headers()
@@ -94,12 +96,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 login URI: /oauth2/authorization/authclient - 설정을 하면 바꿀 수 있을 것 같음.
              */
             .oauth2Login()
-//            .loginProcessingUrl()
             .userInfoEndpoint()
             .userService(oAuth2UserService)
-//            .and()
-//            .redirectionEndpoint()
-//            .baseUri("localhost:3000/login")
             .and()
             .successHandler(authenticationSuccessHandler)
             .failureHandler((req, response, auth) -> {
@@ -116,9 +114,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .logoutRequestMatcher(new AntPathRequestMatcher("/api/security/logout"))
             .logoutSuccessHandler((request, response, authentication) -> {
                 response.setStatus(HttpServletResponse.SC_OK);
-            })
-            .deleteCookies("JSESSIONID")
-            .invalidateHttpSession(true);
+            });
+//            .deleteCookies("JSESSIONID")
+//            .invalidateHttpSession(true);
 
     }
 

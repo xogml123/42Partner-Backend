@@ -55,7 +55,7 @@ public class CustomAuthorizationFilter extends OncePerRequestFilter {
                     JWTVerifier verifier = JWT.require(algorithm).build();
                     //JWT 토큰 검증 실패하면 JWTVerificationException 발생
                     DecodedJWT decodedJWT = verifier.verify(token);
-                    String apiId = decodedJWT.getSubject();
+                    String username = decodedJWT.getSubject();
                     String[] authoritiesJWT = decodedJWT.getClaim("authorities").asArray(String.class);
                     Collection<SimpleGrantedAuthority> authorities = new ArrayList<>();
                     Arrays.stream(authoritiesJWT).forEach(authority -> {
@@ -65,7 +65,7 @@ public class CustomAuthorizationFilter extends OncePerRequestFilter {
                     //
                     //SecurityContextHoler에 로그인 인증 정보 저장.
                     UsernamePasswordAuthenticationToken authenticationToken =
-                        new UsernamePasswordAuthenticationToken(apiId, null, authorities);
+                        new UsernamePasswordAuthenticationToken(username, null, authorities);
                     SecurityContextHolder.getContext().setAuthentication(authenticationToken);
                     filterChain.doFilter(request, response);
                 } catch (Exception exception) {

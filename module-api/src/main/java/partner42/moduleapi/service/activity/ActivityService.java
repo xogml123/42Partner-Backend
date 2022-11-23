@@ -21,9 +21,9 @@ public class ActivityService {
 
     private final UserRepository userRepository;
 
-    public ActivityScoreResponse readMyActivityScoreSum(String userId,
+    public ActivityScoreResponse readMyActivityScoreSum(String username,
         ActivitySearch activitySearch) {
-        Member member = userRepository.findByApiId(userId).orElseThrow(() ->
+        Member member = userRepository.findByUsername(username).orElseThrow(() ->
                 new NoEntityException(ErrorCode.ENTITY_NOT_FOUND))
             .getMember();
         Integer scoreSum = activityRepository.findSumScoreByMemberIdAndArticleSearch(

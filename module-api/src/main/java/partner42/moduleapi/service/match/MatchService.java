@@ -1,11 +1,8 @@
 package partner42.moduleapi.service.match;
 
 import java.util.List;
-import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
-import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
@@ -35,9 +32,9 @@ public class MatchService {
     private final UserRepository userRepository;
 
 
-    public SliceImpl<MatchDto> readMyMatches(String userId, MatchSearch matchSearch,
+    public SliceImpl<MatchDto> readMyMatches(String username, MatchSearch matchSearch,
         Pageable pageable) {
-        Member member = userRepository.findByApiId(userId)
+        Member member = userRepository.findByUsername(username)
             .orElseThrow(() ->
                 new NoEntityException(ErrorCode.ENTITY_NOT_FOUND))
             .getMember();
@@ -63,10 +60,10 @@ public class MatchService {
         return new SliceImpl<MatchDto>(content, matchSlices.getPageable(), matchSlices.hasNext());
     }
 
-    public MatchDto readOneMatch(String apiId, String matchId) {
+    public MatchDto readOneMatch(String username, String matchId) {
         //자기 매치인지 확인
 
-        Match match = matchRepository.findByApiId(apiId)
+        Match match = matchRepository.findByApiId(matchId)
             .orElseThrow(() ->
                 new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
         List<MatchCondition> matchConditions = match.getMatchConditionMatches().stream()

@@ -29,17 +29,17 @@ public class RandomMatchController {
     @Operation(summary = "랜덤 매칭 신청", description = "랜덤 매칭 신청")
     @PostMapping("/random-matches")
     public ResponseEntity<Void> applyRandomMatch(
-        @ApiParam(hidden = true) @AuthenticationPrincipal String userApiId,
+        @ApiParam(hidden = true) @AuthenticationPrincipal String username,
         @Validated @Parameter @RequestBody RandomMatchDto randomMatchDto) {
         //contentCategory에 따라 필드 검증
-        return randomMatchService.createRandomMatch(userApiId, randomMatchDto);
+        return randomMatchService.createRandomMatch(username, randomMatchDto);
     }
 
     @Operation(summary = "랜덤 매칭 취소", description = "랜덤 매칭 취소")
     @PostMapping("/random-matches/mine")
     public ResponseEntity<Void> cancelRandomMatch(@Validated @Parameter @RequestBody RandomMatchCancelRequest randomMatchCancelRequest,
-        @ApiParam(hidden = true) @AuthenticationPrincipal String userApiId) {
+        @ApiParam(hidden = true) @AuthenticationPrincipal String username) {
         //contentCategory에 따라 필드 검증
-        return randomMatchService.deleteRandomMatch(userApiId, randomMatchCancelRequest);
+        return randomMatchService.deleteRandomMatch(username, randomMatchCancelRequest);
     }
 }

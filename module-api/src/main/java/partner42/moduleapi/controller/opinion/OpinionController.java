@@ -34,8 +34,8 @@ public class OpinionController {
     @Operation(summary = "댓글 생성", description = "댓글 생성")
     @PostMapping("/opinions")
     public OpinionOnlyIdResponse createOpinion(@Validated @Parameter @RequestBody OpinionDto request,
-        @Parameter(hidden = true) @AuthenticationPrincipal String userApiId) {
-        return opinionService.createOpinion(request, userApiId);
+        @Parameter(hidden = true) @AuthenticationPrincipal String username) {
+        return opinionService.createOpinion(request, username);
     }
 
     @Operation(summary = "댓글 수정", description = "댓글 수정")
