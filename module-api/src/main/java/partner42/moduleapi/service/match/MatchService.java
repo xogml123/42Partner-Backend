@@ -1,10 +1,14 @@
 package partner42.moduleapi.service.match;
 
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.SliceImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import partner42.moduleapi.dto.match.MatchDto;
@@ -31,13 +35,17 @@ public class MatchService {
     private final UserRepository userRepository;
 
 
-    public Slice<MatchDto> readMyMatches(String userId, MatchSearch matchSearch,
+    public SliceImpl<MatchDto> readMyMatches(String userId, MatchSearch matchSearch,
         Pageable pageable) {
         Member member = userRepository.findByApiId(userId)
             .orElseThrow(() ->
                 new NoEntityException(ErrorCode.ENTITY_NOT_FOUND))
             .getMember();
-        return matchRepository.findAllFetchJoinMatchMemberId(member.getId(), matchSearch, pageable)
+        Slice<Match> matchSlices = matchRepository.findAllFetchJoinMatchMemberId(
+            member.getId(), matchSearch, pageable);
+        List<MatchDto> content = matchSlices
+            .getContent()
+            .stream()
             .map((match) -> {
                 List<MatchCondition> matchConditions = match.getMatchConditionMatches().stream()
                     .map((matchConditionMatch) ->
@@ -49,8 +57,10 @@ public class MatchService {
                     TimeOfEating.extractTimeOfEatingFromMatchCondition(matchConditions),
                     WayOfEating.extractWayOfEatingFromMatchCondition(matchConditions),
                     TypeOfStudy.extractTypeOfStudyFromMatchCondition(matchConditions)));
-            });
+            })
+            .collect(Collectors.toList());
 
+        return new SliceImpl<MatchDto>(content, matchSlices.getPageable(), matchSlices.hasNext());
     }
 
     public MatchDto readOneMatch(String apiId, String matchId) {

@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.SliceImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import partner42.moduleapi.dto.article.ArticleDto;
@@ -82,6 +83,7 @@ public class ArticleService {
 
     @Transactional
     public ArticleOnlyIdResponse createArticle(String userId, ArticleDto articleRequest) {
+        log.info("{}", userId);
         Member member = userRepository.findByApiId(userId).orElseThrow(() -> new NoEntityException(
             ErrorCode.ENTITY_NOT_FOUND)).getMember();
         Article article = articleRepository.save(
@@ -170,21 +172,27 @@ public class ArticleService {
 
     }
 
-    public Slice<ArticleReadResponse> readAllArticle(Pageable pageable,
+    public SliceImpl<ArticleReadResponse> readAllArticle(Pageable pageable,
         ArticleSearch condition) {
-        return articleRepository.findSliceByCondition(pageable,
-            condition).map((article) -> {
-            List<MatchCondition> matchConditions = article.getArticleMatchConditions().stream()
-                .map(amc ->
-                    amc.getMatchCondition())
-                .collect(Collectors.toList());
-                return ArticleReadResponse.of(article, MatchConditionDto.of(Place.extractPlaceFromMatchCondition(matchConditions),
-                    TimeOfEating.extractTimeOfEatingFromMatchCondition(matchConditions),
-                    WayOfEating.extractWayOfEatingFromMatchCondition(matchConditions),
-                    TypeOfStudy.extractTypeOfStudyFromMatchCondition(matchConditions)
-                ));
-            }
-        );
+        Slice<Article> articleSlices = articleRepository.findSliceByCondition(pageable,
+            condition);
+        return new SliceImpl<>(articleSlices.getContent().stream()
+            .map((article) -> {
+                List<MatchCondition> matchConditions = article.getArticleMatchConditions().stream()
+                    .map(amc ->
+                        amc.getMatchCondition())
+                    .collect(Collectors.toList());
+                return ArticleReadResponse.of(article,
+                    MatchConditionDto.of(Place.extractPlaceFromMatchCondition(matchConditions),
+                        TimeOfEating.extractTimeOfEatingFromMatchCondition(matchConditions),
+                        WayOfEating.extractWayOfEatingFromMatchCondition(matchConditions),
+                        TypeOfStudy.extractTypeOfStudyFromMatchCondition(matchConditions)
+                    ));
+            })
+            .collect(Collectors.toList()),
+            articleSlices.getPageable(),
+            articleSlices.hasNext());
+
     }
 
     //이미 참여중인 경우 방지.

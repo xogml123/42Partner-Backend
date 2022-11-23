@@ -1,6 +1,7 @@
 package partner42.moduleapi.service.user;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -46,8 +47,13 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         String login = (String)attributes.get("login");
         //takim@student.42seoul.kr
         String email = (String) attributes.get("email");
+
+        String imageUrl = "";
         //https://cdn.intra.42.fr/users/0f260cc3e59777f0f5ba926f19cc1ec9/takim.jpg
-        String imageUrl = (String) attributes.get("image_url");
+        if (attributes.get("image_url") instanceof Map) {
+            imageUrl = (String)((Map)(attributes.get("image"))).get("link") == null ?
+                "" : (String)((Map)(attributes.get("image"))).get("link");
+        }
 
         HashMap<String, Object> necessaryAttributes = createNecessaryAttributes(apiId, login,
             email, imageUrl);

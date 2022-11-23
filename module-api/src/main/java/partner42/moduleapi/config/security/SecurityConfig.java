@@ -9,14 +9,19 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.OncePerRequestFilter;
 import partner42.moduleapi.dto.ErrorResponseDto;
 import partner42.moduleapi.dto.LoginResponseDto;
 import partner42.moduleapi.dto.user.CustomAuthenticationPrincipal;
@@ -33,6 +38,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private final AuthenticationEntryPoint authenticationEntryPoint;
     private final ObjectMapper objectMapper;
 
+    private final CustomAuthorizationFilter customAuthorizationFilter;
+    private final AuthenticationSuccessHandler authenticationSuccessHandler;
     @Value("${cors.frontend}")
     private String corsFrontend;
 
@@ -47,8 +54,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http.csrf().disable();
         http.cors().configurationSource(corsConfigurationSource());
         http.exceptionHandling().authenticationEntryPoint(authenticationEntryPoint);
+        http.addFilterBefore(customAuthorizationFilter, UsernamePasswordAuthenticationFilter.class);
+            //session생성하지 않음. -> jwt 사용.
+//        http.sessionManagement()
+//            .sessionCreationPolicy(SessionCreationPolicy.NEVER);
         //http 요청을 하더라도 https요청으로 하도록 브라우저에게 알려주는 헤더
-        //초기 개발시에만 비활성화
+        //초기개발시에만 비활성화
 //        http.headers()
 //            .httpStrictTransportSecurity().disable();
         http.authorizeRequests(
@@ -90,22 +101,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 //            .redirectionEndpoint()
 //            .baseUri("localhost:3000/login")
             .and()
-            .successHandler((req, res, auth) -> {
-                CustomAuthenticationPrincipal user = (CustomAuthenticationPrincipal)auth.getPrincipal();
-                LoginResponseDto body = new LoginResponseDto();
-                res.setStatus((boolean)(user.getAttributes().get("create_flag")) ?
-                    HttpServletResponse.SC_CREATED : HttpServletResponse.SC_OK);
-                res.setContentType("application/json");
-                res.setCharacterEncoding("utf-8");
-                body.setUserId(user.getApiId());
-                res.getWriter().write(objectMapper.writeValueAsString(body));
-//                res.sendRedirect("http://localhost:3000");
-            })
-            .failureHandler((req, res, auth) -> {
-                res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                res.setContentType("application/json");
-                res.setCharacterEncoding("utf-8");
-                res.getWriter().write(objectMapper.writeValueAsString(
+            .successHandler(authenticationSuccessHandler)
+            .failureHandler((req, response, auth) -> {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.setContentType("application/json");
+                response.setCharacterEncoding("utf-8");
+                response.getWriter().write(objectMapper.writeValueAsString(
                     ErrorResponseDto.builder()
                         .message("로그인에 실패하였습니다.")
                         .build()));
@@ -119,6 +120,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .deleteCookies("JSESSIONID")
             .invalidateHttpSession(true);
 
+    }
+
+    @Override
+    public void configure(WebSecurity web) throws Exception {
+        web.ignoring();
     }
 
     @Bean

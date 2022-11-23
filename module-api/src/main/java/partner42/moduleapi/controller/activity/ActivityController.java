@@ -25,9 +25,9 @@ public class ActivityController {
     @Operation(summary = "자신의 활동점수 조회", description = "자신의 활동 점수 조회 월/년단위로 조회 / 밥, 공부여부 지정")
     @GetMapping("/activities/score")
     public ActivityScoreResponse readMyActivityScore(
-        @Parameter(hidden = true) @AuthenticationPrincipal User user,
+        @Parameter(hidden = true) @AuthenticationPrincipal String userApiId,
         ActivitySearch activitySearch
         ) {
-        return activityService.readMyActivityScoreSum(user.getApiId(), activitySearch);
+        return activityService.readMyActivityScoreSum(userApiId, activitySearch);
     }
 }
