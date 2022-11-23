@@ -103,7 +103,7 @@ public class DataLoader implements CommandLineRunner {
 
 
         userRole.getAuthorities().clear();
-        adminRole.addAuthorities(createUser, updateUser, readUser, deleteUser,
+        userRole.addAuthorities(createUser, updateUser, readUser, deleteUser,
             createOpinion, updateOpinion, readOpinion, deleteOpinion,
             createArticle, updateArticle, readArticle, deleteArticle,
             createMatch, updateMatch, readMatch, deleteMatch,

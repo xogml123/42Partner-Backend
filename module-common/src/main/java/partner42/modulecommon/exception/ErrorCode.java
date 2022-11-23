@@ -52,7 +52,7 @@ public enum ErrorCode {
     //Opinion
     NOT_OPINION_AUTHOR(403, "OP001", "의견의 작성자가 아닙니다."),
     //User
-    NOT_MINE(403, "U001", "본인이 아닙니다."),
+    NOT_MINE(403, "U001", "본인이 아닙니다.");
 
     private final String code;
     private final String message;

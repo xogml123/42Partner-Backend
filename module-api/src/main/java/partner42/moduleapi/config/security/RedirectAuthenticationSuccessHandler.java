@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -49,7 +50,10 @@ public class RedirectAuthenticationSuccessHandler implements AuthenticationSucce
             .withExpiresAt(
                 new Date(System.currentTimeMillis() + Integer.parseInt(accessTokenExpire)))
 
-            .withClaim("authorities", new ArrayList<>(user.getAuthorities()))
+            .withClaim("authorities", user.getAuthorities().stream()
+                .map(authority ->
+                    authority.getAuthority())
+                .collect(Collectors.toList()))
             .sign(algorithm);
 
         String refreshToken = JWT.create()
