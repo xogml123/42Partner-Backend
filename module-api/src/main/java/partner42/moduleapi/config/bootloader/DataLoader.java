@@ -45,116 +45,46 @@ public class DataLoader implements CommandLineRunner {
     private String dataLoader;
     @Transactional
     public void createRoleAuthority() {
-//        Authority 생성
-//        Authority createUser = saveNewAuthority("user.create");
-//        Authority updateUser = saveNewAuthority("user.update");
-//        Authority updateUserRole = saveNewAuthority("user.role.update");
-//        Authority updateUserTeam = saveNewAuthority("user.team.update");
-//        Authority updateUserAttendStatus = saveNewAuthority("user.attend-status.update");
-//        Authority readUser = saveNewAuthority("user.read");
-//        Authority deleteUser = saveNewAuthority("user.delete");
-//
-//
-//        Authority createTodo = saveNewAuthority("todo.create");
-//        Authority createUserTodo = saveNewAuthority("user.todo.create");
-//        Authority updateTodo = saveNewAuthority("todo.update");
-//        Authority updateUserTodo = saveNewAuthority("user.todo.update");
-//        Authority readTodo = saveNewAuthority("todo.read");
-//        Authority readUserTodo = saveNewAuthority("user.todo.read");
-//        Authority deleteTodo = saveNewAuthority("todo.delete");
-//        Authority deleteUserTodo = saveNewAuthority("user.todo.delete");
-//
-//
-//        Authority createVacation = saveNewAuthority("vacation.create");
-//        Authority createUserVacation = saveNewAuthority("user.vacation.create");
-//        Authority updateVacation = saveNewAuthority("vacation.update");
-//        Authority updateUserVacation = saveNewAuthority("user.vacation.update");
-//        Authority readVacation = saveNewAuthority("vacation.read");
-//        Authority readUserVacation = saveNewAuthority("user.vacation.read");
-//        Authority deleteVacation = saveNewAuthority("vacation.delete");
-//        Authority deleteUserVacation = saveNewAuthority("user.vacation.delete");
-//
-//
-//
-//        Authority createStudyTime = saveNewAuthority("study-time.create");
-//        Authority updateStudyTime = saveNewAuthority("study-time.update");
-//        Authority readStudyTime = saveNewAuthority("study-time.read");
-//        Authority deleteStudyTime = saveNewAuthority("study-time.delete");
-//
-//        Authority createUserStudyTime = saveNewAuthority("user.study-time.create");
-//        Authority updateUserStudyTime = saveNewAuthority("user.study-time.update");
-//        Authority readUserStudyTime = saveNewAuthority("user.study-time.read");
-//        Authority readStudyTimeUser = saveNewAuthority("study-time.user.read");
-//        Authority deleteUserStudyTime = saveNewAuthority("user.study-time.delete");
-//
-//        Authority createAttendance = saveNewAuthority("attendance.create");
-//        Authority updateAttendance = saveNewAuthority("attendance.update");
-//        Authority readAttendance = saveNewAuthority("attendance.read");
-//        Authority deleteAttendance = saveNewAuthority("attendance.delete");
-//
-//        Authority createUserAttendance = saveNewAuthority("user.attendance.create");
-//        Authority updateUserAttendance = saveNewAuthority("user.attendance.update");
-//        Authority readUserAttendance = saveNewAuthority("user.attendance.read");
-//        Authority deleteUserAttendance = saveNewAuthority("user.attendance.delete");
-//
-//        Authority readDayLog = saveNewAuthority("day-log.read");
-//
-//        //있는 것 찾음
-//        Authority createUser = authorityRepository.findByPermission("user.create").get();
-//        Authority updateUser = authorityRepository.findByPermission("user.update").get();
-//        Authority updateUserRole = authorityRepository.findByPermission("user.role.update").get();
-//        Authority updateUserTeam = authorityRepository.findByPermission("user.team.update").get();
-//        Authority updateUserAttendStatus = authorityRepository.findByPermission("user.attend-status.update").get();
-//        Authority readUser = authorityRepository.findByPermission("user.read").get();
-//        Authority deleteUser = authorityRepository.findByPermission("user.delete").get();
-//
-//
-//        Authority createTodo = authorityRepository.findByPermission("todo.create").get();
-//        Authority createUserTodo = authorityRepository.findByPermission("user.todo.create").get();
-//        Authority updateTodo = authorityRepository.findByPermission("todo.update").get();
-//        Authority updateUserTodo = authorityRepository.findByPermission("user.todo.update").get();
-//        Authority readTodo = authorityRepository.findByPermission("todo.read").get();
-//        Authority readUserTodo = authorityRepository.findByPermission("user.todo.read").get();
-//        Authority deleteTodo = authorityRepository.findByPermission("todo.delete").get();
-//        Authority deleteUserTodo = authorityRepository.findByPermission("user.todo.delete").get();
-//
-//
-//        Authority createVacation = authorityRepository.findByPermission("vacation.create").get();
-//        Authority createUserVacation = authorityRepository.findByPermission("user.vacation.create").get();
-//        Authority updateVacation = authorityRepository.findByPermission("vacation.update").get();
-//        Authority updateUserVacation = authorityRepository.findByPermission("user.vacation.update").get();
-//        Authority readVacation = authorityRepository.findByPermission("vacation.read").get();
-//        Authority readUserVacation = authorityRepository.findByPermission("user.vacation.read").get();
-//        Authority deleteVacation = authorityRepository.findByPermission("vacation.delete").get();
-//        Authority deleteUserVacation = authorityRepository.findByPermission("user.vacation.delete").get();
-//
-//
-//
-//        Authority createStudyTime = authorityRepository.findByPermission("study-time.create").get();
-//        Authority updateStudyTime = authorityRepository.findByPermission("study-time.update").get();
-//        Authority readStudyTime = authorityRepository.findByPermission("study-time.read").get();
-//        Authority deleteStudyTime = authorityRepository.findByPermission("study-time.delete").get();
-//
-//        Authority createUserStudyTime = authorityRepository.findByPermission("user.study-time.create").get();
-//        Authority updateUserStudyTime = authorityRepository.findByPermission("user.study-time.update").get();
-//        Authority readUserStudyTime = authorityRepository.findByPermission("user.study-time.read").get();
-//        Authority readStudyTimeUser = authorityRepository.findByPermission("study-time.user.read").get();
-//        Authority deleteUserStudyTime = authorityRepository.findByPermission("user.study-time.delete").get();
-//
-//        Authority createAttendance = authorityRepository.findByPermission("attendance.create").get();
-//        Authority updateAttendance = authorityRepository.findByPermission("attendance.update").get();
-//        Authority readAttendance = authorityRepository.findByPermission("attendance.read").get();
-//        Authority deleteAttendance = authorityRepository.findByPermission("attendance.delete").get();
-//
-//        Authority createUserAttendance = authorityRepository.findByPermission("user.attendance.create").get();
-//        Authority updateUserAttendance = authorityRepository.findByPermission("user.attendance.update").get();
-//        Authority readUserAttendance = authorityRepository.findByPermission("user.attendance.read").get();
-//        Authority deleteUserAttendance = authorityRepository.findByPermission("user.attendance.delete").get();
-//
-//        Authority readDayLog = authorityRepository.findByPermission("day-log.read").get();
-//
+        //Authority 생성
+        /**
+         * 권한 규칙은 다음과 같다.
+         * 1. 마지막에는 create, update, read, delete가 붙는다.
+         * 2. 앞은 api의 도메인을 의미한다.
+         * 3. 예를 들어 opinion.delete는 모든 opinion을 제거할 수 있다는 의미이다.
+         * 4. 만약, 자기 opinion만 삭제할 수 있다는 내용이 있다면 service에서 처리한다.
+         */
 
-        //Authority createUser = saveNewAuthority("user.create");
+        Authority createUser = saveNewAuthority("user.create");
+        Authority updateUser = saveNewAuthority("user.update");
+        Authority readUser = saveNewAuthority("user.read");
+        Authority deleteUser = saveNewAuthority("user.delete");
+
+        Authority createOpinion = saveNewAuthority("opinion.create");
+        Authority updateOpinion = saveNewAuthority("opinion.update");
+        Authority readOpinion = saveNewAuthority("opinion.read");
+        Authority deleteOpinion = saveNewAuthority("opinion.delete");
+
+        Authority createArticle = saveNewAuthority("article.create");
+        Authority updateArticle = saveNewAuthority("article.update");
+        Authority readArticle = saveNewAuthority("article.read");
+        Authority deleteArticle = saveNewAuthority("article.delete");
+
+        Authority createMatch = saveNewAuthority("match.create");
+        Authority updateMatch = saveNewAuthority("match.update");
+        Authority readMatch = saveNewAuthority("match.read");
+        Authority deleteMatch = saveNewAuthority("match.delete");
+
+        Authority createActivity = saveNewAuthority("activity.create");
+        Authority updateActivity = saveNewAuthority("activity.update");
+        Authority readActivity = saveNewAuthority("activity.read");
+        Authority deleteActivity = saveNewAuthority("activity.delete");
+
+        Authority createRandomMatch = saveNewAuthority("random-match.create");
+        Authority updateRandomMatch = saveNewAuthority("random-match.update");
+        Authority readRandomMatch = saveNewAuthority("random-match.read");
+        Authority deleteRandomMatch = saveNewAuthority("random-match.delete");
+
+
 
         //Role 생성
         Role adminRole = saveNewRole(RoleEnum.ROLE_ADMIN);
@@ -163,22 +93,22 @@ public class DataLoader implements CommandLineRunner {
 //        Role adminRole = roleRepository.findByValue(RoleEnum.ROLE_ADMIN).get();
 //        Role userRole = roleRepository.findByValue(RoleEnum.ROLE_USER).get();
 
-//        adminRole.getAuthorities().clear();
-//        adminRole.addAuthorities(createUser, updateUser,updateUserRole, updateUserTeam, updateUserAttendStatus,  readUser, deleteUser,
-//            createTodo, createUserTodo, updateTodo, updateUserTodo, readTodo, readUserTodo, deleteTodo, deleteUserTodo,
-//            createVacation, createUserVacation, updateVacation, updateUserVacation, readVacation, readUserVacation, deleteVacation, deleteUserVacation,
-//            createStudyTime, updateStudyTime, readStudyTime, deleteStudyTime,
-//            createUserStudyTime, updateUserStudyTime, readUserStudyTime, readStudyTimeUser, deleteUserStudyTime,
-//            createAttendance, updateAttendance, readAttendance, deleteAttendance, createUserAttendance, updateUserAttendance, readUserAttendance, deleteUserAttendance,
-//            readDayLog);
-//
-//        userRole.getAuthorities().clear();
-//        userRole.addAuthorities(createUser, readUser, updateUser,
-//            createUserTodo, updateUserTodo, readTodo, readUserTodo, deleteUserTodo,
-//            createUserVacation, updateUserVacation,readUserVacation,
-//            createUserStudyTime, updateUserStudyTime, readUserStudyTime, readStudyTimeUser, deleteUserStudyTime,
-//                             updateAttendance, readAttendance, deleteAttendance, createUserAttendance, updateUserAttendance, readUserAttendance,
-//            readDayLog);
+        adminRole.getAuthorities().clear();
+        adminRole.addAuthorities(createUser, updateUser, readUser, deleteUser,
+            createOpinion, updateOpinion, readOpinion, deleteOpinion,
+            createArticle, updateArticle, readArticle, deleteArticle,
+            createMatch, updateMatch, readMatch, deleteMatch,
+            createActivity, updateActivity, readActivity, deleteActivity,
+            createRandomMatch, updateRandomMatch, readRandomMatch, deleteRandomMatch);
+
+
+        userRole.getAuthorities().clear();
+        adminRole.addAuthorities(createUser, updateUser, readUser, deleteUser,
+            createOpinion, updateOpinion, readOpinion, deleteOpinion,
+            createArticle, updateArticle, readArticle, deleteArticle,
+            createMatch, updateMatch, readMatch, deleteMatch,
+            createActivity, updateActivity, readActivity, deleteActivity,
+            createRandomMatch, updateRandomMatch, readRandomMatch, deleteRandomMatch);
 
         roleRepository.saveAll(Arrays.asList(adminRole, userRole));
 
