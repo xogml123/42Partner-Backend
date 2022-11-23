@@ -8,6 +8,18 @@ group = 'partner42'
 version = '0.0.1-SNAPSHOT'
 sourceCompatibility = '11'
 
+// Default는 dev 로 지정
+ext.profile = (!project.hasProperty('profile') || !profile) ? 'local' : profile
+
+// 리소스 폴더 지정
+sourceSets {
+	main {
+		resources {
+			srcDirs "src/main/resources", "src/main/resources-${profile}"
+		}
+	}
+}
+
 configurations {
 	compileOnly {
 		extendsFrom annotationProcessor
@@ -46,6 +58,11 @@ dependencies {
 	annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.3.Final'
 	//json변환 util
 	implementation 'org.json:json:20220924'
+
+	//jwt
+	implementation 'io.jsonwebtoken:jjwt:0.9.1'
+	// https://mvnrepository.com/artifact/com.auth0/java-jwt
+	implementation 'com.auth0:java-jwt:3.19.2'
 
 	//jpa- pageble등 의존하는 경우 있음.
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'

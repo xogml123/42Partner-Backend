@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.SliceImpl;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -26,21 +27,21 @@ public class MatchController {
 
     @Operation(summary = "자신의 매치이력 조회", description = "자신의 매치이력 조회")
     @GetMapping("/matches")
-    public Slice<MatchDto> readMyMatches(
-        @Parameter(hidden = true) @AuthenticationPrincipal User user,
+    public SliceImpl<MatchDto> readMyMatches(
+        @Parameter(hidden = true) @AuthenticationPrincipal String username,
         MatchSearch matchSearch,
         Pageable pageable
     ) {
-        return matchService.readMyMatches(user.getApiId(), matchSearch, pageable);
+        return matchService.readMyMatches(username, matchSearch, pageable);
     }
 
     @Operation(summary = "특정 매치이력 조회", description = "특정 매치이력 조회")
     @GetMapping("/matches/{matchId}")
     public MatchDto readOneMatch(
-        @Parameter(hidden = true) @AuthenticationPrincipal User user,
+        @Parameter(hidden = true) @AuthenticationPrincipal String username,
         @PathVariable("matchId") String matchId
     ) {
-        return matchService.readOneMatch(user.getApiId(), matchId);
+        return matchService.readOneMatch(username, matchId);
     }
 
 }

@@ -44,9 +44,9 @@ public class RandomMatchService {
     private final RandomMatchRepository randomMatchRepository;
 
     @Transactional
-    public ResponseEntity<Void> createRandomMatch(String userId,
+    public ResponseEntity<Void> createRandomMatch(String username,
         RandomMatchDto randomMatchDto) {
-        Member member = userRepository.findByApiId(userId).orElseThrow(() -> new NoEntityException(
+        Member member = userRepository.findByUsername(username).orElseThrow(() -> new NoEntityException(
             ErrorCode.ENTITY_NOT_FOUND)).getMember();
         //"2020-12-01T00:00:00"
         LocalDateTime now = CustomTimeUtils.nowWithoutNano();
@@ -83,8 +83,8 @@ public class RandomMatchService {
     }
 
     @Transactional
-    public ResponseEntity<Void> deleteRandomMatch(String userId, RandomMatchCancelRequest request) {
-        Long memberId = userRepository.findByApiId(userId).orElseThrow(() -> new NoEntityException(
+    public ResponseEntity<Void> deleteRandomMatch(String username, RandomMatchCancelRequest request) {
+        Long memberId = userRepository.findByUsername(username).orElseThrow(() -> new NoEntityException(
             ErrorCode.ENTITY_NOT_FOUND)).getMember().getId();
         List<RandomMatch> randomMatches = new ArrayList<>();
         LocalDateTime now = LocalDateTime.now();

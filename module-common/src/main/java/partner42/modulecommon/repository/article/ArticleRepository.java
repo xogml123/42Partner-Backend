@@ -21,6 +21,8 @@ public interface ArticleRepository extends JpaRepository<Article, Long> , Articl
     @EntityGraph(attributePaths = {"articleMembers"})
     Optional<Article> findDistinctFetchArticleMembersByApiId(String articleId);
 
+
+
     Optional<Article> findByApiIdAndIsDeletedIsFalse(String articleId);
 
     Optional<Article> findByApiId(String articleId);

@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.SliceImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import partner42.moduleapi.dto.article.ArticleDto;
@@ -81,8 +82,9 @@ public class ArticleService {
     private final MatchConditionMapper matchConditionMapper;
 
     @Transactional
-    public ArticleOnlyIdResponse createArticle(String userId, ArticleDto articleRequest) {
-        Member member = userRepository.findByApiId(userId).orElseThrow(() -> new NoEntityException(
+    public ArticleOnlyIdResponse createArticle(String usename, ArticleDto articleRequest) {
+        log.info("{}", usename);
+        Member member = userRepository.findByUsername(usename).orElseThrow(() -> new NoEntityException(
             ErrorCode.ENTITY_NOT_FOUND)).getMember();
         Article article = articleRepository.save(
             Article.of(articleRequest.getDate(),
@@ -102,17 +104,17 @@ public class ArticleService {
     }
 
     @Transactional
-    public ArticleOnlyIdResponse deleteArticle(String userId, String articleId) {
-        verifyAuthorOfArticle(userId, articleId);
+    public ArticleOnlyIdResponse deleteArticle(String username, String articleId) {
+        verifyAuthorOfArticle(username, articleId);
         articleRepository.deleteByApiId(articleId);
 
         return ArticleOnlyIdResponse.of(articleId);
     }
 
     @Transactional
-    public ArticleOnlyIdResponse changeIsDelete(String userId, String articleId) {
+    public ArticleOnlyIdResponse changeIsDelete(String username, String articleId) {
 
-        verifyAuthorOfArticle(userId, articleId);
+        verifyAuthorOfArticle(username, articleId);
         Article article = articleRepository.findByApiId(articleId)
             .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
 
@@ -121,9 +123,9 @@ public class ArticleService {
     }
 
     @Transactional
-    public ArticleOnlyIdResponse updateArticle(ArticleDto articleRequest,String userId,  String articleId) {
+    public ArticleOnlyIdResponse updateArticle(ArticleDto articleRequest,String username,  String articleId) {
 
-        verifyAuthorOfArticle(userId, articleId);
+        verifyAuthorOfArticle(username, articleId);
 
         Article article = articleRepository.findDistinctFetchArticleMembersByApiId(
                 articleId)
@@ -170,31 +172,37 @@ public class ArticleService {
 
     }
 
-    public Slice<ArticleReadResponse> readAllArticle(Pageable pageable,
+    public SliceImpl<ArticleReadResponse> readAllArticle(Pageable pageable,
         ArticleSearch condition) {
-        return articleRepository.findSliceByCondition(pageable,
-            condition).map((article) -> {
-            List<MatchCondition> matchConditions = article.getArticleMatchConditions().stream()
-                .map(amc ->
-                    amc.getMatchCondition())
-                .collect(Collectors.toList());
-                return ArticleReadResponse.of(article, MatchConditionDto.of(Place.extractPlaceFromMatchCondition(matchConditions),
-                    TimeOfEating.extractTimeOfEatingFromMatchCondition(matchConditions),
-                    WayOfEating.extractWayOfEatingFromMatchCondition(matchConditions),
-                    TypeOfStudy.extractTypeOfStudyFromMatchCondition(matchConditions)
-                ));
-            }
-        );
+        Slice<Article> articleSlices = articleRepository.findSliceByCondition(pageable,
+            condition);
+        return new SliceImpl<>(articleSlices.getContent().stream()
+            .map((article) -> {
+                List<MatchCondition> matchConditions = article.getArticleMatchConditions().stream()
+                    .map(amc ->
+                        amc.getMatchCondition())
+                    .collect(Collectors.toList());
+                return ArticleReadResponse.of(article,
+                    MatchConditionDto.of(Place.extractPlaceFromMatchCondition(matchConditions),
+                        TimeOfEating.extractTimeOfEatingFromMatchCondition(matchConditions),
+                        WayOfEating.extractWayOfEatingFromMatchCondition(matchConditions),
+                        TypeOfStudy.extractTypeOfStudyFromMatchCondition(matchConditions)
+                    ));
+            })
+            .collect(Collectors.toList()),
+            articleSlices.getPageable(),
+            articleSlices.hasNext());
+
     }
 
     //이미 참여중인 경우 방지.
     @Transactional
-    public ArticleOnlyIdResponse participateArticle(String userId, String articleId) {
+    public ArticleOnlyIdResponse participateArticle(String username, String articleId) {
         Article article = articleRepository.findDistinctFetchArticleMembersByApiId(
                 articleId)
             .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
 
-        Member member = userRepository.findByApiId(userId)
+        Member member = userRepository.findByUsername(username)
             .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND)).getMember();
 
         ArticleMember participateMember = article.participateMember(member);
@@ -204,13 +212,13 @@ public class ArticleService {
     }
 
     @Transactional
-    public ArticleOnlyIdResponse participateCancelArticle(String userId, String articleId) {
+    public ArticleOnlyIdResponse participateCancelArticle(String username, String articleId) {
 
         Article article = articleRepository.findDistinctFetchArticleMembersByApiId(
                 articleId)
             .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
 
-        Member member = userRepository.findByApiId(userId)
+        Member member = userRepository.findByUsername(username)
             .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND))
             .getMember();
 
@@ -220,9 +228,9 @@ public class ArticleService {
     }
 
     @Transactional
-    public ArticleOnlyIdResponse completeArticle(String userId, String articleId) {
+    public ArticleOnlyIdResponse completeArticle(String username, String articleId) {
         //글 작성자아닌 경우
-        verifyAuthorOfArticle(userId, articleId);
+        verifyAuthorOfArticle(username, articleId);
 
         Article article = articleRepository.findDistinctFetchArticleMembersByApiId(
                 articleId)
@@ -327,8 +335,9 @@ public class ArticleService {
             .collect(Collectors.toList());
     }
 
-    private void verifyAuthorOfArticle(String userId, String articleId) {
-        User user = userRepository.findByApiId(userId)
+    private void verifyAuthorOfArticle(String username, String articleId) {
+
+        User user = userRepository.findByUsername(username)
             .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
         Article article = articleRepository.findByApiId(articleId)
             .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
