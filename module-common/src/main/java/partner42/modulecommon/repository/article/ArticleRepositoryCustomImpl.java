@@ -46,10 +46,13 @@ public class ArticleRepositoryCustomImpl implements ArticleRepositoryCustom {
             .offset(pageable.getOffset())
             .limit(pageable.getPageSize() + 1)
             .fetch();
+        boolean hasnext = false;
         if (articles.size() == pageable.getPageSize() + 1) {
+            hasnext = true;
             articles.remove(articles.size() - 1);
         }
-        return new SliceImpl<>(articles, pageable, articles.size() == pageable.getPageSize() + 1);
+        System.out.println("hasnext = " + hasnext);
+        return new SliceImpl<>(articles, pageable, hasnext);
     }
 
     private BooleanExpression isDeletedIsFalse() {

@@ -13,6 +13,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -66,6 +67,9 @@ public class CustomAuthorizationFilter extends OncePerRequestFilter {
                     //SecurityContextHoler에 로그인 인증 정보 저장.
                     UsernamePasswordAuthenticationToken authenticationToken =
                         new UsernamePasswordAuthenticationToken(username, null, authorities);
+                    log.info(authorities.stream()
+                        .map((SimpleGrantedAuthority::getAuthority))
+                        .collect(Collectors.toList()).toString());
                     SecurityContextHolder.getContext().setAuthentication(authenticationToken);
                     filterChain.doFilter(request, response);
                 } catch (Exception exception) {

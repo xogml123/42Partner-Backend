@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -25,6 +26,7 @@ public class MatchController {
 
     private final MatchService matchService;
 
+    @PreAuthorize("isAuthenticated() and hasAuthority('match.read')")
     @Operation(summary = "자신의 매치이력 조회", description = "자신의 매치이력 조회")
     @GetMapping("/matches")
     public SliceImpl<MatchDto> readMyMatches(
@@ -34,6 +36,8 @@ public class MatchController {
     ) {
         return matchService.readMyMatches(username, matchSearch, pageable);
     }
+
+    @PreAuthorize("isAuthenticated() and hasAuthority('match.read')")
 
     @Operation(summary = "특정 매치이력 조회", description = "특정 매치이력 조회")
     @GetMapping("/matches/{matchId}")

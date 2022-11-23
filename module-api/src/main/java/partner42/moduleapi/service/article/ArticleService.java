@@ -20,6 +20,8 @@ import partner42.moduleapi.dto.matchcondition.MatchConditionDto;
 import partner42.moduleapi.dto.member.MemberDto;
 import partner42.moduleapi.mapper.MatchConditionMapper;
 import partner42.moduleapi.mapper.MemberMapper;
+import partner42.modulecommon.domain.model.user.Role;
+import partner42.modulecommon.domain.model.user.UserRole;
 import partner42.modulecommon.utils.slack.SlackBotApi;
 import partner42.modulecommon.domain.model.activity.Activity;
 import partner42.modulecommon.domain.model.activity.ActivityType;
@@ -341,7 +343,11 @@ public class ArticleService {
             .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
         Article article = articleRepository.findByApiId(articleId)
             .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
-        if (!user.getUserRoles().contains(RoleEnum.ROLE_ADMIN) &&
+        if (!user.getUserRoles().stream()
+            .map(UserRole::getRole)
+            .map(Role::getValue)
+            .collect(Collectors.toSet())
+            .contains(RoleEnum.ROLE_ADMIN)  &&
             !article.getAuthorMember().equals(user.getMember())){
             throw new NotAuthorException(ErrorCode.NOT_ARTICLE_AUTHOR);
         }

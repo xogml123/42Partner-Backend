@@ -1,10 +1,12 @@
 package partner42.moduleapi.controller.opinion;
 
 
+import io.swagger.annotations.ApiParam;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -30,34 +32,40 @@ import partner42.modulecommon.domain.model.user.User;
 public class OpinionController {
 
     private final OpinionService opinionService;
-
+    @PreAuthorize("isAuthenticated() and hasAuthority('opinion.create')")
     @Operation(summary = "댓글 생성", description = "댓글 생성")
     @PostMapping("/opinions")
     public OpinionOnlyIdResponse createOpinion(@Validated @Parameter @RequestBody OpinionDto request,
         @Parameter(hidden = true) @AuthenticationPrincipal String username) {
         return opinionService.createOpinion(request, username);
     }
-
+    @PreAuthorize("isAuthenticated() and hasAuthority('opinion.update')")
     @Operation(summary = "댓글 수정", description = "댓글 수정")
     @PutMapping("/opinions/{opinionId}")
     public OpinionOnlyIdResponse updateOpinion(@Validated @Parameter @RequestBody OpinionUpdateRequest request,
-        @PathVariable String opinionId) {
-        return opinionService.updateOpinion(request, opinionId);
+        @PathVariable String opinionId,
+        @ApiParam(hidden = true) @AuthenticationPrincipal String username) {
+        return opinionService.updateOpinion(request, opinionId, username);
     }
 
+    @PreAuthorize("isAuthenticated() and hasAuthority('opinion.update')")
     @Operation(summary = "댓글 임시 삭제", description = "댓글 임시 삭제")
     @PostMapping("/opinions/{opinionId}/recoverable-delete")
     public OpinionOnlyIdResponse recoverableDeleteOpinion(
-        @PathVariable String opinionId) {
-        return opinionService.recoverableDeleteOpinion(opinionId);
+        @PathVariable String opinionId,
+        @ApiParam(hidden = true) @AuthenticationPrincipal String username
+        ) {
+        return opinionService.recoverableDeleteOpinion(opinionId, username);
     }
 
+    @PreAuthorize("hasAuthority('opinion.read')")
     @Operation(summary = "댓글 전체 조회", description = "댓글 전체 조회")
     @GetMapping("/articles/{articleId}/opinions")
     public ListResponse<OpinionResponse> getAllOpinionsInArticle(@PathVariable String articleId) {
         return opinionService.findAllOpinionsInArticle(articleId);
     }
 
+    @PreAuthorize("hasAuthority('opinion.read')")
     @Operation(summary = "댓글 하나 조회", description = "댓글 하나 조회")
     @GetMapping("/opinions/{opinionId}")
     public OpinionResponse getOneOpinion(
@@ -65,11 +73,13 @@ public class OpinionController {
         return opinionService.getOneOpinion(opinionId);
     }
 
+    @PreAuthorize("isAuthenticated() and hasAuthority('opinion.delete')")
     @Operation(summary = "댓글 완전 삭제", description = "댓글 완전 삭제 (관리자 전용)")
     @DeleteMapping("/opinions/{opinionId}")
     public OpinionOnlyIdResponse completeDeleteOpinion(
-        @PathVariable String opinionId) {
-        return opinionService.completeDeleteOpinion(opinionId);
+        @PathVariable String opinionId,
+        @ApiParam(hidden = true) @AuthenticationPrincipal String username) {
+        return opinionService.completeDeleteOpinion(opinionId, username);
     }
 
 }

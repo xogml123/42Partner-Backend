@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -26,6 +27,7 @@ public class RandomMatchController {
 
     private final RandomMatchService randomMatchService;
 
+    @PreAuthorize("isAuthenticated() and hasAuthority('random.create')")
     @Operation(summary = "랜덤 매칭 신청", description = "랜덤 매칭 신청")
     @PostMapping("/random-matches")
     public ResponseEntity<Void> applyRandomMatch(
@@ -35,6 +37,7 @@ public class RandomMatchController {
         return randomMatchService.createRandomMatch(username, randomMatchDto);
     }
 
+    @PreAuthorize("isAuthenticated() and hasAuthority('random.delete')")
     @Operation(summary = "랜덤 매칭 취소", description = "랜덤 매칭 취소")
     @PostMapping("/random-matches/mine")
     public ResponseEntity<Void> cancelRandomMatch(@Validated @Parameter @RequestBody RandomMatchCancelRequest randomMatchCancelRequest,

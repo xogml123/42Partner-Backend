@@ -64,6 +64,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         //초기개발시에만 비활성화
 //        http.headers()
 //            .httpStrictTransportSecurity().disable();
+        http.authorizeRequests().antMatchers("/**").permitAll();
         http.authorizeRequests(
                 authorize -> authorize
                     .antMatchers("/v2/api-docs").permitAll()
@@ -76,7 +77,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     .antMatchers("/v3/api-docs/**").permitAll()
                     .antMatchers("/swagger-ui/**").permitAll()
                     .antMatchers("/**").permitAll()
-            )
+            );
 
 //                    .antMatchers(HttpMethod.POST) "/api/users").permitAll()
 //                    .antMatchers(HttpMethod.POST, "/api/security/login").permitAll()
@@ -95,7 +96,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 callback(redirect) URI: /login/oauth2/code/authclient - 아예 정해진거라 못바꿈
                 login URI: /oauth2/authorization/authclient - 설정을 하면 바꿀 수 있을 것 같음.
              */
-            .oauth2Login()
+
+            http.oauth2Login()
             .userInfoEndpoint()
             .userService(oAuth2UserService)
             .and()
