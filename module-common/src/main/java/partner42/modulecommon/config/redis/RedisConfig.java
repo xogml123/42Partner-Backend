@@ -5,7 +5,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import java.sql.SQLException;
 import java.time.Duration;
+import javax.persistence.EntityManagerFactory;
+import javax.sql.DataSource;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,8 +22,14 @@ import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactor
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.orm.jpa.JpaTransactionManager;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 
+@RequiredArgsConstructor
 @Configuration
+@EnableTransactionManagement
 public class RedisConfig {
     @Value("${spring.redis.host}")
     private String masterHost;
@@ -40,6 +50,8 @@ public class RedisConfig {
     @Value("${redis.expire.default}")
     private long defaultExpireSecond;
 
+    private final EntityManagerFactory entityManagerFactory;
+    private final DataSource dataSource;
 
     /*
      * Class <=> Json간 변환을 담당한다.
@@ -101,6 +113,15 @@ public class RedisConfig {
         LettuceConnectionFactory lettuceConnectionFactory =
             new LettuceConnectionFactory(redisStandaloneConfiguration);
         return lettuceConnectionFactory;
+    }
+
+    @Bean // 만약 PlatformTransactionManager 등록이 안되어 있다면 해야함, 되어있다면 할 필요 없음
+    public PlatformTransactionManager transactionManager() throws SQLException {
+        // 사용하고 있는 datasource 관련 내용, 아래는 JDBC
+        return new DataSourceTransactionManager(dataSource);
+
+        // JPA 사용하고 있다면 아래처럼 사용하고 있음
+//        return new JpaTransactionManager(entityManagerFactory);
     }
 
     @Bean

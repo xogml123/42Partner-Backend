@@ -15,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 import partner42.moduleapi.dto.user.CustomAuthenticationPrincipal;
@@ -51,8 +52,7 @@ public class RedirectAuthenticationSuccessHandler implements AuthenticationSucce
                 new Date(System.currentTimeMillis() + Integer.parseInt(accessTokenExpire)))
 
             .withClaim("authorities", user.getAuthorities().stream()
-                .map(authority ->
-                    authority.getAuthority())
+                .map(SimpleGrantedAuthority::getAuthority)
                 .collect(Collectors.toList()))
             .sign(algorithm);
 
