@@ -57,16 +57,27 @@ public class RandomMatchService {
         List<RandomMatch> randomMatches = makeAllAvailRandomMatchesFromRandomMatchDto(
             randomMatchDto, member, now);
 
+
+
         //랜덤 매칭 신청한 것 DB에 기록.
         randomMatchRepository.saveAll(randomMatches);
-
         // 여러 매칭 조건들 redis 에 저장.
+        /**
+         * redis 트랜잭션이 종료됨과 동시에 mysql커넥션이 종료된다면
+         * redis에서 삭제되었지만 mysql에서 삭제되지 않은 상황이 발생할 수 있다.
+         * 2PhaseCommit으로 해결해보려고 했지만, redis는 2PhaseCommit을 지원하지 않는다.
+         * eventQueue같은 것들을 나중에 활용하여 해결해볼 계획입니다.
+         */
+        saveApplyToRedis(randomMatches);
+        return new ResponseEntity<>(HttpStatus.CREATED);
+    }
+
+    @Transactional
+    public void saveApplyToRedis(List<RandomMatch> randomMatches){
         randomMatches.forEach(randomMatch ->
             randomMatchRedisRepository.addToSortedSet(randomMatch.toKey(),
                 randomMatch.toValue(), 0.0)
         );
-
-        return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
     private void verifyAlreadyApplied(ContentCategory contentCategory, Member member,
@@ -107,21 +118,31 @@ public class RandomMatchService {
         }
         log.info("{}", RedisKeyFactory.toKey(Key.MEMBER, memberId.toString()));
 
-        //redis 모두 삭제시도
-        randomMatches
-                .forEach((randomMatch ->
-                    randomMatchRedisRepository.deleteSortedSet(randomMatch.toKey(),
-                        randomMatch.toValue())));
+
 //        randomMatchRedisRepository.deleteAllSortedSet(RedisKeyFactory.RANDOM_MATCHES,
 //            randomMatches.stream()
 //                .map(randomMatch -> randomMatch.toStringKey())
 //                .toArray(String[]::new));
         //db상에서 만료
         randomMatches
-            .forEach(randomMatch ->
-                randomMatch.cancel());
+            .forEach(RandomMatch::cancel);
 
+        //redis 모두 삭제시도
+        /**
+         * redis 트랜잭션이 종료됨과 동시에 mysql커넥션이 종료된다면
+         * redis에는 생성되었지만 mysql에서는 생성되지 않는 상황이 발생할 수 있다.
+         * 2PhaseCommit으로 해결해보려고 했지만, redis는 2PhaseCommit을 지원하지 않는다.
+         * eventQueue같은 것들을 나중에 활용하여 해결해볼 계획입니다.
+         */
+        deleteRedisApply(randomMatches);
         return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    @Transactional
+    public void deleteRedisApply(List<RandomMatch> randomMatches){
+        randomMatches.forEach(randomMatch ->
+            randomMatchRedisRepository.deleteSortedSet(randomMatch.toKey(),
+                randomMatch.toValue()));
     }
 
 
