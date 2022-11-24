@@ -12,14 +12,5 @@ import partner42.modulecommon.repository.random.RandomMatchRedisRepository;
 @SpringBootTest
 class RandomMatchServiceTest {
 
-    @Autowired
-    private RandomMatchRedisRepository randomMatchRedisRepository;
 
-    @Value("${jwt.secret}")
-    private String secret;
-
-    @Test
-    void redisTransactionalWork(){
-        randomMatchRedisRepository.redisTransactionalWork("abc");
-    }
 }

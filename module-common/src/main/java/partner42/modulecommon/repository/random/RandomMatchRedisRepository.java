@@ -42,21 +42,5 @@ public class RandomMatchRedisRepository {
         redisTemplate.opsForSet().remove(key, value);
     }
 
-    public void redisTransactionalWork(String secret)  {
-        redisTemplate.execute(new SessionCallback() {
-            public List<Object> execute(RedisOperations operations) throws DataAccessException {
-                operations.multi(); // redis transaction 시작
-                addToSet("test1", "test");
-                addToSet("test", "test");
 
-                if (secret.equals("secret")) {
-                    throw new RuntimeException();
-                }
-                addToSet("test2", "test");
-                addToSet("test3", "test");
-
-                return operations.exec(); // redis transaction 종료
-            }
-        });
-    }
 }
