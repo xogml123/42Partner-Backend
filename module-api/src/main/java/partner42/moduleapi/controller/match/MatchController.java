@@ -34,6 +34,7 @@ public class MatchController {
         MatchSearch matchSearch,
         Pageable pageable
     ) {
+        log.info("AuthenticationPrincipal{}", username);
         return matchService.readMyMatches(username, matchSearch, pageable);
     }
 

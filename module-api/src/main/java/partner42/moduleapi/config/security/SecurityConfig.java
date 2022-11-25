@@ -1,14 +1,12 @@
 package partner42.moduleapi.config.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.Collection;
 import java.util.List;
 import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -24,10 +22,7 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.filter.OncePerRequestFilter;
 import partner42.moduleapi.dto.ErrorResponseDto;
-import partner42.moduleapi.dto.LoginResponseDto;
-import partner42.moduleapi.dto.user.CustomAuthenticationPrincipal;
 
 // spring security 필터를 스프링 필터체인에 동록
 @Configuration
@@ -59,8 +54,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http.exceptionHandling().authenticationEntryPoint(authenticationEntryPoint);
         http.addFilterBefore(customAuthorizationFilter, UsernamePasswordAuthenticationFilter.class);
         //session생성하지 않음. -> jwt 사용.
+        //https://www.baeldung.com/spring-security-session
         http.sessionManagement()
-            .sessionCreationPolicy(SessionCreationPolicy.NEVER);
+            .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
         //http 요청을 하더라도 https요청으로 하도록 브라우저에게 알려주는 헤더
         //초기개발시에만 비활성화
 //        http.headers()

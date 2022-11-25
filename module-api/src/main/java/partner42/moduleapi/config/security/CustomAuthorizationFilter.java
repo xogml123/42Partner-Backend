@@ -20,6 +20,7 @@ import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Slice;
@@ -74,8 +75,15 @@ public class CustomAuthorizationFilter extends OncePerRequestFilter {
                         authorities.add(new SimpleGrantedAuthority(authority));
                     });
                     //만료 되었는지 체크
-                    //
-                    //SecurityContextHoler에 로그인 인증 정보 저장.
+
+                    /**
+                     * SecurityContextHoler에 로그인 인증 정보 저장.
+                     * SpringSecurity 에서 Authentication을 등록하지 않아서인지
+                     * 세션생성을 방지하는 옵션을 사용하였음에도 세션을 생성하여 반환함.
+                     * 만료된 토큰임에도 로그인이 풀리지 않아 세션을 생성하지 않도록 설정하려고 하였으나 실패함.
+                     * https://www.baeldung.com/spring-security-session
+                     * 이미 생성된 세션은 사용하지 않도록 SessionCreationPolicy NEVER->STATELESS로 변경하여 해결.
+                     */
                     UsernamePasswordAuthenticationToken authenticationToken =
                         new UsernamePasswordAuthenticationToken(username, null, authorities);
                     log.info(authorities.stream()
