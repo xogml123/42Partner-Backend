@@ -1,6 +1,7 @@
 package partner42.modulecommon.domain.model.user;
 
 
+import javax.persistence.GenerationType;
 import partner42.modulecommon.domain.model.BaseTimeVersionEntity;
 import java.io.Serializable;
 import java.util.HashSet;
@@ -29,7 +30,7 @@ import lombok.Singular;
 public class Authority extends BaseTimeVersionEntity implements Serializable {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name="AUTHORITY_ID")
     private Long id;
 

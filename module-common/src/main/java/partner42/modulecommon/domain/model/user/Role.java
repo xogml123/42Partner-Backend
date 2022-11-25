@@ -64,7 +64,7 @@ public class Role extends BaseTimeVersionEntity implements Serializable {
     /********************************* 연관관계 매핑 *********************************/
 
     @Singular
-    @ManyToMany(cascade = {CascadeType.MERGE}, fetch = FetchType.EAGER)
+    @ManyToMany( fetch = FetchType.EAGER)
     @JoinTable(name = "ROLE_AUTHORITY",
         joinColumns = {
             @JoinColumn(name = "ROLE_ID", referencedColumnName = "ROLE_ID", nullable = false)},

@@ -115,14 +115,14 @@ public class RedisConfig {
         return lettuceConnectionFactory;
     }
 
-    @Bean // 만약 PlatformTransactionManager 등록이 안되어 있다면 해야함, 되어있다면 할 필요 없음
-    public PlatformTransactionManager transactionManager() throws SQLException {
-        // 사용하고 있는 datasource 관련 내용, 아래는 JDBC
-        return new DataSourceTransactionManager(dataSource);
-
-        // JPA 사용하고 있다면 아래처럼 사용하고 있음
+//    @Bean // 만약 PlatformTransactionManager 등록이 안되어 있다면 해야함, 되어있다면 할 필요 없음
+//    public PlatformTransactionManager transactionManager() throws SQLException {
+//        // 사용하고 있는 datasource 관련 내용, 아래는 JDBC
+////        return new DataSourceTransactionManager(dataSource);
+//
+//        // JPA 사용하고 있다면 아래처럼 사용하고 있음
 //        return new JpaTransactionManager(entityManagerFactory);
-    }
+//    }
 
     @Bean
     public RedisTemplate<String, Object> redisTemplate(ObjectMapper objectMapper) {

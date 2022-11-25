@@ -59,20 +59,24 @@ public class DataLoader implements CommandLineRunner {
         Authority readUser = saveNewAuthority("user.read");
         Authority deleteUser = saveNewAuthority("user.delete");
 
+        System.out.println("--------------------------------------------------------");
         Authority createOpinion = saveNewAuthority("opinion.create");
         Authority updateOpinion = saveNewAuthority("opinion.update");
         Authority readOpinion = saveNewAuthority("opinion.read");
         Authority deleteOpinion = saveNewAuthority("opinion.delete");
+        System.out.println("--------------------------------------------------------");
 
         Authority createArticle = saveNewAuthority("article.create");
         Authority updateArticle = saveNewAuthority("article.update");
         Authority readArticle = saveNewAuthority("article.read");
         Authority deleteArticle = saveNewAuthority("article.delete");
+        System.out.println("--------------------------------------------------------");
 
         Authority createMatch = saveNewAuthority("match.create");
         Authority updateMatch = saveNewAuthority("match.update");
         Authority readMatch = saveNewAuthority("match.read");
         Authority deleteMatch = saveNewAuthority("match.delete");
+        System.out.println("--------------------------------------------------------");
 
         Authority createActivity = saveNewAuthority("activity.create");
         Authority updateActivity = saveNewAuthority("activity.update");
@@ -242,6 +246,7 @@ public class DataLoader implements CommandLineRunner {
     }
 
 
+    @Transactional
     @Override
     public void run(String... args) throws Exception {
         if (dataLoader.equals("1")) {

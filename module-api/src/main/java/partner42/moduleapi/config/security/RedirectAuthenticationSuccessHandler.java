@@ -68,6 +68,6 @@ public class RedirectAuthenticationSuccessHandler implements AuthenticationSucce
                 "?access_token=" + accessToken +
                 "&refresh_token=" + refreshToken +
                 "&create_flag=" + createFlag +
-                "userId=" + user.getApiId());
+                "&userId=" + user.getApiId());
     }
 }

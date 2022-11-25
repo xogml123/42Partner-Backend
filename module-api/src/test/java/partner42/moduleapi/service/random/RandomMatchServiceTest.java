@@ -8,9 +8,31 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 import partner42.modulecommon.repository.random.RandomMatchRedisRepository;
+import partner42.modulecommon.utils.redis.RedisTransactionUtil;
 
-@SpringBootTest
+
+@SpringBootTest()
 class RandomMatchServiceTest {
 
+    @Autowired
+    private RedisTransactionUtil redisTransactionUtil;
+    @Autowired
+    private RandomMatchRedisRepository randomMatchRedisRepository;
+    @Test
+    void redis() {
+        //given
+        int a = 2;
+        redisTransactionUtil.wrapTransaction(() -> {
+            randomMatchRedisRepository.addToSet("test1", "a");
+            if (a == 3){
+                throw new RuntimeException();
+            }
+            randomMatchRedisRepository.addToSet("test2", "a");
 
+
+        });
+        //when
+
+        //then
+    }
 }
