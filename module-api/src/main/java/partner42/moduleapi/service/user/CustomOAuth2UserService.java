@@ -50,7 +50,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
         String imageUrl = "";
         //https://cdn.intra.42.fr/users/0f260cc3e59777f0f5ba926f19cc1ec9/takim.jpg
-        if (attributes.get("image_url") instanceof Map) {
+        if (attributes.get("image") instanceof Map) {
             imageUrl = (String)((Map)(attributes.get("image"))).get("link") == null ?
                 "" : (String)((Map)(attributes.get("image"))).get("link");
         }
