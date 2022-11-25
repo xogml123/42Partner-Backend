@@ -47,7 +47,7 @@ public class ArticleController {
         return articleService.readAllArticle(pageable, condition);
     }
 
-    @PreAuthorize("isAuthenticated() and hasAuthority('article.create')")
+    @PreAuthorize("hasAuthority('article.create')")
     @Operation(summary = "방 매칭 글쓰기", description = "방 매칭 글쓰기")
     @PostMapping("/articles")
     public ArticleOnlyIdResponse writeArticle(
@@ -56,7 +56,7 @@ public class ArticleController {
         return articleService.createArticle(username, articleRequest);
     }
 
-    @PreAuthorize("isAuthenticated() and hasAuthority('article.update')")
+    @PreAuthorize("hasAuthority('article.update')")
     @Operation(summary = "방 매칭 글수정", description = "방 매칭 글 수정")
     @PutMapping("/articles/{articleId}")
     public ArticleOnlyIdResponse updateArticle(@Validated @Parameter @RequestBody ArticleDto articleRequest,
@@ -65,14 +65,14 @@ public class ArticleController {
         return articleService.updateArticle(articleRequest, username, articleId);
     }
 
-    @PreAuthorize("isAuthenticated() and hasAuthority('article.delete')")
+    @PreAuthorize("hasAuthority('article.delete')")
     @Operation(summary = "방 매칭 삭제", description = "방 매칭 삭제")
     @DeleteMapping("/articles/{articleId}")
     public ArticleOnlyIdResponse deleteArticle(@PathVariable String articleId,
         @Parameter(hidden = true) @AuthenticationPrincipal String username) {
         return articleService.deleteArticle(username, articleId);
     }
-    @PreAuthorize("isAuthenticated() and hasAuthority('article.update')")
+    @PreAuthorize("hasAuthority('article.update')")
     @Operation(summary = "방 매칭 글 임시 삭제", description = "방 매칭 글 임시 삭제")
     @PostMapping("/articles/{articleId}/recoverable-delete")
     public ArticleOnlyIdResponse recoverableDeleteArticle(@PathVariable String articleId,
@@ -81,7 +81,7 @@ public class ArticleController {
         return articleService.changeIsDelete(username, articleId);
     }
 
-    @PreAuthorize("isAuthenticated() and hasAuthority('article.update')")
+    @PreAuthorize("hasAuthority('article.update')")
     @Operation(summary = "방 매칭 참여", description = "방 매칭 참여")
     @PostMapping("/articles/{articleId}/participate")
     public ArticleOnlyIdResponse participateArticle(@PathVariable String articleId,
@@ -90,7 +90,7 @@ public class ArticleController {
         return articleService.participateArticle(username, articleId);
     }
 
-    @PreAuthorize("isAuthenticated() and hasAuthority('article.update')")
+    @PreAuthorize("hasAuthority('article.update')")
     @Operation(summary = "방 매칭 참여 최소", description = "방 매칭 참여 최소")
     @PostMapping("/articles/{articleId}/participate-cancel")
     public ArticleOnlyIdResponse participateCancelArticle(@PathVariable String articleId,
@@ -99,7 +99,7 @@ public class ArticleController {
         return articleService.participateCancelArticle(username, articleId);
     }
 
-    @PreAuthorize("isAuthenticated() and hasAuthority('article.update')")
+    @PreAuthorize("hasAuthority('article.update')")
     //작성자인지 확인하는 권한 처리.
     @Operation(summary = "방 매칭 글 확정", description = "방 매칭 글 확정")
     @PostMapping("/articles/{articleId}/complete")

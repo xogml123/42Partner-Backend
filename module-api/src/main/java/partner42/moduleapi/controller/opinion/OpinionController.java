@@ -32,14 +32,14 @@ import partner42.modulecommon.domain.model.user.User;
 public class OpinionController {
 
     private final OpinionService opinionService;
-    @PreAuthorize("isAuthenticated() and hasAuthority('opinion.create')")
+    @PreAuthorize("hasAuthority('opinion.create')")
     @Operation(summary = "댓글 생성", description = "댓글 생성")
     @PostMapping("/opinions")
     public OpinionOnlyIdResponse createOpinion(@Validated @Parameter @RequestBody OpinionDto request,
         @Parameter(hidden = true) @AuthenticationPrincipal String username) {
         return opinionService.createOpinion(request, username);
     }
-    @PreAuthorize("isAuthenticated() and hasAuthority('opinion.update')")
+    @PreAuthorize("hasAuthority('opinion.update')")
     @Operation(summary = "댓글 수정", description = "댓글 수정")
     @PutMapping("/opinions/{opinionId}")
     public OpinionOnlyIdResponse updateOpinion(@Validated @Parameter @RequestBody OpinionUpdateRequest request,
@@ -48,7 +48,7 @@ public class OpinionController {
         return opinionService.updateOpinion(request, opinionId, username);
     }
 
-    @PreAuthorize("isAuthenticated() and hasAuthority('opinion.update')")
+    @PreAuthorize("hasAuthority('opinion.update')")
     @Operation(summary = "댓글 임시 삭제", description = "댓글 임시 삭제")
     @PostMapping("/opinions/{opinionId}/recoverable-delete")
     public OpinionOnlyIdResponse recoverableDeleteOpinion(
@@ -73,7 +73,7 @@ public class OpinionController {
         return opinionService.getOneOpinion(opinionId);
     }
 
-    @PreAuthorize("isAuthenticated() and hasAuthority('opinion.delete')")
+    @PreAuthorize("hasAuthority('opinion.delete')")
     @Operation(summary = "댓글 완전 삭제", description = "댓글 완전 삭제 (관리자 전용)")
     @DeleteMapping("/opinions/{opinionId}")
     public OpinionOnlyIdResponse completeDeleteOpinion(

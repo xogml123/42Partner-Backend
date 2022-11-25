@@ -27,7 +27,7 @@ public class RandomMatchController {
 
     private final RandomMatchService randomMatchService;
 
-    @PreAuthorize("isAuthenticated() and hasAuthority('random.create')")
+    @PreAuthorize("hasAuthority('random.create')")
     @Operation(summary = "랜덤 매칭 신청", description = "랜덤 매칭 신청")
     @PostMapping("/random-matches")
     public ResponseEntity<Void> applyRandomMatch(
@@ -37,7 +37,7 @@ public class RandomMatchController {
         return randomMatchService.createRandomMatch(username, randomMatchDto);
     }
 
-    @PreAuthorize("isAuthenticated() and hasAuthority('random.delete')")
+    @PreAuthorize("hasAuthority('random.delete')")
     @Operation(summary = "랜덤 매칭 취소", description = "랜덤 매칭 취소")
     @PostMapping("/random-matches/mine")
     public ResponseEntity<Void> cancelRandomMatch(@Validated @Parameter @RequestBody RandomMatchCancelRequest randomMatchCancelRequest,

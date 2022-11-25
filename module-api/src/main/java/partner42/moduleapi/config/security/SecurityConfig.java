@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
@@ -64,7 +65,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         //초기개발시에만 비활성화
 //        http.headers()
 //            .httpStrictTransportSecurity().disable();
-        http.authorizeRequests().antMatchers("/**").permitAll();
         http.authorizeRequests(
                 authorize -> authorize
                     .antMatchers("/v2/api-docs").permitAll()
@@ -78,6 +78,43 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     .antMatchers("/swagger-ui/**").permitAll()
                     .antMatchers("/**").permitAll()
             );
+        http.authorizeRequests(authorize ->
+            authorize
+                //UserController
+                .antMatchers(HttpMethod.GET, "/api/users/*").authenticated()
+                .antMatchers(HttpMethod.PATCH, "/api/users/*/email").authenticated()
+                //RandomMatchController
+                .antMatchers(HttpMethod.POST, "/api/random-matches").authenticated()
+                .antMatchers(HttpMethod.POST, "/api/random-matches/mine").authenticated()
+                //OpinionController
+                .antMatchers(HttpMethod.POST, "/api/opinions").authenticated()
+                .antMatchers(HttpMethod.PUT, "/api/opinions/*").authenticated()
+                .antMatchers(HttpMethod.POST, "/api/opinions/*/recoverable-delete").authenticated()
+                .antMatchers(HttpMethod.DELETE, "/api/opinions/*").authenticated()
+                //MatchController
+                .antMatchers(HttpMethod.GET, "/api/matches").authenticated()
+                .antMatchers(HttpMethod.GET, "/api/matches/*").authenticated()
+                //ArticleController
+                .antMatchers(HttpMethod.POST, "/api/articles").authenticated()
+                .antMatchers(HttpMethod.PUT, "/api/articles/*").authenticated()
+                .antMatchers(HttpMethod.DELETE, "/api/articles/*").authenticated()
+                .antMatchers(HttpMethod.POST, "/api/articles/*/recoverable-delete").authenticated()
+                .antMatchers(HttpMethod.POST, "/articles/*/participate").authenticated()
+                .antMatchers(HttpMethod.POST, "/articles/*/participate-cancel").authenticated()
+                .antMatchers(HttpMethod.POST, "/articles/*/complete").authenticated()
+                //ActivityController
+                .antMatchers(HttpMethod.GET, "/activities/score").authenticated()
+
+
+
+
+
+
+
+
+
+        );
+        http.authorizeRequests().antMatchers("/**").permitAll();
 
 //                    .antMatchers(HttpMethod.POST) "/api/users").permitAll()
 //                    .antMatchers(HttpMethod.POST, "/api/security/login").permitAll()
