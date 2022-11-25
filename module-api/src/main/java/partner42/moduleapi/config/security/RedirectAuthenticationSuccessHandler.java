@@ -41,7 +41,8 @@ public class RedirectAuthenticationSuccessHandler implements AuthenticationSucce
         Authentication authentication) throws IOException, ServletException {
         CustomAuthenticationPrincipal user = (CustomAuthenticationPrincipal) authentication.getPrincipal();
         String referer =
-            request.getHeader(HttpHeaders.REFERER) == null ? corsFrontend : request.getHeader("Referer");
+            request.getHeader(HttpHeaders.REFERER) == null ? corsFrontend
+                : request.getHeader("Referer");
         log.info("referer: {}", request.getHeader(HttpHeaders.REFERER));
         boolean createFlag = (boolean) (user.getAttributes().get("create_flag"));
         Algorithm algorithm = Algorithm.HMAC256(jwtSecret.getBytes());
@@ -66,6 +67,7 @@ public class RedirectAuthenticationSuccessHandler implements AuthenticationSucce
             referer +
                 "?access_token=" + accessToken +
                 "&refresh_token=" + refreshToken +
-            "&create_flag=" + createFlag);
+                "&create_flag=" + createFlag +
+                "userId=" + user.getApiId());
     }
 }
