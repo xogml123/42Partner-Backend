@@ -12,7 +12,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -41,12 +43,21 @@ public class CustomAuthorizationFilter extends OncePerRequestFilter {
     @Value("${jwt.secret}")
     private String secret;
 
+//    public static final Set<String> permitAllList = new HashSet<>();
+//    static{
+//        permitAllList.addAll(Arrays.asList(
+//            "/oauth2/authorization/authclient",
+//            "login/oauth2/code/authclient",
+//            ));
+//    }
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
         FilterChain filterChain) throws ServletException, IOException {
         if (request.getServletPath().equals("/oauth2/authorization/authclient") ||
-            request.getServletPath().equals("login/oauth2/code/authclient")) {
+            request.getServletPath().equals("login/oauth2/code/authclient")){
             filterChain.doFilter(request, response);
+
         } else {
             String authorizationHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
             if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
@@ -74,11 +85,13 @@ public class CustomAuthorizationFilter extends OncePerRequestFilter {
                     filterChain.doFilter(request, response);
                 } catch (Exception exception) {
                     log.error("Error logging in: {}", exception.getMessage());
-                    response.sendError(HttpStatus.UNAUTHORIZED.value());
-                    Map<String, String> error = new HashMap<>();
-                    error.put("error_message", exception.getMessage());
-                    response.setContentType(APPLICATION_JSON_VALUE);
-                    new ObjectMapper().writeValue(response.getOutputStream(), error);
+//                    response.sendError(HttpStatus.UNAUTHORIZED.value());
+//                    Map<String, String> error = new HashMap<>();
+//                    error.put("error_message", exception.getMessage());
+//                    response.setContentType(APPLICATION_JSON_VALUE);
+//                    new ObjectMapper().writeValue(response.getOutputStream(), error);
+                    filterChain.doFilter(request, response);
+
                 }
                 //token 자체가 없는 경우. 일단 통과
                 //Authentiaation이 없기 때문에 인증해야만 접근 가능한 리소스에 접근하면 401 에러 발생

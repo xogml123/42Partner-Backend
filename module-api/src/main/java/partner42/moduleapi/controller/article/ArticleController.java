@@ -32,7 +32,7 @@ import partner42.modulecommon.repository.article.ArticleSearch;
 public class ArticleController {
 
     private final ArticleService articleService;
-    @PreAuthorize("hasAuthority('article.read')")
+//    @PreAuthorize("hasAuthority('article.read')")
     @Operation(summary = "방 하나 상세조회", description = "방 상세페이지")
     @GetMapping("/articles/{articleId}")
     public ArticleReadOneResponse readOneArticle(
@@ -40,7 +40,7 @@ public class ArticleController {
         return articleService.readOneArticle(articleId);
     }
 
-    @PreAuthorize("hasAuthority('article.read')")
+//    @PreAuthorize("hasAuthority('article.read')")
     @Operation(summary = "방 목록조회", description = "방 목록 페이지, ")
     @GetMapping("/articles")
     public SliceImpl<ArticleReadResponse> readAllArticle(Pageable pageable, ArticleSearch condition) {

@@ -66,20 +66,17 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 //        http.headers()
 //            .httpStrictTransportSecurity().disable();
         http.authorizeRequests(
-                authorize -> authorize
-                    .antMatchers("/v2/api-docs").permitAll()
-                    .antMatchers("/swagger-resources").permitAll()
-                    .antMatchers("/swagger-resources/**").permitAll()
-                    .antMatchers("/configuration/ui").permitAll()
-                    .antMatchers("/configuration/security").permitAll()
-                    .antMatchers("/swagger-ui.html").permitAll()
-                    .antMatchers("/webjars/**").permitAll()
-                    .antMatchers("/v3/api-docs/**").permitAll()
-                    .antMatchers("/swagger-ui/**").permitAll()
-                    .antMatchers("/**").permitAll()
-            );
-        http.authorizeRequests(authorize ->
-            authorize
+            authorize -> authorize
+                //swagger
+                .antMatchers("/v2/api-docs").permitAll()
+                .antMatchers("/swagger-resources").permitAll()
+                .antMatchers("/swagger-resources/**").permitAll()
+                .antMatchers("/configuration/ui").permitAll()
+                .antMatchers("/configuration/security").permitAll()
+                .antMatchers("/swagger-ui.html").permitAll()
+                .antMatchers("/webjars/**").permitAll()
+                .antMatchers("/v3/api-docs/**").permitAll()
+                .antMatchers("/swagger-ui/**").permitAll()
                 //UserController
                 .antMatchers(HttpMethod.GET, "/api/users/*").authenticated()
                 .antMatchers(HttpMethod.PATCH, "/api/users/*/email").authenticated()
@@ -99,36 +96,14 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.PUT, "/api/articles/*").authenticated()
                 .antMatchers(HttpMethod.DELETE, "/api/articles/*").authenticated()
                 .antMatchers(HttpMethod.POST, "/api/articles/*/recoverable-delete").authenticated()
-                .antMatchers(HttpMethod.POST, "/articles/*/participate").authenticated()
-                .antMatchers(HttpMethod.POST, "/articles/*/participate-cancel").authenticated()
-                .antMatchers(HttpMethod.POST, "/articles/*/complete").authenticated()
+                .antMatchers(HttpMethod.POST, "/api/articles/*/participate").authenticated()
+                .antMatchers(HttpMethod.POST, "/api/articles/*/participate-cancel").authenticated()
+                .antMatchers(HttpMethod.POST, "/api/articles/*/complete").authenticated()
                 //ActivityController
-                .antMatchers(HttpMethod.GET, "/activities/score").authenticated()
-
-
-
-
-
-
-
-
-
+                .antMatchers(HttpMethod.GET, "/api/activities/score").authenticated()
+                .antMatchers("/**").permitAll()
         );
-        http.authorizeRequests().antMatchers("/**").permitAll();
 
-//                    .antMatchers(HttpMethod.POST) "/api/users").permitAll()
-//                    .antMatchers(HttpMethod.POST, "/api/security/login").permitAll()
-//                    .antMatchers(HttpMethod.POST, "/api/security/logout").authenticated()
-//                    .antMatchers(HttpMethod.POST, "/api/security/password-inquery").permitAll()
-//                    .antMatchers(HttpMethod.GET, "/api/security/email*").permitAll()
-//
-//                    .antMatchers("/api-docs/**").permitAll()
-//                    .antMatchers("/**").authenticated()
-            //.mvcMatchers(HttpMethod.GET, "/").hasRole("USER")
-            //.mvcMatchers(HttpMethod.GET, "/api/userinfos").hasAnyRole("USER", "MEMBER")
-//            .antMatchers("/user/**").authenticated()
-//            .antMatchers("/manager/**").access("hasRole('ROLE_ADMIN') or hasRole('ROLE_MANAGER')")
-//            .antMatchers("/admin/**").access("hasRole('ROLE_ADMIN')")
             /*
                 callback(redirect) URI: /login/oauth2/code/authclient - 아예 정해진거라 못바꿈
                 login URI: /oauth2/authorization/authclient - 설정을 하면 바꿀 수 있을 것 같음.
