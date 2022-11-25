@@ -63,3 +63,5 @@ hs_err_pid*
 ### application.yml ###
 application*.*
 !gradle/wrapper/gradle-wrapper.jar
+
+sql/
