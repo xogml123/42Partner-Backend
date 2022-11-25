@@ -64,4 +64,5 @@ hs_err_pid*
 application*.*
 !gradle/wrapper/gradle-wrapper.jar
 
-sql/
+### SQL ###
+/sql/*

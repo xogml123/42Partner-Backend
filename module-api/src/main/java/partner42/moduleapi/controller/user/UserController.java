@@ -27,7 +27,7 @@ public class UserController {
 
     private final UserService userService;
 
-    @PreAuthorize("isAuthenticated() and hasAuthority('user.read')")
+    @PreAuthorize("hasAuthority('user.read')")
     @Operation(summary = "특정 유저 userId로 조회", description = "특정 유저 userId로 조회")
     @GetMapping("/users/{userId}")
     public UserDto getUserById(@PathVariable String userId,
@@ -35,7 +35,7 @@ public class UserController {
         return userService.findById(userId, username);
     }
 
-    @PreAuthorize("isAuthenticated() and hasAuthority('user.update')")
+    @PreAuthorize("hasAuthority('user.update')")
     @Operation(summary = "특정 유저 email수정", description = "특정 유저 email 수정")
     @PatchMapping("/users/{userId}/email")
     public UserOnlyIdResponse getUserById(@PathVariable String userId,

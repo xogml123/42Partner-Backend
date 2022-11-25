@@ -26,7 +26,7 @@ public class MatchController {
 
     private final MatchService matchService;
 
-    @PreAuthorize("isAuthenticated() and hasAuthority('match.read')")
+    @PreAuthorize("hasAuthority('match.read')")
     @Operation(summary = "자신의 매치이력 조회", description = "자신의 매치이력 조회")
     @GetMapping("/matches")
     public SliceImpl<MatchDto> readMyMatches(
@@ -37,7 +37,7 @@ public class MatchController {
         return matchService.readMyMatches(username, matchSearch, pageable);
     }
 
-    @PreAuthorize("isAuthenticated() and hasAuthority('match.read')")
+    @PreAuthorize("hasAuthority('match.read')")
 
     @Operation(summary = "특정 매치이력 조회", description = "특정 매치이력 조회")
     @GetMapping("/matches/{matchId}")

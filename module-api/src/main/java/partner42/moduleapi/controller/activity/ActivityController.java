@@ -23,7 +23,7 @@ public class ActivityController {
 
     private final ActivityService activityService;
 
-    @PreAuthorize("isAuthenticated() and hasAuthority('activity.read')")
+    @PreAuthorize("hasAuthority('activity.read')")
     @Operation(summary = "자신의 활동점수 조회", description = "자신의 활동 점수 조회 월/년단위로 조회 / 밥, 공부여부 지정")
     @GetMapping("/activities/score")
     public ActivityScoreResponse readMyActivityScore(
