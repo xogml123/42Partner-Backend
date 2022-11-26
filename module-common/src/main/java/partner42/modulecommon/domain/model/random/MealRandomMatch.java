@@ -18,7 +18,7 @@ import org.apache.commons.lang3.StringUtils;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
-@Table(name = "MEAL_RANDOM_MATCH")
+//@Table(name = "MEAL_RANDOM_MATCH")
 public class MealRandomMatch extends RandomMatch {
 
 
@@ -33,38 +33,38 @@ public class MealRandomMatch extends RandomMatch {
     }
 
 
-    @Override
-    public String toStringKey() {
-        return toKey() +
-            toValue();
-    }
-
-    @Override
-    public String toKey() {
-        return
-            StringUtils.rightPad(contentCategory.name(),
-                RandomMatch.STRING_CONDITION_MAX_LENGTH,
-                RandomMatch.CONDITION_PAD_CHAR) +
-                StringUtils.rightPad(place.name(), RandomMatch.STRING_CONDITION_MAX_LENGTH,
-                    RandomMatch.CONDITION_PAD_CHAR) +
-                StringUtils.rightPad(wayOfEating.name(), RandomMatch.STRING_CONDITION_MAX_LENGTH,
-                    RandomMatch.CONDITION_PAD_CHAR);
-    }
-
-
-    @Override
-    public String toNumberKey() {
-        return StringUtils.rightPad(Integer.toString(place.ordinal()),
-            RandomMatch.INTEGER_CONDITION_MAX_LENGTH, RandomMatch.CONDITION_PAD_CHAR) +
-            StringUtils.rightPad(Integer.toString(wayOfEating.ordinal()),
-                RandomMatch.INTEGER_CONDITION_MAX_LENGTH, RandomMatch.CONDITION_PAD_CHAR) +
-            toValue();
-    }
-
-    @Override
-    public String toAsciiKey() {
-        return Character.toString(place.ordinal()) +
-            Character.toString(wayOfEating.ordinal()) +
-            toValue();
-    }
+//    @Override
+//    public String toStringKey() {
+//        return toKey() +
+//            toValue();
+//    }
+//
+//    @Override
+//    public String toKey() {
+//        return
+//            StringUtils.rightPad(contentCategory.name(),
+//                RandomMatch.STRING_CONDITION_MAX_LENGTH,
+//                RandomMatch.CONDITION_PAD_CHAR) +
+//                StringUtils.rightPad(place.name(), RandomMatch.STRING_CONDITION_MAX_LENGTH,
+//                    RandomMatch.CONDITION_PAD_CHAR) +
+//                StringUtils.rightPad(wayOfEating.name(), RandomMatch.STRING_CONDITION_MAX_LENGTH,
+//                    RandomMatch.CONDITION_PAD_CHAR);
+//    }
+//
+//
+//    @Override
+//    public String toNumberKey() {
+//        return StringUtils.rightPad(Integer.toString(place.ordinal()),
+//            RandomMatch.INTEGER_CONDITION_MAX_LENGTH, RandomMatch.CONDITION_PAD_CHAR) +
+//            StringUtils.rightPad(Integer.toString(wayOfEating.ordinal()),
+//                RandomMatch.INTEGER_CONDITION_MAX_LENGTH, RandomMatch.CONDITION_PAD_CHAR) +
+//            toValue();
+//    }
+//
+//    @Override
+//    public String toAsciiKey() {
+//        return Character.toString(place.ordinal()) +
+//            Character.toString(wayOfEating.ordinal()) +
+//            toValue();
+//    }
 }
