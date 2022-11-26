@@ -29,8 +29,8 @@ public class StudyRandomMatch extends RandomMatch {
 
     @Builder
     public StudyRandomMatch(ContentCategory contentCategory, Place place,
-        Member member, TypeOfStudy typeOfStudy, LocalDateTime createdAt) {
-        super(contentCategory, place, createdAt, member);
+        Member member, TypeOfStudy typeOfStudy) {
+        super(contentCategory, place, member);
         this.typeOfStudy = typeOfStudy;
     }
 

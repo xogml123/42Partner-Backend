@@ -28,8 +28,8 @@ public class MealRandomMatch extends RandomMatch {
     private WayOfEating wayOfEating = null;
 
     public MealRandomMatch(ContentCategory contentCategory, Place place,
-        Member member, WayOfEating wayOfEating, LocalDateTime createdAt) {
-        super(contentCategory, place, createdAt, member);
+        Member member, WayOfEating wayOfEating) {
+        super(contentCategory, place, member);
         this.wayOfEating = wayOfEating;
     }
 

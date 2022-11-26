@@ -115,7 +115,7 @@ public class RandomMatchService {
 
         //db상에서 만료
         randomMatches
-            .forEach(RandomMatch::cancel);
+            .forEach(RandomMatch::expire);
 
 //        //redis 모두 삭제시도
 //        /**
@@ -161,12 +161,12 @@ public class RandomMatchService {
             if (randomMatchDto.getContentCategory().equals(ContentCategory.STUDY)) {
                 for (TypeOfStudy typeOfStudy : matchConditionRandomMatchDto.getTypeOfStudyList()) {
                     randomMatches.add(new StudyRandomMatch(ContentCategory.STUDY,
-                        place, member, typeOfStudy, now));
+                        place, member, typeOfStudy));
                 }
             } else if (randomMatchDto.getContentCategory().equals(ContentCategory.MEAL)) {
                 for (WayOfEating wayOfEating : matchConditionRandomMatchDto.getWayOfEatingList()) {
                     randomMatches.add(new MealRandomMatch(ContentCategory.MEAL,
-                        place, member, wayOfEating, now));
+                        place, member, wayOfEating));
                 }
             }
         }

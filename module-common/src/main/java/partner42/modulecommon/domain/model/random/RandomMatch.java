@@ -22,6 +22,7 @@ import javax.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import partner42.modulecommon.domain.model.BaseEntity;
 import partner42.modulecommon.domain.model.article.Article;
 import partner42.modulecommon.domain.model.match.ContentCategory;
 import partner42.modulecommon.domain.model.match.Match;
@@ -36,8 +37,10 @@ import partner42.modulecommon.exception.InvalidInputException;
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "dtype")
-@Table(name = "RANDOM_MATCHES", indexes = @Index(name = "idx__created_at", columnList = "createdAt"))
-public abstract class RandomMatch implements Serializable {
+@Table(name = "RANDOM_MATCHES"
+//    , indexes = @Index(name = "idx__created_at", columnList = "createdAt")
+)
+public abstract class RandomMatch extends BaseEntity implements Serializable {
 
     //
     private static final long serialVersionUID = 1L;
@@ -121,8 +124,8 @@ public abstract class RandomMatch implements Serializable {
     protected Place place;
 
     //인덱스
-    @Column(nullable = false, updatable = false)
-    protected LocalDateTime createdAt;
+//    @Column(nullable = false, updatable = false)
+//    protected LocalDateTime createdAt;
 
     @Column(nullable = false)
     protected Boolean isExpired = false;
@@ -136,11 +139,10 @@ public abstract class RandomMatch implements Serializable {
     @JoinColumn(name = "MATCH_ID", updatable = false)
     private Match match;
 
-    protected RandomMatch(ContentCategory contentCategory, Place place, LocalDateTime createdAt,
+    protected RandomMatch(ContentCategory contentCategory, Place place,
         Member member) {
         this.contentCategory = contentCategory;
         this.place = place;
-        this.createdAt = createdAt;
         this.member = member;
     }
 
