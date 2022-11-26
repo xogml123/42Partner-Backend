@@ -2,7 +2,6 @@ package partner42.moduleapi.service.article;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +19,7 @@ import partner42.moduleapi.dto.matchcondition.MatchConditionDto;
 import partner42.moduleapi.dto.member.MemberDto;
 import partner42.moduleapi.mapper.MatchConditionMapper;
 import partner42.moduleapi.mapper.MemberMapper;
+import partner42.modulecommon.utils.slack.SlackBotService;
 import partner42.modulecommon.domain.model.user.Role;
 import partner42.modulecommon.domain.model.user.UserRole;
 import partner42.modulecommon.utils.slack.SlackBotApi;
@@ -44,7 +44,6 @@ import partner42.modulecommon.domain.model.user.User;
 import partner42.modulecommon.exception.ErrorCode;
 import partner42.modulecommon.exception.NoEntityException;
 import partner42.modulecommon.exception.NotAuthorException;
-import partner42.modulecommon.exception.SlackException;
 import partner42.modulecommon.repository.activity.ActivityRepository;
 import partner42.modulecommon.repository.article.ArticleRepository;
 import partner42.modulecommon.repository.article.ArticleSearch;
@@ -83,11 +82,14 @@ public class ArticleService {
     private final MemberMapper memberMapper;
     private final MatchConditionMapper matchConditionMapper;
 
+    private final SlackBotService slackBotService;
+
     @Transactional
     public ArticleOnlyIdResponse createArticle(String usename, ArticleDto articleRequest) {
         log.info("{}", usename);
-        Member member = userRepository.findByUsername(usename).orElseThrow(() -> new NoEntityException(
-            ErrorCode.ENTITY_NOT_FOUND)).getMember();
+        Member member = userRepository.findByUsername(usename)
+            .orElseThrow(() -> new NoEntityException(
+                ErrorCode.ENTITY_NOT_FOUND)).getMember();
         Article article = articleRepository.save(
             Article.of(articleRequest.getDate(),
                 articleRequest.getTitle(),
@@ -125,7 +127,8 @@ public class ArticleService {
     }
 
     @Transactional
-    public ArticleOnlyIdResponse updateArticle(ArticleDto articleRequest,String username,  String articleId) {
+    public ArticleOnlyIdResponse updateArticle(ArticleDto articleRequest, String username,
+        String articleId) {
 
         verifyAuthorOfArticle(username, articleId);
 
@@ -254,37 +257,26 @@ public class ArticleService {
             .collect(Collectors.toList()));
         //활동 점수 부여
 
-
         article.getArticleMembers()
-            .forEach(am ->{
-                if (am.getIsAuthor()){
-                    activityRepository.save(
-                        Activity.of(am.getMember(), match, ActivityType.ARTICLE_AUTHOR_MATCH.getScore(),
-                            article.getContentCategory(), ActivityType.ARTICLE_AUTHOR_MATCH));
-                } else{
-                    activityRepository.save(
-                        Activity.of(am.getMember(), match, ActivityType.ARTICLE_PARTICIPANT_MATCH.getScore(),
-                            article.getContentCategory(), ActivityType.ARTICLE_PARTICIPANT_MATCH));
+            .forEach(am -> {
+                    if (am.getIsAuthor()) {
+                        activityRepository.save(
+                            Activity.of(am.getMember(), match,
+                                ActivityType.ARTICLE_AUTHOR_MATCH.getScore(),
+                                article.getContentCategory(), ActivityType.ARTICLE_AUTHOR_MATCH));
+                    } else {
+                        activityRepository.save(
+                            Activity.of(am.getMember(), match,
+                                ActivityType.ARTICLE_PARTICIPANT_MATCH.getScore(),
+                                article.getContentCategory(), ActivityType.ARTICLE_PARTICIPANT_MATCH));
+                    }
                 }
-            }
-        );
+            );
         //슬랙 알림(비동기)
+        slackBotService.createSlackMIIM(article.getArticleMembers().stream()
+            .map(am -> am.getMember().getUser().getEmail())
+            .collect(Collectors.toList()));
 
-        ArrayList<String> slackIds = new ArrayList<>();
-        for (ArticleMember articleMember : article.getArticleMembers()) {
-            Optional<String> slackId = slackBotApi.getSlackIdByEmail(
-                articleMember.getMember().getUser().getEmail());
-            if (slackId.isPresent()) {
-                slackIds.add(slackId.get());
-            }
-        }
-        log.info("slackIds : {}", slackIds.toString());
-        String MPIMId = slackBotApi.createMPIM(slackIds)
-            .orElseThrow(() -> new SlackException(ErrorCode.SLACK_ERROR));
-        slackBotApi.sendMessage(MPIMId, "매칭이 완료되었습니다. 대화방에서 매칭을 확인해주세요.\n"
-            + "만약, 초대 되지않은 유저가 있다면 slack에서 초대해주세요.\n"
-            + "slack에 등록된 email이 IntraId" + User.SEOUL_42
-            + " 형식으로 되어있지 않으면 초대 및 알림이 발송 되지 않을 수 있습니다.");
         return ArticleOnlyIdResponse.of(article.getApiId());
     }
 
@@ -298,7 +290,8 @@ public class ArticleService {
         matchConditionStrings.addAll(place.stream()
             .map(Enum::name)
             .collect(Collectors.toList()));
-        List<TimeOfEating> timeOfEating = articleRequest.getMatchConditionDto().getTimeOfEatingList();
+        List<TimeOfEating> timeOfEating = articleRequest.getMatchConditionDto()
+            .getTimeOfEatingList();
         if (timeOfEating == null) {
             timeOfEating = new ArrayList<>();
         }
@@ -347,8 +340,8 @@ public class ArticleService {
             .map(UserRole::getRole)
             .map(Role::getValue)
             .collect(Collectors.toSet())
-            .contains(RoleEnum.ROLE_ADMIN)  &&
-            !article.getAuthorMember().equals(user.getMember())){
+            .contains(RoleEnum.ROLE_ADMIN) &&
+            !article.getAuthorMember().equals(user.getMember())) {
             throw new NotAuthorException(ErrorCode.NOT_ARTICLE_AUTHOR);
         }
     }
