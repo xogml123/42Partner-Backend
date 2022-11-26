@@ -79,10 +79,10 @@ public class RandomMatchService {
     private void verifyAlreadyApplied(ContentCategory contentCategory, Member member,
         LocalDateTime now) {
         if ((contentCategory.equals(ContentCategory.MEAL) &&
-            randomMatchRepository.findMealByCreatedAtBeforeAndIsExpired(now.minusMinutes(RandomMatch.MAX_WAITING_TIME),
+            randomMatchRepository.findMealByCreatedAtBeforeAndIsExpiredAndMemberId(now.minusMinutes(RandomMatch.MAX_WAITING_TIME),
                 member.getId(), false).size() > 0) ||
             (contentCategory.equals(ContentCategory.STUDY) &&
-                randomMatchRepository.findStudyByCreatedAtBeforeAndIsExpired(now.minusMinutes(RandomMatch.MAX_WAITING_TIME),
+                randomMatchRepository.findStudyByCreatedAtBeforeAndIsExpiredAndMemberId(now.minusMinutes(RandomMatch.MAX_WAITING_TIME),
                     member.getId(), false).size() > 0)) {
 
             throw new RandomMatchAlreadyExistException(ErrorCode.RANDOM_MATCH_ALREADY_EXIST);
@@ -101,11 +101,11 @@ public class RandomMatchService {
         ContentCategory contentCategory = request.getContentCategory();
         if (contentCategory == ContentCategory.MEAL) {
             randomMatches.addAll(
-                randomMatchRepository.findMealByCreatedAtBeforeAndIsExpired(now.minusMinutes(RandomMatch.MAX_WAITING_TIME),
+                randomMatchRepository.findMealByCreatedAtBeforeAndIsExpiredAndMemberId(now.minusMinutes(RandomMatch.MAX_WAITING_TIME),
                     memberId, false));
         } else if (contentCategory == ContentCategory.STUDY) {
             randomMatches.addAll(
-                randomMatchRepository.findStudyByCreatedAtBeforeAndIsExpired(now.minusMinutes(RandomMatch.MAX_WAITING_TIME),
+                randomMatchRepository.findStudyByCreatedAtBeforeAndIsExpiredAndMemberId(now.minusMinutes(RandomMatch.MAX_WAITING_TIME),
                     memberId, false));
         }
         // 활성화된 randomMatch가 db에 없으면 취소할 매치가 없는 경우 exception
