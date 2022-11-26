@@ -26,11 +26,8 @@ import partner42.modulecommon.exception.ErrorCode;
 import partner42.modulecommon.exception.InvalidInputException;
 import partner42.modulecommon.exception.NoEntityException;
 import partner42.modulecommon.exception.RandomMatchAlreadyExistException;
-import partner42.modulecommon.repository.random.RandomMatchRedisRepository;
 import partner42.modulecommon.repository.random.RandomMatchRepository;
 import partner42.modulecommon.repository.user.UserRepository;
-import partner42.modulecommon.utils.RedisKeyFactory;
-import partner42.modulecommon.utils.RedisKeyFactory.Key;
 import partner42.modulecommon.utils.redis.RedisTransactionUtil;
 
 @Slf4j
@@ -40,8 +37,6 @@ import partner42.modulecommon.utils.redis.RedisTransactionUtil;
 public class RandomMatchService {
 
     private final UserRepository userRepository;
-    private final RandomMatchRedisRepository randomMatchRedisRepository;
-
     private final RandomMatchRepository randomMatchRepository;
 
     private final RedisTransactionUtil redisTransactionUtil;
@@ -54,7 +49,7 @@ public class RandomMatchService {
                 ErrorCode.ENTITY_NOT_FOUND)).getMember();
         //"2020-12-01T00:00:00"
         LocalDateTime now = CustomTimeUtils.nowWithoutNano();
-        //이미 30분 이내에 랜덤 매칭 신청을 한 경우 인지 체크
+        //이미 RandomMatch.MAX_WAITING_TIME분 이내에 랜덤 매칭 신청을 한 경우 인지 체크
         verifyAlreadyApplied(randomMatchDto.getContentCategory(), member, now);
 
         //요청 dto로 부터 랜덤 매칭 모든 경우의 수 만들어서 RandomMatch 여러개로 변환
@@ -64,20 +59,19 @@ public class RandomMatchService {
         //랜덤 매칭 신청한 것 DB에 기록.
         randomMatchRepository.saveAll(randomMatches);
         // 여러 매칭 조건들 redis 에 저장.
-        /**
-         * redis 트랜잭션이 종료됨과 동시에 mysql커넥션이 종료된다면
-         * redis에서 삭제되었지만 mysql에서 삭제되지 않은 상황이 발생할 수 있다.
-         * 2PhaseCommit으로 해결해보려고 했지만, redis는 2PhaseCommit을 지원하지 않는다.
-         * EventQueue같은 것들을 활용하여 해결해볼 계획.
-         */
-        redisTransactionUtil.wrapTransaction(() -> {
-                randomMatches.forEach(randomMatch ->
-                    randomMatchRedisRepository.addToSortedSet(randomMatch.toKey(),
-                        randomMatch.toValue(), 0.0)
-                );
-            }
-        );
-
+//        /**
+//         * redis 트랜잭션이 종료됨과 동시에 mysql커넥션이 종료된다면
+//         * redis에서 삭제되었지만 mysql에서 삭제되지 않은 상황이 발생할 수 있다.
+//         * 2PhaseCommit으로 해결해보려고 했지만, redis는 2PhaseCommit을 지원하지 않는다.
+//         * EventQueue같은 것들을 활용하여 해결해볼 계획.
+//         */
+//        redisTransactionUtil.wrapTransaction(() -> {
+//                randomMatches.forEach(randomMatch ->
+//                    randomMatchRedisRepository.addToSortedSet(randomMatch.toKey(),
+//                        randomMatch.toValue(), 0.0)
+//                );
+//            }
+//        );
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
@@ -85,10 +79,10 @@ public class RandomMatchService {
     private void verifyAlreadyApplied(ContentCategory contentCategory, Member member,
         LocalDateTime now) {
         if ((contentCategory.equals(ContentCategory.MEAL) &&
-            randomMatchRepository.findMealByCreatedAtBeforeAndIsCanceled(now.minusMinutes(30),
+            randomMatchRepository.findMealByCreatedAtBeforeAndIsExpired(now.minusMinutes(RandomMatch.MAX_WAITING_TIME),
                 member.getId(), false).size() > 0) ||
             (contentCategory.equals(ContentCategory.STUDY) &&
-                randomMatchRepository.findStudyByCreatedAtBeforeAndIsCanceled(now.minusMinutes(30),
+                randomMatchRepository.findStudyByCreatedAtBeforeAndIsExpired(now.minusMinutes(RandomMatch.MAX_WAITING_TIME),
                     member.getId(), false).size() > 0)) {
 
             throw new RandomMatchAlreadyExistException(ErrorCode.RANDOM_MATCH_ALREADY_EXIST);
@@ -103,15 +97,15 @@ public class RandomMatchService {
                 ErrorCode.ENTITY_NOT_FOUND)).getMember().getId();
         List<RandomMatch> randomMatches = new ArrayList<>();
         LocalDateTime now = LocalDateTime.now();
-        //생성된 지 30분 이내 + 취소되지 않은 신청 내역 있는지 확인.
+        //생성된 지 RandomMatch.MAX_WAITING_TIME분 이내 + 취소되지 않은 신청 내역 있는지 확인.
         ContentCategory contentCategory = request.getContentCategory();
         if (contentCategory == ContentCategory.MEAL) {
             randomMatches.addAll(
-                randomMatchRepository.findMealByCreatedAtBeforeAndIsCanceled(now.minusMinutes(30),
+                randomMatchRepository.findMealByCreatedAtBeforeAndIsExpired(now.minusMinutes(RandomMatch.MAX_WAITING_TIME),
                     memberId, false));
         } else if (contentCategory == ContentCategory.STUDY) {
             randomMatches.addAll(
-                randomMatchRepository.findStudyByCreatedAtBeforeAndIsCanceled(now.minusMinutes(30),
+                randomMatchRepository.findStudyByCreatedAtBeforeAndIsExpired(now.minusMinutes(RandomMatch.MAX_WAITING_TIME),
                     memberId, false));
         }
         // 활성화된 randomMatch가 db에 없으면 취소할 매치가 없는 경우 exception
@@ -119,32 +113,23 @@ public class RandomMatchService {
             throw new InvalidInputException(ErrorCode.ALREADY_CANCELED_RANDOM_MATCH);
         }
 
-        for (RandomMatch randomMatch : randomMatches) {
-            log.info("{}", randomMatch.toStringKey());
-        }
-        log.info("{}", RedisKeyFactory.toKey(Key.MEMBER, memberId.toString()));
-
-//        randomMatchRedisRepository.deleteAllSortedSet(RedisKeyFactory.RANDOM_MATCHES,
-//            randomMatches.stream()
-//                .map(randomMatch -> randomMatch.toStringKey())
-//                .toArray(String[]::new));
         //db상에서 만료
         randomMatches
             .forEach(RandomMatch::cancel);
 
-        //redis 모두 삭제시도
-        /**
-         * redis 트랜잭션이 종료됨과 동시에 mysql커넥션이 종료된다면
-         * redis에는 생성되었지만 mysql에서는 생성되지 않는 상황이 발생할 수 있다.
-         * 2PhaseCommit으로 해결해보려고 했지만, redis는 2PhaseCommit을 지원하지 않는다.
-         * eventQueue같은 것들을 나중에 활용하여 해결해볼 계획입니다.
-         */
-        redisTransactionUtil.wrapTransaction(() -> {
-                randomMatches.forEach(randomMatch ->
-                    randomMatchRedisRepository.deleteSortedSet(randomMatch.toKey(),
-                        randomMatch.toValue()));
-            }
-        );
+//        //redis 모두 삭제시도
+//        /**
+//         * redis 트랜잭션이 종료됨과 동시에 mysql커넥션이 종료된다면
+//         * redis에는 생성되었지만 mysql에서는 생성되지 않는 상황이 발생할 수 있다.
+//         * 2PhaseCommit으로 해결해보려고 했지만, redis는 2PhaseCommit을 지원하지 않는다.
+//         * eventQueue같은 것들을 나중에 활용하여 해결해볼 계획입니다.
+//         */
+//        redisTransactionUtil.wrapTransaction(() -> {
+//                randomMatches.forEach(randomMatch ->
+//                    randomMatchRedisRepository.deleteSortedSet(randomMatch.toKey(),
+//                        randomMatch.toValue()));
+//            }
+//        );
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 

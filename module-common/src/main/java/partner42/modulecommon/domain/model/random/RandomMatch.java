@@ -22,9 +22,12 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
 import partner42.modulecommon.domain.model.match.ContentCategory;
 import partner42.modulecommon.domain.model.matchcondition.Place;
 import partner42.modulecommon.domain.model.member.Member;
+import partner42.modulecommon.exception.ErrorCode;
+import partner42.modulecommon.exception.InvalidInputException;
 
 
 @Getter
@@ -37,6 +40,10 @@ public abstract class RandomMatch implements Serializable {
 
     //
     private static final long serialVersionUID = 1L;
+
+    //매칭 maximum대기 시간
+    public static final Integer MAX_WAITING_TIME = 30;
+    public static final Integer MATCH_COUNT = 3;
 
 //    /********************************* 랜덤 매칭 키를 만들기 위한 상수들 *********************************/
 //
@@ -64,9 +71,7 @@ public abstract class RandomMatch implements Serializable {
 //
 //
 //
-//    //매칭 maximum대기 시간
-//    public static final Integer MAX_WAITING_TIME = 30;
-//    public static final Integer MATCH_COUNT = 3;
+
 //
 //
 //    /**
@@ -153,16 +158,7 @@ public abstract class RandomMatch implements Serializable {
 //            member.getId().toString();
 //    }
 //
-//    public void cancel() {
-//        verifyCancel();
-//        this.isExpired = true;
-//    }
-//
-//    private void verifyCancel() {
-//        if (isExpired) {
-//            throw new InvalidInputException(ErrorCode.ALREADY_CANCELED_RANDOM_MATCH);
-//        }
-//    }
+
 //
 //    public static String[] splitApplyingInfo(String applyingInfo) {
 //        return applyingInfo.split(RandomMatch.ID_DELIMITER);
@@ -171,6 +167,17 @@ public abstract class RandomMatch implements Serializable {
 //    public static String[] splitKeyInfo(String key) {
 //        return key.split(RandomMatch.CONDITION_PAD_CHAR);
 //    }
+
+    public void cancel() {
+        verifyCancel();
+        this.isExpired = true;
+    }
+
+    private void verifyCancel() {
+        if (isExpired) {
+            throw new InvalidInputException(ErrorCode.ALREADY_CANCELED_RANDOM_MATCH);
+        }
+    }
 
 
 

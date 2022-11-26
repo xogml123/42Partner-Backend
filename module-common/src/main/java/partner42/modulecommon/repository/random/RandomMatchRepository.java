@@ -16,7 +16,7 @@ public interface RandomMatchRepository extends JpaRepository<RandomMatch, Long> 
         + "where rm.member.id = :memberId "
         + "and rm.createdAt > :before "
         + "and rm.isExpired = :isExpired")
-    List<RandomMatch> findMealByCreatedAtBeforeAndIsCanceled(
+    List<RandomMatch> findMealByCreatedAtBeforeAndIsExpired(
         @Param(value = "before") LocalDateTime before,
         @Param(value = "memberId") Long memberId,
         @Param(value  = "isExpired") boolean isExpired);
@@ -26,7 +26,7 @@ public interface RandomMatchRepository extends JpaRepository<RandomMatch, Long> 
         + "where rm.member.id = :memberId "
         + "and rm.createdAt > :before "
         + "and rm.isExpired = :isExpired")
-    List<RandomMatch> findStudyByCreatedAtBeforeAndIsCanceled(
+    List<RandomMatch> findStudyByCreatedAtBeforeAndIsExpired(
         @Param(value = "before") LocalDateTime before,
         @Param(value = "memberId") Long memberId,
         @Param(value  = "isExpired") boolean isExpired);
