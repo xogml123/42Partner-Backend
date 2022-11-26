@@ -25,6 +25,7 @@ import lombok.NoArgsConstructor;
 import partner42.modulecommon.domain.model.BaseEntity;
 import partner42.modulecommon.domain.model.article.Article;
 import partner42.modulecommon.domain.model.matchcondition.MatchConditionMatch;
+import partner42.modulecommon.domain.model.random.RandomMatch;
 
 
 @Builder(access = AccessLevel.PRIVATE)
@@ -84,9 +85,20 @@ public class Match extends BaseEntity {
 
     /********************************* 연관관계 매핑 *********************************/
 
+    /**
+     * Article로 매칭이 맺어지는 경우
+     */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ARTICLE_ID", updatable = false)
     private Article article;
+
+    /**
+     * Random으로 매칭이 맺어지는 경우
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "RANDOM_MATCH_ID", updatable = false)
+    private RandomMatch randomMatch;
+
 
     @Builder.Default
     @OneToMany(mappedBy = "match", fetch = FetchType.LAZY)
@@ -100,13 +112,16 @@ public class Match extends BaseEntity {
 
     /********************************* 생성 메서드 *********************************/
 
-    public static Match of(MatchStatus matchStatus, ContentCategory contentCategory, MethodCategory methodCategory, Article article, Integer participantNum) {
+    public static Match of(MatchStatus matchStatus, ContentCategory contentCategory,
+        MethodCategory methodCategory, Article article, Integer participantNum, RandomMatch randomMatch) {
+
         return Match.builder()
             .matchStatus(matchStatus)
             .contentCategory(contentCategory)
             .participantNum(participantNum)
             .methodCategory(methodCategory)
             .article(article)
+            .randomMatch(randomMatch)
             .build();
     }
 
