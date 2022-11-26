@@ -15,7 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
 @Slf4j
-@Transactional(readOnly = true)
 @RequiredArgsConstructor
 @Component
 public class SlackBotApi {

@@ -4,6 +4,7 @@ package partner42.modulecommon.domain.model.match;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -15,6 +16,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 import lombok.AccessLevel;
@@ -24,6 +26,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import partner42.modulecommon.domain.model.BaseEntity;
 import partner42.modulecommon.domain.model.article.Article;
+import partner42.modulecommon.domain.model.article.ArticleMember;
 import partner42.modulecommon.domain.model.matchcondition.MatchConditionMatch;
 import partner42.modulecommon.domain.model.random.RandomMatch;
 
@@ -88,16 +91,16 @@ public class Match extends BaseEntity {
     /**
      * Article로 매칭이 맺어지는 경우
      */
-    @ManyToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ARTICLE_ID", updatable = false)
     private Article article;
 
     /**
      * Random으로 매칭이 맺어지는 경우
      */
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "RANDOM_MATCH_ID", updatable = false)
-    private RandomMatch randomMatch;
+    @Builder.Default
+    @OneToMany(mappedBy = "match", fetch = FetchType.LAZY)
+    private List<RandomMatch> randomMatches = new ArrayList<>();
 
 
     @Builder.Default
@@ -113,7 +116,7 @@ public class Match extends BaseEntity {
     /********************************* 생성 메서드 *********************************/
 
     public static Match of(MatchStatus matchStatus, ContentCategory contentCategory,
-        MethodCategory methodCategory, Article article, Integer participantNum, RandomMatch randomMatch) {
+        MethodCategory methodCategory, Article article, Integer participantNum) {
 
         return Match.builder()
             .matchStatus(matchStatus)
@@ -121,7 +124,6 @@ public class Match extends BaseEntity {
             .participantNum(participantNum)
             .methodCategory(methodCategory)
             .article(article)
-            .randomMatch(randomMatch)
             .build();
     }
 

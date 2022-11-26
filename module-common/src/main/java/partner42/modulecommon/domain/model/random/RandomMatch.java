@@ -17,13 +17,14 @@ import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Value;
+import partner42.modulecommon.domain.model.article.Article;
 import partner42.modulecommon.domain.model.match.ContentCategory;
+import partner42.modulecommon.domain.model.match.Match;
 import partner42.modulecommon.domain.model.matchcondition.Place;
 import partner42.modulecommon.domain.model.member.Member;
 import partner42.modulecommon.exception.ErrorCode;
@@ -114,6 +115,7 @@ public abstract class RandomMatch implements Serializable {
     @Enumerated(value = EnumType.STRING)
     @Column(nullable = false, updatable = false)
     protected ContentCategory contentCategory;
+
     @Enumerated(value = EnumType.STRING)
     @Column(nullable = false, updatable = false)
     protected Place place;
@@ -126,9 +128,13 @@ public abstract class RandomMatch implements Serializable {
     protected Boolean isExpired = false;
 
     /********************************* 연관관계 매핑 *********************************/
-    @ManyToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "MEMBER_ID", nullable = false, updatable = false)
     private Member member;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "MATCH_ID", updatable = false)
+    private Match match;
 
     protected RandomMatch(ContentCategory contentCategory, Place place, LocalDateTime createdAt,
         Member member) {
@@ -139,6 +145,33 @@ public abstract class RandomMatch implements Serializable {
     }
 
     /********************************* 비지니스 로직 *********************************/
+
+    protected boolean isMatchConditionEquals(RandomMatch randomMatch) {
+        return this.contentCategory == randomMatch.contentCategory &&
+            this.place == randomMatch.place;
+    }
+    public void expire() {
+        verifyExpire();
+        this.isExpired = true;
+    }
+
+    private void verifyExpire() {
+        if (this.isExpired) {
+            throw new InvalidInputException(ErrorCode.ALREADY_CANCELED_RANDOM_MATCH);
+        }
+    }
+
+    public void updateMatch(Match match) {
+        this.match = match;
+        match.getRandomMatches().add(this);
+    }
+
+
+
+
+
+    /********************************* DTO *********************************/
+
 //
 //    public abstract String toStringKey();
 //
@@ -168,22 +201,6 @@ public abstract class RandomMatch implements Serializable {
 //        return key.split(RandomMatch.CONDITION_PAD_CHAR);
 //    }
 
-    public void cancel() {
-        verifyCancel();
-        this.isExpired = true;
-    }
-
-    private void verifyCancel() {
-        if (isExpired) {
-            throw new InvalidInputException(ErrorCode.ALREADY_CANCELED_RANDOM_MATCH);
-        }
-    }
-
-
-
-
-
-    /********************************* DTO *********************************/
 
 
 }

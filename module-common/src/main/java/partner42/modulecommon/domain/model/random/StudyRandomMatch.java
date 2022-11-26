@@ -1,5 +1,6 @@
 package partner42.modulecommon.domain.model.random;
 
+import java.util.Comparator;
 import partner42.modulecommon.domain.model.match.ContentCategory;
 import partner42.modulecommon.domain.model.matchcondition.Place;
 import partner42.modulecommon.domain.model.matchcondition.TypeOfStudy;
@@ -31,6 +32,18 @@ public class StudyRandomMatch extends RandomMatch {
         Member member, TypeOfStudy typeOfStudy, LocalDateTime createdAt) {
         super(contentCategory, place, createdAt, member);
         this.typeOfStudy = typeOfStudy;
+    }
+
+    /********************************* 비지니스 로직 *********************************/
+
+    @Override
+    public boolean isMatchConditionEquals(RandomMatch randomMatch) {
+        if (randomMatch instanceof StudyRandomMatch) {
+            StudyRandomMatch studyRandomMatch = (StudyRandomMatch) randomMatch;
+            return super.isMatchConditionEquals(randomMatch)
+                && this.typeOfStudy.equals(studyRandomMatch.typeOfStudy);
+        }
+        return false;
     }
 //
 //    @Override
@@ -70,4 +83,19 @@ public class StudyRandomMatch extends RandomMatch {
 //            Character.toString(typeOfStudy.ordinal()) +
 //            toValue();
 //    }
+
+    public static class MatchConditionComparator implements Comparator<StudyRandomMatch> {
+        @Override
+        public int compare(StudyRandomMatch o1, StudyRandomMatch o2) {
+            if (o1.getPlace().ordinal() != o2.getPlace().ordinal()) {
+                return o1.getPlace().ordinal() - o2.getPlace().ordinal();
+            } else {
+                if (o1.getTypeOfStudy().ordinal() != o2.getTypeOfStudy().ordinal()){
+                    return o1.getTypeOfStudy().ordinal() - o2.getTypeOfStudy().ordinal();
+                } else {
+                    return -o1.getCreatedAt().compareTo(o2.getCreatedAt());
+                }
+            }
+        }
+    }
 }
