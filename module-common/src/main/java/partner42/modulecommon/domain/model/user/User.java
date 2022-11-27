@@ -23,7 +23,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Singular;
-import partner42.modulecommon.domain.model.BaseTimeVersionEntity;
+import partner42.modulecommon.domain.model.BaseEntity;
+import partner42.modulecommon.domain.model.BaseTimeEntity;
 import partner42.modulecommon.domain.model.member.Member;
 
 
@@ -38,7 +39,7 @@ import partner42.modulecommon.domain.model.member.Member;
     @UniqueConstraint(name = "SLACK_EMAIL_UNIQUE", columnNames = {"slackEmail"})
 })
 @Entity
-public class User extends BaseTimeVersionEntity  {
+public class User extends BaseEntity {
     //********************************* static final 상수 필드 *********************************/
 
     /**

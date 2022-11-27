@@ -14,7 +14,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Getter
 @MappedSuperclass
 @EntityListeners(AuditingEntityListener.class)
-public abstract class BaseTimeVersionEntity implements Serializable {
+public abstract class BaseTimeEntity implements Serializable {
 
     @CreatedDate
     @Column(updatable = false)
@@ -30,7 +30,7 @@ public abstract class BaseTimeVersionEntity implements Serializable {
 //    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     private LocalDateTime updatedAt;
 
-    //OptmisticLockException
-    @Version
-    private Integer version;
+//    //OptmisticLockException
+//    @Version
+//    private Integer version;
 }
