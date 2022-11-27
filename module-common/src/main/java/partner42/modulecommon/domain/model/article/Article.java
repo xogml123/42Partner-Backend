@@ -18,6 +18,7 @@ import javax.persistence.Lob;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
+import javax.persistence.Version;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -62,6 +63,17 @@ public class Article extends BaseEntity {
     private Long id;
 
     /********************************* PK가 아닌 필드 *********************************/
+
+    /**
+     * 비관적 락 사용.
+     * article에 참여, 취소, 확정 시 lost update 및 write skew를 방지하기 위해 필요.
+     * MYSQL의 default REPEATABLE READ를 사용하고 있기 때문에 위 두가지 문제가 발생할 수 있음.
+     * OptmisticLockException이 발생하면, 해당 article에 대한 트랜잭션을 다시 시작해야 함.
+     * AOP를 활용하거나, Controller단에서 단순히 한번더 호출.
+     */
+    @Version
+    private Integer version;
+
 
     /**
      * AUTH에 필요한 필드
