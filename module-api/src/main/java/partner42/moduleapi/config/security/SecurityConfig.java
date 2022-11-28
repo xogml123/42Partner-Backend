@@ -1,12 +1,14 @@
 package partner42.moduleapi.config.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Collection;
 import java.util.List;
 import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -160,20 +162,20 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 //        security.userDetailsService(new JpaUserDetailService(userRepository)).passwordEncoder(bCryptPasswordEncoder());
 //    }
 
-//    private void addSameSiteCookieAttribute(HttpServletResponse response) {
-//        Collection<String> headers = response.getHeaders(HttpHeaders.SET_COOKIE);
-//        boolean firstHeader = true;
-//        // there can be multiple Set-Cookie attributes
-//        for (String header : headers) {
-//            if (firstHeader) {
-//                response.setHeader(HttpHeaders.SET_COOKIE,
-//                    String.format("%s; %s", header, "SameSite=None"));
-//                firstHeader = false;
-//                continue;
-//            }
-//            response.addHeader(HttpHeaders.SET_COOKIE,
-//                String.format("%s; %s", header, "SameSite=None"));
-//        }
-//    }
+    private void addSameSiteCookieAttribute(HttpServletResponse response) {
+        Collection<String> headers = response.getHeaders(HttpHeaders.SET_COOKIE);
+        boolean firstHeader = true;
+        // there can be multiple Set-Cookie attributes
+        for (String header : headers) {
+            if (firstHeader) {
+                response.setHeader(HttpHeaders.SET_COOKIE,
+                    String.format("%s; %s", header, "SameSite=None"));
+                firstHeader = false;
+                continue;
+            }
+            response.addHeader(HttpHeaders.SET_COOKIE,
+                String.format("%s; %s", header, "SameSite=None"));
+        }
+    }
 
 }

@@ -13,11 +13,20 @@ import partner42.modulecommon.domain.model.member.Member;
 @Repository
 public class MemberRepositoryCustomImpl implements MemberRepositoryCustom {
 
-    private final JPAQueryFactory jpaQueryFactory;
+    private final JPAQueryFactory queryFactory;
+
+//    @PersistenceContext
+//    private EntityManager em;
+//    private JPAQueryFactory queryFactory;
+//
+//    @Autowired
+//    public MemberRepositoryCustomImpl() {
+//        this.queryFactory = new JPAQueryFactory(em);
+//    }
 
     @Override
     public Member findByUserId(Long userId){
-        return jpaQueryFactory.select(member)
+        return queryFactory.select(member)
             .from(user)
             .join(user.member, member).fetchJoin()
             .where(user.id.eq(userId))
