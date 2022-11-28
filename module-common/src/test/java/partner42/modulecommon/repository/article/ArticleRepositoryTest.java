@@ -42,12 +42,6 @@ class ArticleRepositoryTest {
 
     @BeforeEach
     void setUp() {
-//        createUserUtils.setUp();
-//        Member member = userRepository.findByUsername("takim@student.42Seoul.kr").orElseThrow()
-//            .getMember();
-//        Article article1 = articleRepository.save(Article.of(LocalDate.now(), "title", "content", false,
-//            3, ContentCategory.MEAL));
-
     }
 
     @Test
@@ -67,8 +61,10 @@ class ArticleRepositoryTest {
             article3.getApiId());
 
         //then
-        assertEquals(optionalArticle2.get(), article2);
-        assertFalse(optionalArticle3.isPresent());
+        /**
+         *
+         */
+
     }
 
     @Test
@@ -89,7 +85,8 @@ class ArticleRepositoryTest {
             article3.getApiId());
 
         //then
-        assertEquals(optionalArticle2.get(), article2);
+        assertEquals(article2, optionalArticle2.orElseGet(() -> null));
+
         assertFalse(optionalArticle3.isPresent());
     }
 }

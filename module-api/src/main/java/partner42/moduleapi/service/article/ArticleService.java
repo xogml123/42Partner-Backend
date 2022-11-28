@@ -19,6 +19,7 @@ import partner42.moduleapi.dto.matchcondition.MatchConditionDto;
 import partner42.moduleapi.dto.member.MemberDto;
 import partner42.moduleapi.mapper.MatchConditionMapper;
 import partner42.moduleapi.mapper.MemberMapper;
+import partner42.modulecommon.repository.article.ArticleRepositoryCustomImpl;
 import partner42.modulecommon.utils.slack.SlackBotService;
 import partner42.modulecommon.domain.model.user.Role;
 import partner42.modulecommon.domain.model.user.UserRole;

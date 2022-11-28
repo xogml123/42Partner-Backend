@@ -14,6 +14,7 @@ import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
@@ -24,6 +25,7 @@ import partner42.modulecommon.domain.model.article.Article;
 import partner42.modulecommon.domain.model.match.ContentCategory;
 
 
+@Slf4j
 @RequiredArgsConstructor
 @Repository
 public class ArticleRepositoryCustomImpl implements ArticleRepositoryCustom {
@@ -35,8 +37,8 @@ public class ArticleRepositoryCustomImpl implements ArticleRepositoryCustom {
 //    private EntityManager em;
 //    private JPAQueryFactory queryFactory;
 //
-//    @Autowired
 //    public ArticleRepositoryCustomImpl() {
+//        log.info("ArticleRepositoryCustomImpl");
 //        this.queryFactory = new JPAQueryFactory(em);
 //    }
 
