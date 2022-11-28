@@ -11,6 +11,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import partner42.moduleapi.dto.match.MatchDto;
@@ -39,7 +40,6 @@ public class MatchController {
     }
 
     @PreAuthorize("hasAuthority('match.read')")
-
     @Operation(summary = "특정 매치이력 조회", description = "특정 매치이력 조회")
     @GetMapping("/matches/{matchId}")
     public MatchDto readOneMatch(
@@ -48,5 +48,16 @@ public class MatchController {
     ) {
         return matchService.readOneMatch(username, matchId);
     }
+
+//    @PreAuthorize("hasAuthority('match.update') and hasAuthority('activity.create')")
+//    @Operation(summary = "매칭 후기 쓰기", description = "특정 매치이력 조회")
+//    @PostMapping("/matches/{matchId}/review")
+//    public MatchDto makeReview(
+//        @Parameter(hidden = true) @AuthenticationPrincipal String username,
+//        @PathVariable("matchId") String matchId
+//    ) {
+//        return matchService.(username, matchId);
+//    }
+
 
 }

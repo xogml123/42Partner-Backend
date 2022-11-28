@@ -52,7 +52,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.csrf().disable();
-        http.cors().configurationSource(corsConfigurationSource());
+//        http.cors().configurationSource(corsConfigurationSource());
         http.exceptionHandling().authenticationEntryPoint(authenticationEntryPoint);
         http.addFilterBefore(customAuthorizationFilter, UsernamePasswordAuthenticationFilter.class);
         //session생성하지 않음. -> jwt 사용.
@@ -132,15 +132,15 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     }
 
-    @Override
-    public void configure(WebSecurity web) throws Exception {
-        web.ignoring();
-    }
+//    @Override
+//    public void configure(WebSecurity web) throws Exception {
+//        web.ignoring();
+//    }
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         final CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of(corsFrontend));
+        configuration.setAllowedOrigins(List.of(corsFrontend, "www.42partner.com"));
         configuration.setAllowedMethods(List.of("HEAD",
             "GET", "POST", "PUT", "DELETE", "PATCH"));
         // setAllowCredentials(true) is important, otherwise:
@@ -162,20 +162,20 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 //        security.userDetailsService(new JpaUserDetailService(userRepository)).passwordEncoder(bCryptPasswordEncoder());
 //    }
 
-    private void addSameSiteCookieAttribute(HttpServletResponse response) {
-        Collection<String> headers = response.getHeaders(HttpHeaders.SET_COOKIE);
-        boolean firstHeader = true;
-        // there can be multiple Set-Cookie attributes
-        for (String header : headers) {
-            if (firstHeader) {
-                response.setHeader(HttpHeaders.SET_COOKIE,
-                    String.format("%s; %s", header, "SameSite=None"));
-                firstHeader = false;
-                continue;
-            }
-            response.addHeader(HttpHeaders.SET_COOKIE,
-                String.format("%s; %s", header, "SameSite=None"));
-        }
-    }
+//    private void addSameSiteCookieAttribute(HttpServletResponse response) {
+//        Collection<String> headers = response.getHeaders(HttpHeaders.SET_COOKIE);
+//        boolean firstHeader = true;
+//        // there can be multiple Set-Cookie attributes
+//        for (String header : headers) {
+//            if (firstHeader) {
+//                response.setHeader(HttpHeaders.SET_COOKIE,
+//                    String.format("%s; %s", header, "SameSite=None"));
+//                firstHeader = false;
+//                continue;
+//            }
+//            response.addHeader(HttpHeaders.SET_COOKIE,
+//                String.format("%s; %s", header, "SameSite=None"));
+//        }
+//    }
 
 }

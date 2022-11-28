@@ -2,6 +2,8 @@ package partner42.moduleapi.dto.match;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
@@ -12,6 +14,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import partner42.moduleapi.dto.matchcondition.MatchConditionDto;
+import partner42.moduleapi.dto.member.MemberDto;
 import partner42.modulecommon.domain.model.match.ContentCategory;
 import partner42.modulecommon.domain.model.match.Match;
 import partner42.modulecommon.domain.model.match.MatchStatus;
@@ -30,8 +33,17 @@ public class MatchDto {
     @Size(min = 1, max = 100)
     private String matchId;
 
+    @NotNull
     @Schema(name = "createdAt", example = "2022-10-03T00:00:00", description = "매칭이 이루어진 시간")
     private LocalDateTime createdAt;
+
+    @NotNull
+    @Schema(name = "createdAt", example = "2022-10-03T00:00:00", description = "매칭이 이루어진 시간")
+    private LocalDateTime reviewAvailableTime;
+
+    @NotNull
+    @Schema(name = "createdAt", example = "2022-10-03T00:00:00", description = "매칭이 이루어진 시간")
+    private Boolean isReviewed;
 
     @Schema(name = "matchStatus", example = "MATCHED(\"매칭 완료\"), CANCELED(\"취소\");", description = " 매칭 완료, 취소 여부(현 상황에서는 매칭 완료 인것만 보내짐.)")
     @NotNull
@@ -53,15 +65,22 @@ public class MatchDto {
     @NotNull
     private MatchConditionDto matchConditionDto;
 
-    public static MatchDto of(Match match, MatchConditionDto matchConditionDto) {
+    @Builder.Default
+    @Schema(name = "participantsOrAuthor", example = " ", description = "방을 만든사람, 혹은 참여자가 담긴 배열")
+    private List<MemberDto> participantsOrAuthor = new ArrayList<>();
+
+    public static MatchDto of(Match match, MatchConditionDto matchConditionDto, List<MemberDto> participantsOrAuthor) {
         return MatchDto.builder()
             .matchId(match.getApiId())
             .createdAt(match.getCreatedAt())
+            .reviewAvailableTime(match.getReviewAvailableTime())
+            .isReviewed(match.getIsReviewed())
             .matchStatus(match.getMatchStatus())
             .contentCategory(match.getContentCategory())
             .methodCategory(match.getMethodCategory())
             .participantNum(match.getParticipantNum())
             .matchConditionDto(matchConditionDto)
+            .participantsOrAuthor(participantsOrAuthor)
             .build();
     }
 
