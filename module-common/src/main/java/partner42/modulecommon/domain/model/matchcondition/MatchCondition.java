@@ -13,7 +13,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import partner42.modulecommon.domain.model.BaseTimeVersionEntity;
+import partner42.modulecommon.domain.model.BaseEntity;
+import partner42.modulecommon.domain.model.BaseTimeEntity;
 import partner42.modulecommon.domain.model.match.ConditionCategory;
 
 @Builder(access = AccessLevel.PRIVATE)
@@ -22,7 +23,7 @@ import partner42.modulecommon.domain.model.match.ConditionCategory;
 @Getter
 @Table(name = "MATCH_CONDITION")
 @Entity
-public class MatchCondition extends BaseTimeVersionEntity {
+public class MatchCondition extends BaseEntity {
     //********************************* static final 상수 필드 *********************************/
 
     /**

@@ -1,9 +1,11 @@
 package partner42.modulecommon.domain.model.match;
 
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -15,6 +17,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 import lombok.AccessLevel;
@@ -24,7 +27,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import partner42.modulecommon.domain.model.BaseEntity;
 import partner42.modulecommon.domain.model.article.Article;
+import partner42.modulecommon.domain.model.article.ArticleMember;
 import partner42.modulecommon.domain.model.matchcondition.MatchConditionMatch;
+import partner42.modulecommon.domain.model.random.RandomMatch;
+import partner42.modulecommon.exception.BusinessException;
+import partner42.modulecommon.exception.ErrorCode;
 
 
 @Builder(access = AccessLevel.PRIVATE)
@@ -80,13 +87,28 @@ public class Match extends BaseEntity {
     @Column(nullable = false)
     private Integer participantNum;
 
+    @Builder.Default
+    @Column(nullable = false)
+    private Boolean isReviewed = false;
+
     /********************************* 비영속 필드 *********************************/
 
     /********************************* 연관관계 매핑 *********************************/
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    /**
+     * Article로 매칭이 맺어지는 경우
+     */
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ARTICLE_ID", updatable = false)
     private Article article;
+
+    /**
+     * Random으로 매칭이 맺어지는 경우
+     */
+    @Builder.Default
+    @OneToMany(mappedBy = "match", fetch = FetchType.LAZY)
+    private List<RandomMatch> randomMatches = new ArrayList<>();
+
 
     @Builder.Default
     @OneToMany(mappedBy = "match", fetch = FetchType.LAZY)
@@ -100,7 +122,9 @@ public class Match extends BaseEntity {
 
     /********************************* 생성 메서드 *********************************/
 
-    public static Match of(MatchStatus matchStatus, ContentCategory contentCategory, MethodCategory methodCategory, Article article, Integer participantNum) {
+    public static Match of(MatchStatus matchStatus, ContentCategory contentCategory,
+        MethodCategory methodCategory, Article article, Integer participantNum) {
+
         return Match.builder()
             .matchStatus(matchStatus)
             .contentCategory(contentCategory)
@@ -110,7 +134,23 @@ public class Match extends BaseEntity {
             .build();
     }
 
+    /**
+     * 한시간 뒤에 매칭 리뷰 남길 수 있음.
+     * @return
+     */
+    public LocalDateTime getReviewAvailableTime() {
+        return this.getCreatedAt().plusHours(1);
+    }
 
+    public void review(){
+        verifyReviewed();
+    }
+
+    private void verifyReviewed() {
+        if (this.isReviewed) {
+            throw new BusinessException(ErrorCode.ALREADY_REVIEWED);
+        }
+    }
 
     /********************************* 비니지스 로직 *********************************/
 

@@ -11,7 +11,10 @@ import com.querydsl.core.types.dsl.PathBuilder;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.util.List;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
@@ -25,6 +28,16 @@ import partner42.modulecommon.domain.model.match.Match;
 public class MatchRepositoryCustomImpl implements MatchRepositoryCustom{
 
     private final JPAQueryFactory queryFactory;
+
+//    @PersistenceContext
+//    private EntityManager em;
+//    private JPAQueryFactory queryFactory;
+//
+//    @Autowired
+//    public MatchRepositoryCustomImpl() {
+//        this.queryFactory = new JPAQueryFactory(em);
+//    }
+
 
     @Override
     public Slice<Match> findAllFetchJoinMatchMemberId(Long memberId, MatchSearch matchSearch, Pageable pageable){

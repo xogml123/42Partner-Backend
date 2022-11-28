@@ -37,6 +37,7 @@ dependencies {
     //jpa
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     runtimeOnly 'com.mysql:mysql-connector-j'
+//    implementation 'com.h2database:h2'
     //json변환 util
     implementation 'org.json:json:20220924'
     //redis
@@ -61,7 +62,6 @@ dependencies {
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.13.3'
 
     implementation 'org.springframework.boot:spring-boot-starter-security'
-
 
 }
 

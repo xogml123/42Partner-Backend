@@ -2,7 +2,8 @@ package partner42.modulecommon.domain.model.user;
 
 
 import javax.persistence.GenerationType;
-import partner42.modulecommon.domain.model.BaseTimeVersionEntity;
+import partner42.modulecommon.domain.model.BaseEntity;
+import partner42.modulecommon.domain.model.BaseTimeEntity;
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
@@ -27,7 +28,7 @@ import lombok.Singular;
 @Getter
 @Table(name="AUTHORITY")
 @Entity
-public class Authority extends BaseTimeVersionEntity implements Serializable {
+public class Authority extends BaseEntity implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

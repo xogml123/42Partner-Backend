@@ -1,14 +1,14 @@
 package partner42.modulecommon.domain.model.user;
 
 
-import partner42.modulecommon.domain.model.BaseTimeVersionEntity;
+import partner42.modulecommon.domain.model.BaseEntity;
+import partner42.modulecommon.domain.model.BaseTimeEntity;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -34,7 +34,7 @@ import lombok.Singular;
 @Getter
 @Table(name="ROLE")
 @Entity
-public class Role extends BaseTimeVersionEntity implements Serializable {
+public class Role extends BaseEntity implements Serializable {
 
     //********************************* static final 상수 필드 *********************************/
 

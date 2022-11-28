@@ -2,7 +2,8 @@ package partner42.modulecommon.domain.model.matchcondition;
 
 
 
-import partner42.modulecommon.domain.model.BaseTimeVersionEntity;
+import partner42.modulecommon.domain.model.BaseEntity;
+import partner42.modulecommon.domain.model.BaseTimeEntity;
 import partner42.modulecommon.domain.model.article.Article;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -26,7 +27,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @Table(name = "ARTICLE_MATCH_CONDITION")
 @Entity
-public class ArticleMatchCondition extends BaseTimeVersionEntity {
+public class ArticleMatchCondition extends BaseEntity {
     //********************************* static final 상수 필드 *********************************/
 
     /**

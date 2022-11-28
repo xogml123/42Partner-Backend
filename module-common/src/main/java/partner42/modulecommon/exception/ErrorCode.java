@@ -52,7 +52,11 @@ public enum ErrorCode {
     //Opinion
     NOT_OPINION_AUTHOR(403, "OP001", "의견의 작성자가 아닙니다."),
     //User
-    NOT_MINE(403, "U001", "본인이 아닙니다.");
+    NOT_MINE(403, "U001", "본인이 아닙니다."),
+    //Match
+    ALREADY_REVIEWED(409, "MCH001", "이미 리뷰를 작성한 매칭입니다."),
+    NOT_MATCH_PARTICIPATED(403 ,"MCH002" ,"참여하지않은 매칭입니다." ),
+    REVIEWED_MEMBER_NOT_IN_MATCH(400, "MCH003", "매칭에 참여하지 않은 멤버가 리뷰에 포함되어있습니다.");
 
     private final String code;
     private final String message;

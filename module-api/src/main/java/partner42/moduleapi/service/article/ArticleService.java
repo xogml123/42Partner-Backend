@@ -19,6 +19,7 @@ import partner42.moduleapi.dto.matchcondition.MatchConditionDto;
 import partner42.moduleapi.dto.member.MemberDto;
 import partner42.moduleapi.mapper.MatchConditionMapper;
 import partner42.moduleapi.mapper.MemberMapper;
+import partner42.modulecommon.domain.model.activity.ActivityMatchScore;
 import partner42.modulecommon.utils.slack.SlackBotService;
 import partner42.modulecommon.domain.model.user.Role;
 import partner42.modulecommon.domain.model.user.UserRole;
@@ -153,14 +154,16 @@ public class ArticleService {
     }
 
 
-    public ArticleReadOneResponse readOneArticle(String articleId) {
+    public ArticleReadOneResponse readOneArticle(String username, String articleId) {
+        Member member = username == null ? null : userRepository.findByUsername(username).orElseThrow(
+            () -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND)).getMember();
         Article article = articleRepository.findDistinctFetchArticleMatchConditionsByApiIdAndIsDeletedIsFalse(
                 articleId)
             .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
 
         List<MemberDto> memberDtos = article.getArticleMembers().stream()
             .map(am -> (
-                memberMapper.entityToMemberDto(am.getMember(), am)))
+                memberMapper.articleMemberToMemberDto(am.getMember(), am, am.getMember().equals(member))))
             .collect(Collectors.toList());
 
         List<MatchCondition> matchConditions = article.getArticleMatchConditions().stream()
@@ -261,14 +264,15 @@ public class ArticleService {
             .forEach(am -> {
                     if (am.getIsAuthor()) {
                         activityRepository.save(
-                            Activity.of(am.getMember(), match,
-                                ActivityType.ARTICLE_AUTHOR_MATCH.getScore(),
-                                article.getContentCategory(), ActivityType.ARTICLE_AUTHOR_MATCH));
+                            Activity.of(am.getMember(),
+                                ActivityMatchScore.ARTICLE_MATCH_AUTHOR.getScore(),
+                                article.getContentCategory(),
+                                ActivityType.ARTICLE));
                     } else {
                         activityRepository.save(
-                            Activity.of(am.getMember(), match,
-                                ActivityType.ARTICLE_PARTICIPANT_MATCH.getScore(),
-                                article.getContentCategory(), ActivityType.ARTICLE_PARTICIPANT_MATCH));
+                            Activity.of(am.getMember(),
+                                ActivityMatchScore.MATCH_PARTICIPANT.getScore(),
+                                article.getContentCategory(), ActivityType.MATCH));
                     }
                 }
             );

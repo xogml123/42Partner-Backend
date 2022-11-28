@@ -72,9 +72,6 @@ public class Activity extends BaseEntity {
     @JoinColumn(name = "MEMBER_ID", nullable = false, updatable = false)
     private Member member;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "MATCH_ID", nullable = false, updatable = false)
-    private Match match;
 
 
 
@@ -84,11 +81,10 @@ public class Activity extends BaseEntity {
 
     /********************************* 생성 메서드 *********************************/
 
-    public static Activity of(Member member, Match match, Integer score, ContentCategory contentCategory,
+    public static Activity of(Member member, Integer score, ContentCategory contentCategory,
         ActivityType activityType) {
         return Activity.builder()
             .member(member)
-            .match(match)
             .score(score)
             .contentCategory(contentCategory)
             .activityType(activityType)

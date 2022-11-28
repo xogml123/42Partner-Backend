@@ -1,7 +1,8 @@
 package partner42.modulecommon.domain.model.user;
 
 
-import partner42.modulecommon.domain.model.BaseTimeVersionEntity;
+import partner42.modulecommon.domain.model.BaseEntity;
+import partner42.modulecommon.domain.model.BaseTimeEntity;
 import java.io.Serializable;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -24,7 +25,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @Table(name = "USER_ROLE")
 @Entity
-public class UserRole extends BaseTimeVersionEntity implements Serializable    {
+public class UserRole extends BaseEntity implements Serializable    {
 
     //********************************* static final 상수 필드 *********************************/
 

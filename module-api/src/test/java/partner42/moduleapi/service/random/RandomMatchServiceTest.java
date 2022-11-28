@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
-import partner42.modulecommon.repository.random.RandomMatchRedisRepository;
 import partner42.modulecommon.utils.redis.RedisTransactionUtil;
 
 

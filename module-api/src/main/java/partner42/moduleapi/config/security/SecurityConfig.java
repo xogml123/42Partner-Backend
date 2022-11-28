@@ -1,12 +1,14 @@
 package partner42.moduleapi.config.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Collection;
 import java.util.List;
 import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -50,7 +52,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.csrf().disable();
-        http.cors().configurationSource(corsConfigurationSource());
+//        http.cors().configurationSource(corsConfigurationSource());
         http.exceptionHandling().authenticationEntryPoint(authenticationEntryPoint);
         http.addFilterBefore(customAuthorizationFilter, UsernamePasswordAuthenticationFilter.class);
         //session생성하지 않음. -> jwt 사용.
@@ -87,6 +89,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 //MatchController
                 .antMatchers(HttpMethod.GET, "/api/matches").authenticated()
                 .antMatchers(HttpMethod.GET, "/api/matches/*").authenticated()
+                .antMatchers(HttpMethod.POST, "/api/matches/*/review").authenticated()
                 //ArticleController
                 .antMatchers(HttpMethod.POST, "/api/articles").authenticated()
                 .antMatchers(HttpMethod.PUT, "/api/articles/*").authenticated()
@@ -130,15 +133,15 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     }
 
-    @Override
-    public void configure(WebSecurity web) throws Exception {
-        web.ignoring();
-    }
+//    @Override
+//    public void configure(WebSecurity web) throws Exception {
+//        web.ignoring();
+//    }
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         final CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of(corsFrontend));
+        configuration.setAllowedOrigins(List.of(corsFrontend, "www.42partner.com"));
         configuration.setAllowedMethods(List.of("HEAD",
             "GET", "POST", "PUT", "DELETE", "PATCH"));
         // setAllowCredentials(true) is important, otherwise:

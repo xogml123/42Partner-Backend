@@ -23,4 +23,16 @@ public class MemberDto {
     @Schema(name = "isAuthor" , example = "true Or false", description = "작성자이면 true")
     @NotNull
     private Boolean isAuthor;
+
+    @Schema(name = "isMe" , example = "true Or false", description = "자신이면 true")
+    @NotNull
+    private Boolean isMe;
+
+//    public static MemberDto of(String nickname, Boolean isAuthor, Boolean isMe) {
+//        return MemberDto.builder()
+//                .nickname(nickname)
+//                .isAuthor(isAuthor)
+//                .isMe(isMe)
+//                .build();
+//    }
 }

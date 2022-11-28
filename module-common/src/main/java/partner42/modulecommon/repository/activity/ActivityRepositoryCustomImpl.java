@@ -6,7 +6,10 @@ import static partner42.modulecommon.domain.model.activity.QActivity.activity;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.time.LocalDateTime;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import partner42.modulecommon.domain.model.match.ContentCategory;
 
@@ -15,6 +18,15 @@ import partner42.modulecommon.domain.model.match.ContentCategory;
 public class ActivityRepositoryCustomImpl implements ActivityRepositoryCustom {
 
     private final JPAQueryFactory queryFactory;
+
+//    @PersistenceContext
+//    private EntityManager em;
+//    private JPAQueryFactory queryFactory;
+//
+//    @Autowired
+//    public ActivityRepositoryCustomImpl() {
+//        this.queryFactory = new JPAQueryFactory(em);
+//    }
 
     @Override
     public Integer findSumScoreByMemberIdAndArticleSearch(Long memberId,

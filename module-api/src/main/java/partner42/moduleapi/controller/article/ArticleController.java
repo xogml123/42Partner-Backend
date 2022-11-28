@@ -36,8 +36,10 @@ public class ArticleController {
     @Operation(summary = "방 하나 상세조회", description = "방 상세페이지")
     @GetMapping("/articles/{articleId}")
     public ArticleReadOneResponse readOneArticle(
-        @PathVariable String articleId) {
-        return articleService.readOneArticle(articleId);
+        @PathVariable String articleId,
+        @Parameter(hidden = true) @AuthenticationPrincipal String username) {
+
+        return articleService.readOneArticle(username, articleId);
     }
 
 //    @PreAuthorize("hasAuthority('article.read')")
