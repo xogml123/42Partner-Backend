@@ -29,6 +29,7 @@ import partner42.modulecommon.domain.model.BaseEntity;
 import partner42.modulecommon.domain.model.article.Article;
 import partner42.modulecommon.domain.model.article.ArticleMember;
 import partner42.modulecommon.domain.model.matchcondition.MatchConditionMatch;
+import partner42.modulecommon.domain.model.member.Member;
 import partner42.modulecommon.domain.model.random.RandomMatch;
 import partner42.modulecommon.exception.BusinessException;
 import partner42.modulecommon.exception.ErrorCode;
@@ -87,9 +88,7 @@ public class Match extends BaseEntity {
     @Column(nullable = false)
     private Integer participantNum;
 
-    @Builder.Default
-    @Column(nullable = false)
-    private Boolean isReviewed = false;
+
 
     /********************************* 비영속 필드 *********************************/
 
@@ -142,15 +141,7 @@ public class Match extends BaseEntity {
         return this.getCreatedAt().plusHours(1);
     }
 
-    public void review(){
-        verifyReviewed();
-    }
 
-    private void verifyReviewed() {
-        if (this.isReviewed) {
-            throw new BusinessException(ErrorCode.ALREADY_REVIEWED);
-        }
-    }
 
     /********************************* 비니지스 로직 *********************************/
 
