@@ -18,12 +18,14 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import partner42.moduleapi.dto.EmailDto;
 import partner42.moduleapi.dto.article.ArticleDto;
 import partner42.moduleapi.dto.article.ArticleOnlyIdResponse;
 import partner42.moduleapi.dto.article.ArticleReadOneResponse;
 import partner42.moduleapi.dto.article.ArticleReadResponse;
 import partner42.moduleapi.service.article.ArticleService;
 import partner42.modulecommon.repository.article.ArticleSearch;
+import partner42.modulecommon.utils.slack.SlackBotService;
 
 @Slf4j
 @RestController
@@ -32,7 +34,8 @@ import partner42.modulecommon.repository.article.ArticleSearch;
 public class ArticleController {
 
     private final ArticleService articleService;
-//    @PreAuthorize("hasAuthority('article.read')")
+    private final SlackBotService slackBotService;
+
     @Operation(summary = "방 하나 상세조회", description = "방 상세페이지")
     @GetMapping("/articles/{articleId}")
     public ArticleReadOneResponse readOneArticle(
@@ -108,7 +111,10 @@ public class ArticleController {
     public ArticleOnlyIdResponse completeArticle(@PathVariable String articleId,
         @Parameter(hidden = true) @AuthenticationPrincipal String username
     ) {
-        return articleService.completeArticle(username, articleId);
+        EmailDto<ArticleOnlyIdResponse> emailDto = articleService.completeArticle(
+            username, articleId);
+        slackBotService.createSlackMIIM(emailDto.getEmails());
+        return emailDto.getResponse();
     }
 
 }

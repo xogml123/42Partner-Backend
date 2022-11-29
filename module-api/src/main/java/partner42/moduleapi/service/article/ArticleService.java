@@ -11,6 +11,7 @@ import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import partner42.moduleapi.dto.EmailDto;
 import partner42.moduleapi.dto.article.ArticleDto;
 import partner42.moduleapi.dto.article.ArticleOnlyIdResponse;
 import partner42.moduleapi.dto.article.ArticleReadOneResponse;
@@ -158,15 +159,17 @@ public class ArticleService {
 
 
     public ArticleReadOneResponse readOneArticle(String username, String articleId) {
-        Member member = username == null ? null : userRepository.findByUsername(username).orElseThrow(
-            () -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND)).getMember();
+        Member member =
+            username == null ? null : userRepository.findByUsername(username).orElseThrow(
+                () -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND)).getMember();
         Article article = articleRepository.findDistinctFetchArticleMatchConditionsByApiIdAndIsDeletedIsFalse(
                 articleId)
             .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
 
         List<MemberDto> memberDtos = article.getArticleMembers().stream()
             .map(am -> (
-                memberMapper.articleMemberToMemberDto(am.getMember(), am, am.getMember().equals(member))))
+                memberMapper.articleMemberToMemberDto(am.getMember(), am,
+                    am.getMember().equals(member))))
             .collect(Collectors.toList());
 
         List<MatchCondition> matchConditions = article.getArticleMatchConditions().stream()
@@ -242,7 +245,7 @@ public class ArticleService {
 
     //OptimisticLockException
     @Transactional
-    public ArticleOnlyIdResponse completeArticle(String username, String articleId) {
+    public EmailDto<ArticleOnlyIdResponse> completeArticle(String username, String articleId) {
         //글 작성자아닌 경우
         verifyAuthorOfArticle(username, articleId);
 
@@ -282,12 +285,13 @@ public class ArticleService {
                     }
                 }
             );
-        //슬랙 알림(비동기)
-        slackBotService.createSlackMIIM(article.getArticleMembers().stream()
-            .map(am -> am.getMember().getUser().getEmail())
-            .collect(Collectors.toList()));
 
-        return ArticleOnlyIdResponse.of(article.getApiId());
+        return EmailDto.<ArticleOnlyIdResponse>builder()
+            .emails(article.getArticleMembers().stream()
+                .map(am -> am.getMember().getUser().getEmail())
+                .collect(Collectors.toList()))
+            .response(ArticleOnlyIdResponse.of(article.getApiId()))
+            .build();
     }
 
 
