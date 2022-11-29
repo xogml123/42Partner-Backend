@@ -108,6 +108,7 @@ public class ArticleService {
         return ArticleOnlyIdResponse.of(article.getApiId());
     }
 
+    //OptimisticLockException
     @Transactional
     public ArticleOnlyIdResponse deleteArticle(String username, String articleId) {
         verifyAuthorOfArticle(username, articleId);
@@ -116,6 +117,7 @@ public class ArticleService {
         return ArticleOnlyIdResponse.of(articleId);
     }
 
+    //OptimisticLockException
     @Transactional
     public ArticleOnlyIdResponse changeIsDelete(String username, String articleId) {
 
@@ -127,6 +129,7 @@ public class ArticleService {
         return ArticleOnlyIdResponse.of(articleId);
     }
 
+    //OptimisticLockException
     @Transactional
     public ArticleOnlyIdResponse updateArticle(ArticleDto articleRequest, String username,
         String articleId) {
@@ -203,6 +206,7 @@ public class ArticleService {
 
     }
 
+    //OptimisticLockException
     //이미 참여중인 경우 방지.
     @Transactional
     public ArticleOnlyIdResponse participateArticle(String username, String articleId) {
@@ -219,6 +223,7 @@ public class ArticleService {
         return ArticleOnlyIdResponse.of(article.getApiId());
     }
 
+    //OptimisticLockException
     @Transactional
     public ArticleOnlyIdResponse participateCancelArticle(String username, String articleId) {
 
@@ -235,6 +240,7 @@ public class ArticleService {
         return ArticleOnlyIdResponse.of(article.getApiId());
     }
 
+    //OptimisticLockException
     @Transactional
     public ArticleOnlyIdResponse completeArticle(String username, String articleId) {
         //글 작성자아닌 경우

@@ -84,7 +84,14 @@ public class MatchService {
                             memberMapper.matchMemberToMemberDto(matchMember.getMember(), matchMember,
                                 member.equals(matchMember.getMember()))
                         )
-                        .collect(Collectors.toList())
+                        .collect(Collectors.toList()),
+                    match.getMatchMembers().stream()
+                        .filter((matchMember) ->
+                            member.equals(matchMember.getMember())
+                        ).findFirst()
+                        .orElseThrow(() ->
+                            new NoEntityException(ErrorCode.ENTITY_NOT_FOUND))
+                        .getIsReviewed()
                 );
             })
             .collect(Collectors.toList());
@@ -94,6 +101,8 @@ public class MatchService {
 
     public MatchDto readOneMatch(String username, String matchId) {
         //자기 매치인지 확인
+        verifyNotMatchParticipated(username, matchId);
+
         Member member = userRepository.findByUsername(username)
             .orElseThrow(() ->
                 new NoEntityException(ErrorCode.ENTITY_NOT_FOUND))
@@ -117,10 +126,16 @@ public class MatchService {
                     memberMapper.matchMemberToMemberDto(matchMember.getMember(), matchMember,
                         member.equals(matchMember.getMember()))
                 )
-                .collect(Collectors.toList()));
+                .collect(Collectors.toList()),
+            match.getMatchMembers().stream()
+                .filter((matchMember) ->
+                    member.equals(matchMember.getMember())
+                ).findFirst()
+                .orElseThrow(() ->
+                    new NoEntityException(ErrorCode.ENTITY_NOT_FOUND))
+                .getIsReviewed()
+        );
     }
-
-    //자기 매치인지 확인
 
 
     public ResponseEntity<Void> makeReview(String username, String matchId,
@@ -134,8 +149,14 @@ public class MatchService {
         Match match = matchRepository.findByApiId(matchId)
             .orElseThrow(() ->
                 new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
-        //match 매칭상태 변경
-        match.review();
+        //uesrname에 해당하는 matchMember의 매칭상태 true로 변경.
+        match.getMatchMembers().stream()
+            .filter(mm ->
+                mm.getMember().getUser().getUsername().equals(username))
+            .findAny()
+            .orElseThrow(() ->
+                new NoEntityException(ErrorCode.ENTITY_NOT_FOUND))
+            .updateReviewStatusTrue();
         //리뷰 작성자 참여 점수 추가.
         Member memberReviewAuthor = memberRepository.findByNickname(username)
             .orElseThrow(() ->
@@ -177,6 +198,7 @@ public class MatchService {
 
     }
 
+    //자기 매치인지 확인
     private void verifyNotMatchParticipated(String username, String matchId) {
 
         User user = userRepository.findByUsername(username)

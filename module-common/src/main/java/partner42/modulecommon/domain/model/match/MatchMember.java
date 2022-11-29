@@ -19,6 +19,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import partner42.modulecommon.exception.BusinessException;
+import partner42.modulecommon.exception.ErrorCode;
 
 
 @Builder(access = AccessLevel.PRIVATE)
@@ -51,6 +53,11 @@ public class MatchMember extends BaseEntity {
 
     @Column(name = "IS_AUTHOR", nullable = false, updatable = false)
     private Boolean isAuthor;
+
+    @Builder.Default
+    @Column(nullable = false)
+    private Boolean isReviewed = false;
+
 
 
 
@@ -88,4 +95,15 @@ public class MatchMember extends BaseEntity {
     }
     /********************************* 비니지스 로직 *********************************/
 
+
+    public void updateReviewStatusTrue(){
+        verifyAlreadyReviewed();
+        this.isReviewed = true;
+    }
+
+    private void verifyAlreadyReviewed() {
+        if (this.isReviewed){
+            throw new BusinessException(ErrorCode.ALREADY_REVIEWED);
+        }
+    }
 }

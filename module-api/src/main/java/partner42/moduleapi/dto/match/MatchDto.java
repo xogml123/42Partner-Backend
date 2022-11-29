@@ -38,11 +38,11 @@ public class MatchDto {
     private LocalDateTime createdAt;
 
     @NotNull
-    @Schema(name = "createdAt", example = "2022-10-03T00:00:00", description = "매칭이 이루어진 시간")
+    @Schema(name = "reviewAvailableTime", example = "2022-10-03T00:00:00", description = "이 시간 이후로 리뷰를 남길 수 있음.")
     private LocalDateTime reviewAvailableTime;
 
     @NotNull
-    @Schema(name = "createdAt", example = "2022-10-03T00:00:00", description = "매칭이 이루어진 시간")
+    @Schema(name = "isReviewed", example = "true", description = "리뷰가 이루어졌는지 여부")
     private Boolean isReviewed;
 
     @Schema(name = "matchStatus", example = "MATCHED(\"매칭 완료\"), CANCELED(\"취소\");", description = " 매칭 완료, 취소 여부(현 상황에서는 매칭 완료 인것만 보내짐.)")
@@ -69,12 +69,14 @@ public class MatchDto {
     @Schema(name = "participantsOrAuthor", example = " ", description = "방을 만든사람, 혹은 참여자가 담긴 배열")
     private List<MemberDto> participantsOrAuthor = new ArrayList<>();
 
-    public static MatchDto of(Match match, MatchConditionDto matchConditionDto, List<MemberDto> participantsOrAuthor) {
+    public static MatchDto of(Match match, MatchConditionDto matchConditionDto,
+        List<MemberDto> participantsOrAuthor, boolean isReviewed) {
+
         return MatchDto.builder()
             .matchId(match.getApiId())
             .createdAt(match.getCreatedAt())
             .reviewAvailableTime(match.getReviewAvailableTime())
-            .isReviewed(match.getIsReviewed())
+            .isReviewed(isReviewed)
             .matchStatus(match.getMatchStatus())
             .contentCategory(match.getContentCategory())
             .methodCategory(match.getMethodCategory())
