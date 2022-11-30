@@ -11,11 +11,8 @@ import com.querydsl.core.types.dsl.PathBuilder;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.util.List;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
@@ -50,8 +47,9 @@ public class ArticleRepositoryCustomImpl implements ArticleRepositoryCustom {
             .join(article.articleMembers, articleMember).fetchJoin()
             .where(
                 isDeletedIsFalse(),
-                isComplete(condition.getIsMatched()),
-                isContentCategory(condition.getContentCategory())
+                isComplete(condition.getIsComplete()),
+                isContentCategory(condition.getContentCategory()),
+                isAnonymity(condition.getAnonymity())
             );
         for (Sort.Order o : pageable.getSort()) {
             PathBuilder pathBuilder = new PathBuilder(article.getType(),
@@ -68,17 +66,20 @@ public class ArticleRepositoryCustomImpl implements ArticleRepositoryCustom {
             hasnext = true;
             articles.remove(articles.size() - 1);
         }
-        System.out.println("hasnext = " + hasnext);
         return new SliceImpl<>(articles, pageable, hasnext);
+    }
+
+    private BooleanExpression isAnonymity(Boolean anonymity) {
+        return anonymity == null ? null: article.anonymity.eq(anonymity);
     }
 
     private BooleanExpression isDeletedIsFalse() {
         return article.isDeleted.isFalse();
     }
 
-    private BooleanExpression isComplete(Boolean isMatched) {
+    private BooleanExpression isComplete(Boolean isComplete) {
 
-        return isMatched == null ? null : article.isComplete.eq(isMatched);
+        return isComplete == null ? null : article.isComplete.eq(isComplete);
     }
 
     private BooleanExpression isContentCategory(ContentCategory contentCategory) {

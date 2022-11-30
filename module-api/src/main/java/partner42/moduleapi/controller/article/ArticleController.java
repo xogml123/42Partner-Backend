@@ -113,6 +113,8 @@ public class ArticleController {
     ) {
         EmailDto<ArticleOnlyIdResponse> emailDto = articleService.completeArticle(
             username, articleId);
+        //트랜잭션 외부에서 외부 리소스 알림기능을 적용하기 위해서
+        //따로 분리.
         slackBotService.createSlackMIIM(emailDto.getEmails());
         return emailDto.getResponse();
     }

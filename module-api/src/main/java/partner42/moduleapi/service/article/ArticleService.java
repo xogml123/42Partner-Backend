@@ -142,8 +142,8 @@ public class ArticleService {
             .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
 
         //기존 조건 삭제
-        article.getArticleMatchConditions().clear();
         articleMatchConditionRepository.deleteAll(article.getArticleMatchConditions());
+        article.getArticleMatchConditions().clear();
 
         //새로운 조건 객체 생성
         List<ArticleMatchCondition> articleMatchConditions = allMatchConditionToArticleMatchCondition(

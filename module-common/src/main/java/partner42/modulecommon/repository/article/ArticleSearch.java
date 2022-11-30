@@ -8,7 +8,9 @@ import lombok.Setter;
 @Setter
 public class ArticleSearch {
 
-    private Boolean isMatched;
+    private Boolean isComplete;
 
     private ContentCategory contentCategory;
+
+    private Boolean anonymity;
 }

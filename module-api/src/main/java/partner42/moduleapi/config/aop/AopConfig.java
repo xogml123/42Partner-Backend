@@ -9,7 +9,7 @@ import partner42.moduleapi.aop.OptimisticLockAspect;
 /**
  * transactional annotation의 실행 순서를 지정.
  */
-@EnableTransactionManagement(order = 100)
+@EnableTransactionManagement(order = Ordered.LOWEST_PRECEDENCE)
 @Configuration
 public class AopConfig {
 
