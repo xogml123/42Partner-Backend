@@ -36,7 +36,7 @@ public enum ErrorCode {
 
     NOT_CHANGEABLE_PARTICIPANT_NUM_MAX(409, "AR003", "방의 최대 인원을 변경할 수 없습니다."),
     UNMODIFIABLE_ARTICLE(409, "AR004", "수정할 수 없는 게시글입니다."),
-    ALREADY_PARTICIPATED(409, "AR005", "이미 참여한 방입니다."),
+    ALREADY_PARTICIPATED_MEMBER(409, "AR005", "이미 참여한 방입니다."),
     DELETED_ARTICLE(409, "AR006", "삭제된 게시글입니다."),
     COMPLETED_ARTICLE(409, "AR007", "완료된 게시글입니다."),
     FULL_ARTICLE(409, "AR008", "인원이 다 찬 게시글입니다."),

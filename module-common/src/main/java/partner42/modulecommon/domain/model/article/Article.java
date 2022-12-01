@@ -143,9 +143,6 @@ public class Article extends BaseEntity {
 
     public static Article of(LocalDate date, String title, String content, Boolean anonymity,
         Integer participantNumMax, ContentCategory contentCategory
-//        ,
-//        ArticleMember articleMember,
-//        List<ArticleMatchCondition> articleMatchConditions
     ) {
         return Article.builder()
             .date(date)
@@ -155,10 +152,7 @@ public class Article extends BaseEntity {
             .participantNumMax(participantNumMax)
             .contentCategory(contentCategory)
             .build();
-//        articleMember.setArticle(article);
-//        for (ArticleMatchCondition articleMatchCondition : articleMatchConditions) {
-//            articleMatchCondition.setArticle(article);
-//        }
+
     }
 
     /********************************* 비니지스 로직 *********************************/
@@ -173,6 +167,7 @@ public class Article extends BaseEntity {
         this.title = title;
         this.content = content;
         this.participantNumMax = participantNumMax;
+        this.getArticleMatchConditions().clear();
         for (ArticleMatchCondition articleMatchCondition : articleMatchConditions) {
             articleMatchCondition.setArticle(this);
         }
@@ -180,10 +175,8 @@ public class Article extends BaseEntity {
 
     public Member getAuthorMember() {
         return this.getArticleMembers().stream()
-            .filter((articleMember) ->
-                articleMember.getIsAuthor())
-            .map((articleMember) ->
-                articleMember.getMember())
+            .filter(ArticleMember::getIsAuthor)
+            .map(ArticleMember::getMember)
             .findFirst().orElseThrow(() -> (
                 new IllegalStateException(ErrorCode.NO_AUTHOR.getMessage())
             ));
@@ -193,8 +186,7 @@ public class Article extends BaseEntity {
         return this.getArticleMembers().stream()
             .filter((articleMember) ->
                 !articleMember.getIsAuthor())
-            .map((articleMember) ->
-                articleMember.getMember())
+            .map(ArticleMember::getMember)
             .collect(Collectors.toList());
     }
 
@@ -241,11 +233,11 @@ public class Article extends BaseEntity {
         if (this.getArticleMembers().stream()
             .anyMatch((articleMember) ->
                 articleMember.getMember().equals(member))) {
-            throw new InvalidInputException(ErrorCode.ALREADY_PARTICIPATED);
+            throw new InvalidInputException(ErrorCode.ALREADY_PARTICIPATED_MEMBER);
         }
     }
 
-    private void verifyUnparticipatedMember(Member member) {
+    private void verifyUnParticipatedMember(Member member) {
 
         if (this.getArticleMembers().stream()
             .noneMatch((articleMember) ->
@@ -275,13 +267,14 @@ public class Article extends BaseEntity {
         verifyDeleted();
         verifyCompleted();
         verifyEmpty();
-        verifyUnparticipatedMember(member);
+        verifyUnParticipatedMember(member);
         ArticleMember participateMember = this.getArticleMembers().stream()
             .filter((articleMember1) ->
                 articleMember1.getMember().equals(member))
             .findFirst().orElseThrow(() -> (
                 new InvalidInputException(ErrorCode.NOT_PARTICIPATED_MEMBER)
             ));
+        this.getArticleMembers().remove(participateMember);
         this.participantNum--;
         return participateMember;
     }
