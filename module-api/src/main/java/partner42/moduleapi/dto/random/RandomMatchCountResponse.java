@@ -8,16 +8,14 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import partner42.modulecommon.domain.model.match.ContentCategory;
 
 @Getter
 @Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class RandomMatchCancelRequest {
+public class RandomMatchCountResponse {
 
-    @Schema (description = "취소할 랜덤 매칭의 카테고리", example = "MEAL or STUDY")
-    @NotNull
-    private ContentCategory contentCategory;
+    @Schema(name = "randomMatchCount", example = "22", description = "category별 랜덤 매칭 개수")
+    private Integer randomMatchCount;
 }

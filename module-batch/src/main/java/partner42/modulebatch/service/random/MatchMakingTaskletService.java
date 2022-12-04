@@ -59,11 +59,11 @@ public class MatchMakingTaskletService {
         LocalDateTime now = CustomTimeUtils.nowWithoutNano();
 
         //1. 랜덤 매칭 테이블에서 매칭 대기중인 데이터를 가져온다.
-        List<MealRandomMatch> mealRandomMatches = randomMatchRepository.findMealByCreatedAtBeforeAndIsExpired(
+        List<MealRandomMatch> mealRandomMatches = randomMatchRepository.findMealPessimisticWriteByCreatedAtBeforeAndIsExpired(
             now.minusMinutes(
                 RandomMatch.MAX_WAITING_TIME), false);
 
-        List<StudyRandomMatch> studyRandomMatches = randomMatchRepository.findStudyByCreatedAtBeforeAndIsExpired(
+        List<StudyRandomMatch> studyRandomMatches = randomMatchRepository.findStudyPessimisticWriteByCreatedAtBeforeAndIsExpired(
             now.minusMinutes(
                 RandomMatch.MAX_WAITING_TIME), false);
         //2. 랜덤 매칭 테이블에서 매칭을 조건에 따라 분류한다.

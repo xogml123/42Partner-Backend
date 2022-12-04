@@ -62,7 +62,7 @@ public interface RandomMatchRepository extends JpaRepository<RandomMatch, Long> 
     @Query("select rm from MealRandomMatch rm "
         + "where rm.createdAt > :before "
         + "and rm.isExpired = :isExpired")
-    List<MealRandomMatch> findMealByCreatedAtBeforeAndIsExpired(
+    List<MealRandomMatch> findMealPessimisticWriteByCreatedAtBeforeAndIsExpired(
         @Param(value = "before") LocalDateTime before,
         @Param(value  = "isExpired") boolean isExpired);
 
@@ -70,7 +70,35 @@ public interface RandomMatchRepository extends JpaRepository<RandomMatch, Long> 
     @Query("select rm from StudyRandomMatch rm "
         + "where rm.createdAt > :before "
         + "and rm.isExpired = :isExpired")
-    List<StudyRandomMatch> findStudyByCreatedAtBeforeAndIsExpired(
+    List<StudyRandomMatch> findStudyPessimisticWriteByCreatedAtBeforeAndIsExpired(
+        @Param(value = "before") LocalDateTime before,
+        @Param(value  = "isExpired") boolean isExpired);
+
+//    @Query("select rm from MealRandomMatch rm "
+//        + "where rm.createdAt > :before "
+//        + "and rm.isExpired = :isExpired")
+//    List<MealRandomMatch> findMealByCreatedAtBeforeAndIsExpired(
+//        @Param(value = "before") LocalDateTime before,
+//        @Param(value  = "isExpired") boolean isExpired);
+//
+//    @Query("select rm from StudyRandomMatch rm "
+//        + "where rm.createdAt > :before "
+//        + "and rm.isExpired = :isExpired")
+//    List<StudyRandomMatch> findStudyByCreatedAtBeforeAndIsExpired(
+//        @Param(value = "before") LocalDateTime before,
+//        @Param(value  = "isExpired") boolean isExpired);
+
+    @Query("select count(rm) from MealRandomMatch rm "
+        + "where rm.createdAt > :before "
+        + "and rm.isExpired = :isExpired")
+    Integer findCountMealByCreatedAtBeforeAndIsExpired(
+        @Param(value = "before") LocalDateTime before,
+        @Param(value  = "isExpired") boolean isExpired);
+
+    @Query("select count(rm) from StudyRandomMatch rm "
+        + "where rm.createdAt > :before "
+        + "and rm.isExpired = :isExpired")
+    Integer findCountStudyByCreatedAtBeforeAndIsExpired(
         @Param(value = "before") LocalDateTime before,
         @Param(value  = "isExpired") boolean isExpired);
 
