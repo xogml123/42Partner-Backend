@@ -44,6 +44,8 @@ public class CustomAuthorizationFilter extends OncePerRequestFilter {
     @Value("${jwt.secret}")
     private String secret;
 
+    private final String AUTHORIZATION_HEADER_CUSTOM = "user-token";
+
 //    public static final Set<String> permitAllList = new HashSet<>();
 //    static{
 //        permitAllList.addAll(Arrays.asList(
@@ -60,7 +62,9 @@ public class CustomAuthorizationFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
 
         } else {
-            String authorizationHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
+//            String authorizationHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
+            String authorizationHeader = request.getHeader(AUTHORIZATION_HEADER_CUSTOM);
+
             if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
                 try {
                     String token = authorizationHeader.substring("Bearer ".length());
