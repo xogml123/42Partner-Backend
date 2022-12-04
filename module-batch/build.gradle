@@ -8,6 +8,18 @@ group = 'partner42'
 version = '0.0.1-SNAPSHOT'
 sourceCompatibility = '11'
 
+// Default는 local 로 지정
+ext.profile = (!project.hasProperty('profile') || !profile) ? 'local' : profile
+
+// 리소스 폴더 지정
+sourceSets {
+    main {
+        resources {
+            srcDirs "src/main/resources", "src/main/resources-${profile}"
+        }
+    }
+}
+
 configurations {
     compileOnly {
         extendsFrom annotationProcessor
@@ -31,6 +43,8 @@ dependencies {
 
     //module-common  참조
     implementation project(':module-common')
+
+
 }
 
 tasks.named('test') {

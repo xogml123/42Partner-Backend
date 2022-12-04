@@ -49,6 +49,8 @@ public enum ErrorCode {
     RANDOM_MATCH_ALREADY_EXIST(409, "RM001", "이미 랜덤 매칭에 참여하고 있습니다"),
     ALREADY_CANCELED_RANDOM_MATCH(409, "RM002", "취소할 수 있는 랜덤매칭 신청내역이 존재하지 않습니다."),
 
+    MATCH_CONDITION_EMPTY(400, "RM003", "각각의 필드 별로 매칭 조건을 적어도 하나 선택해야합니다."),
+
     //Opinion
     NOT_OPINION_AUTHOR(403, "OP001", "의견의 작성자가 아닙니다."),
     //User

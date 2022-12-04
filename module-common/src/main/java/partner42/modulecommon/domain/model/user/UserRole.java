@@ -49,11 +49,11 @@ public class UserRole extends BaseEntity implements Serializable    {
     /********************************* 연관관계 매핑 *********************************/
 
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="USER_ID", nullable = false)
     private User user;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="ROLE_ID", nullable = false)
     private Role role;
 

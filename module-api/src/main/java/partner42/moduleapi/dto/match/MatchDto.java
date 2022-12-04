@@ -66,7 +66,7 @@ public class MatchDto {
     private MatchConditionDto matchConditionDto;
 
     @Builder.Default
-    @Schema(name = "participantsOrAuthor", example = " ", description = "방을 만든사람, 혹은 참여자가 담긴 배열")
+    @Schema(name = "participantsOrAuthor", example = "[]", description = "방을 만든사람, 혹은 참여자가 담긴 배열")
     private List<MemberDto> participantsOrAuthor = new ArrayList<>();
 
     public static MatchDto of(Match match, MatchConditionDto matchConditionDto,

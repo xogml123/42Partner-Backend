@@ -93,7 +93,7 @@ public class StudyRandomMatch extends RandomMatch {
                 if (o1.getTypeOfStudy().ordinal() != o2.getTypeOfStudy().ordinal()){
                     return o1.getTypeOfStudy().ordinal() - o2.getTypeOfStudy().ordinal();
                 } else {
-                    return -o1.getCreatedAt().compareTo(o2.getCreatedAt());
+                    return o1.getCreatedAt().compareTo(o2.getCreatedAt());
                 }
             }
         }

@@ -8,6 +8,7 @@ import org.aspectj.lang.annotation.Aspect;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
+import org.springframework.dao.CannotAcquireLockException;
 
 /**
  * @Transactional annotation보다 먼저 실행되어야함.
@@ -38,8 +39,8 @@ public class OptimisticLockAspect {
             try {
                 log.info("[RETRY_COUNT]: {}", retryCount);
                 return joinPoint.proceed();
-            } catch (OptimisticLockException e) {
-                log.error("OptimisticLockException 발생");
+            } catch (OptimisticLockException | CannotAcquireLockException e) {
+                log.error("{} 발생", e.getClass());
                 exceptionHolder = e;
                 //RETRY_WAIT_TIME ms 쉬고 다시 시도
                 //for loop에서 sleep busy waiting이 된다는 경고가 뜸 무슨의미일지 찾아보자.
@@ -47,7 +48,7 @@ public class OptimisticLockAspect {
                 Thread.sleep(retryInterval);
             }
         }
-        //3번 retry했음에도 실패하는 경우.
+        //3번 retry했음에a도 실패하는 경우.
         throw exceptionHolder;
     }
 

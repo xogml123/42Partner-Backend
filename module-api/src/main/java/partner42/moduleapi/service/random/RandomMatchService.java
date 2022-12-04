@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -11,8 +12,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import partner42.moduleapi.dto.matchcondition.MatchConditionRandomMatchDto;
+import partner42.moduleapi.dto.matchcondition.MatchConditionRandomMatchDto.MatchConditionRandomMatchDtoBuilder;
 import partner42.moduleapi.dto.random.RandomMatchCancelRequest;
 import partner42.moduleapi.dto.random.RandomMatchDto;
+import partner42.moduleapi.dto.random.RandomMatchExistDto;
 import partner42.modulecommon.utils.CustomTimeUtils;
 import partner42.modulecommon.domain.model.match.ContentCategory;
 import partner42.modulecommon.domain.model.matchcondition.Place;
@@ -39,10 +42,9 @@ public class RandomMatchService {
     private final UserRepository userRepository;
     private final RandomMatchRepository randomMatchRepository;
 
-    private final RedisTransactionUtil redisTransactionUtil;
 
     @Transactional
-    public ResponseEntity<Void> createRandomMatch(String username,
+    public void createRandomMatch(String username,
         RandomMatchDto randomMatchDto) {
         Member member = userRepository.findByUsername(username)
             .orElseThrow(() -> new NoEntityException(
@@ -50,7 +52,7 @@ public class RandomMatchService {
         //"2020-12-01T00:00:00"
         LocalDateTime now = CustomTimeUtils.nowWithoutNano();
         //이미 RandomMatch.MAX_WAITING_TIME분 이내에 랜덤 매칭 신청을 한 경우 인지 체크
-        verifyAlreadyApplied(randomMatchDto.getContentCategory(), member, now);
+        verifyAlreadyAppliedPessimisticWriteLock(randomMatchDto.getContentCategory(), member, now);
 
         //요청 dto로 부터 랜덤 매칭 모든 경우의 수 만들어서 RandomMatch 여러개로 변환
         List<RandomMatch> randomMatches = makeAllAvailRandomMatchesFromRandomMatchDto(
@@ -72,17 +74,33 @@ public class RandomMatchService {
 //                );
 //            }
 //        );
-        return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
+
+    private void verifyAlreadyAppliedPessimisticWriteLock(ContentCategory contentCategory, Member member,
+        LocalDateTime now) {
+        if ((contentCategory.equals(ContentCategory.MEAL) &&
+            randomMatchRepository.findMealPessimisticWriteByCreatedAtBeforeAndIsExpiredAndMemberId(
+                now.minusMinutes(RandomMatch.MAX_WAITING_TIME),
+                member.getId(), false).size() > 0) ||
+            (contentCategory.equals(ContentCategory.STUDY) &&
+                randomMatchRepository.findStudyPessimisticWriteByCreatedAtBeforeAndIsExpiredAndMemberId(
+                    now.minusMinutes(RandomMatch.MAX_WAITING_TIME),
+                    member.getId(), false).size() > 0)) {
+
+            throw new RandomMatchAlreadyExistException(ErrorCode.RANDOM_MATCH_ALREADY_EXIST);
+        }
+    }
 
     private void verifyAlreadyApplied(ContentCategory contentCategory, Member member,
         LocalDateTime now) {
         if ((contentCategory.equals(ContentCategory.MEAL) &&
-            randomMatchRepository.findMealByCreatedAtBeforeAndIsExpiredAndMemberId(now.minusMinutes(RandomMatch.MAX_WAITING_TIME),
+            randomMatchRepository.findMealByCreatedAtBeforeAndIsExpiredAndMemberId(
+                now.minusMinutes(RandomMatch.MAX_WAITING_TIME),
                 member.getId(), false).size() > 0) ||
             (contentCategory.equals(ContentCategory.STUDY) &&
-                randomMatchRepository.findStudyByCreatedAtBeforeAndIsExpiredAndMemberId(now.minusMinutes(RandomMatch.MAX_WAITING_TIME),
+                randomMatchRepository.findStudyByCreatedAtBeforeAndIsExpiredAndMemberId(
+                    now.minusMinutes(RandomMatch.MAX_WAITING_TIME),
                     member.getId(), false).size() > 0)) {
 
             throw new RandomMatchAlreadyExistException(ErrorCode.RANDOM_MATCH_ALREADY_EXIST);
@@ -90,7 +108,7 @@ public class RandomMatchService {
     }
 
     @Transactional
-    public ResponseEntity<Void> deleteRandomMatch(String username,
+    public void deleteRandomMatch(String username,
         RandomMatchCancelRequest request) {
         Long memberId = userRepository.findByUsername(username)
             .orElseThrow(() -> new NoEntityException(
@@ -101,11 +119,13 @@ public class RandomMatchService {
         ContentCategory contentCategory = request.getContentCategory();
         if (contentCategory == ContentCategory.MEAL) {
             randomMatches.addAll(
-                randomMatchRepository.findMealByCreatedAtBeforeAndIsExpiredAndMemberId(now.minusMinutes(RandomMatch.MAX_WAITING_TIME),
+                randomMatchRepository.findMealPessimisticWriteByCreatedAtBeforeAndIsExpiredAndMemberId(
+                    now.minusMinutes(RandomMatch.MAX_WAITING_TIME),
                     memberId, false));
         } else if (contentCategory == ContentCategory.STUDY) {
             randomMatches.addAll(
-                randomMatchRepository.findStudyByCreatedAtBeforeAndIsExpiredAndMemberId(now.minusMinutes(RandomMatch.MAX_WAITING_TIME),
+                randomMatchRepository.findStudyPessimisticWriteByCreatedAtBeforeAndIsExpiredAndMemberId(
+                    now.minusMinutes(RandomMatch.MAX_WAITING_TIME),
                     memberId, false));
         }
         // 활성화된 randomMatch가 db에 없으면 취소할 매치가 없는 경우 exception
@@ -130,9 +150,7 @@ public class RandomMatchService {
 //                        randomMatch.toValue()));
 //            }
 //        );
-        return ResponseEntity.status(HttpStatus.OK).build();
     }
-
 
 
     /**
@@ -174,4 +192,53 @@ public class RandomMatchService {
     }
 
 
+    public RandomMatchExistDto checkRandomMatchExist(String username,
+        RandomMatchCancelRequest randomMatchCancelRequest) {
+        Member member = userRepository.findByUsername(username)
+            .orElseThrow(() -> new NoEntityException(
+                ErrorCode.ENTITY_NOT_FOUND)).getMember();
+        try {
+            verifyAlreadyApplied(randomMatchCancelRequest.getContentCategory(), member,
+                LocalDateTime.now());
+            return RandomMatchExistDto.builder()
+                .isExist(false).build();
+        } catch (RandomMatchAlreadyExistException e) {
+            return RandomMatchExistDto.builder()
+                .isExist(true).build();
+        }
+    }
+
+    public RandomMatchDto readRandomMatchCondition(String username,
+        RandomMatchCancelRequest randomMatchCancelRequest) {
+
+        Member member = userRepository.findByUsername(username)
+            .orElseThrow(() -> new NoEntityException(
+                ErrorCode.ENTITY_NOT_FOUND)).getMember();
+        Long memberId = member.getId();
+        LocalDateTime now = LocalDateTime.now();
+        List<RandomMatch> randomMatches = new ArrayList<>();
+        MatchConditionRandomMatchDtoBuilder builder = MatchConditionRandomMatchDto.builder();
+        if (randomMatchCancelRequest.getContentCategory() == ContentCategory.MEAL) {
+            randomMatches = randomMatchRepository.findMealByCreatedAtBeforeAndIsExpiredAndMemberId(
+                now.minusMinutes(RandomMatch.MAX_WAITING_TIME), memberId, false);
+            builder = builder.wayOfEatingList(new ArrayList<>(randomMatches.stream()
+                .map(randomMatch -> ((MealRandomMatch) randomMatch).getWayOfEating())
+                .collect(Collectors.toSet())));
+        } else if (randomMatchCancelRequest.getContentCategory() == ContentCategory.STUDY) {
+            randomMatches = randomMatchRepository.findStudyByCreatedAtBeforeAndIsExpiredAndMemberId(
+                now.minusMinutes(RandomMatch.MAX_WAITING_TIME), memberId, false);
+            builder = builder.typeOfStudyList(new ArrayList<>(randomMatches.stream()
+                .map(randomMatch -> ((StudyRandomMatch) randomMatch).getTypeOfStudy())
+                .collect(Collectors.toSet())));
+        }
+        MatchConditionRandomMatchDto matchConditionRandomMatchDto = builder.placeList(
+                new ArrayList<>(randomMatches.stream()
+                    .map(RandomMatch::getPlace)
+                    .collect(Collectors.toSet())))
+            .build();
+        return RandomMatchDto.builder()
+            .contentCategory(randomMatchCancelRequest.getContentCategory())
+            .matchConditionRandomMatchDto(matchConditionRandomMatchDto)
+            .build();
+    }
 }

@@ -44,6 +44,10 @@ public class MealRandomMatch extends RandomMatch {
         return false;
     }
 
+    public String tostring() {
+        return contentCategory.name() + " " + place.name() + " " + wayOfEating.name() + " " + this.getMember().getNickname();
+    }
+
 //    @Override
 //    public String toStringKey() {
 //        return toKey() +
@@ -90,7 +94,7 @@ public class MealRandomMatch extends RandomMatch {
                 if (o1.getWayOfEating().ordinal() != o2.getWayOfEating().ordinal()){
                     return o1.getWayOfEating().ordinal() - o2.getWayOfEating().ordinal();
                 } else {
-                    return -o1.getCreatedAt().compareTo(o2.getCreatedAt());
+                    return o1.getCreatedAt().compareTo(o2.getCreatedAt());
                 }
             }
         }

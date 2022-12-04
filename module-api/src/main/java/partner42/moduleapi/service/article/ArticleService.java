@@ -1,5 +1,6 @@
 package partner42.moduleapi.service.article;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -10,7 +11,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronizationUtils;
 import partner42.moduleapi.dto.EmailDto;
 import partner42.moduleapi.dto.article.ArticleDto;
 import partner42.moduleapi.dto.article.ArticleOnlyIdResponse;
@@ -79,16 +83,13 @@ public class ArticleService {
     private final ActivityRepository activityRepository;
 
 
-    private final SlackBotApi slackBotApi;
 
     private final MemberMapper memberMapper;
     private final MatchConditionMapper matchConditionMapper;
 
-    private final SlackBotService slackBotService;
 
     @Transactional
     public ArticleOnlyIdResponse createArticle(String usename, ArticleDto articleRequest) {
-        log.info("{}", usename);
         Member member = userRepository.findByUsername(usename)
             .orElseThrow(() -> new NoEntityException(
                 ErrorCode.ENTITY_NOT_FOUND)).getMember();
@@ -211,7 +212,7 @@ public class ArticleService {
 
     //OptimisticLockException
     //이미 참여중인 경우 방지.
-    @Transactional
+    @Transactional(timeout = 1000)
     public ArticleOnlyIdResponse participateArticle(String username, String articleId) {
         Article article = articleRepository.findDistinctFetchArticleMembersByApiId(
                 articleId)
@@ -225,7 +226,6 @@ public class ArticleService {
         articleMemberRepository.save(participateMember);
         return ArticleOnlyIdResponse.of(article.getApiId());
     }
-
     //OptimisticLockException
     @Transactional
     public ArticleOnlyIdResponse participateCancelArticle(String username, String articleId) {

@@ -1,5 +1,8 @@
 package partner42.modulebatch.config.scheduler;
 
+import java.time.LocalDate;
+import java.util.Date;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.JobParameter;
@@ -32,7 +35,9 @@ public class BatchScheduler {
     public void randomMatchSchedule() {
 
         try{
-            jobLauncher.run(randomMatchJobConfig.randomMatchJob(), new JobParameters());
+            jobLauncher.run(randomMatchJobConfig.randomMatchJob(), new JobParameters(Map.of("date",
+                new JobParameter(new Date().getTime()))));
+
         } catch (JobExecutionAlreadyRunningException | JobInstanceAlreadyCompleteException |
             JobParametersInvalidException | JobRestartException e){
             log.error("{}", e.getMessage());

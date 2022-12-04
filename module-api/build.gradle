@@ -8,7 +8,7 @@ group = 'partner42'
 version = '0.0.1-SNAPSHOT'
 sourceCompatibility = '11'
 
-// Default는 dev 로 지정
+// Default는 local 로 지정
 ext.profile = (!project.hasProperty('profile') || !profile) ? 'local' : profile
 
 // 리소스 폴더 지정
@@ -49,6 +49,8 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.security:spring-security-test'
 
+	testCompileOnly 'org.projectlombok:lombok:1.18.12' // 테스트 의존성 추가
+	testAnnotationProcessor 'org.projectlombok:lombok:1.18.12' // 테스트 의존성 추가
 	//swagger
 	implementation 'io.springfox:springfox-boot-starter:3.0.0'
 
