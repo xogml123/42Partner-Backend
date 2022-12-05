@@ -111,7 +111,7 @@ public class User extends BaseEntity {
      * role
      */
     @Singular
-    @OneToMany(mappedBy = "user", fetch = FetchType.EAGER, cascade = {CascadeType.PERSIST})
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST})
     private final Set<UserRole>
         userRoles = new HashSet<>();
 

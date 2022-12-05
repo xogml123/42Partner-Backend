@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import partner42.modulecommon.domain.model.match.Match;
@@ -28,6 +29,7 @@ import partner42.modulecommon.utils.CustomTimeUtils;
 import partner42.modulecommon.utils.slack.SlackBotApi;
 import partner42.modulecommon.utils.slack.SlackBotService;
 
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class MatchMakingTaskletService {
@@ -41,22 +43,27 @@ public class MatchMakingTaskletService {
     private final MatchConditionRepository matchConditionRepository;
     private final MatchConditionMatchRepository matchConditionMatchRepository;
 
-    private final SlackBotApi slackBotApi;
 
-    private final SlackBotService slackBotService;
-
+    /**
+     * 테스트 케이스
+     * 1. 여러 조건이 들어오는 경우 매칭이 하나의 조건으로 채결되면 다른 신청 무효화 - 안됨
+     * 2. Meal 만 매칭이 가능.
+     * 3. 만료시간 제대로 되는지 확인.
+     * 4. 매칭 조건 다른 것들 섞여서 생성해도 잘 되는지 체크
+     * 5. 같은 조건 먼저 신청한사람이 먼저 매칭되도록
+     * @return
+     */
     @Transactional
     public List<List<String>> matchMaking() {
-        List<List<String>> matchedMembersEmailList = new ArrayList<>();
         //배치 시작 시간 기준
         LocalDateTime now = CustomTimeUtils.nowWithoutNano();
 
         //1. 랜덤 매칭 테이블에서 매칭 대기중인 데이터를 가져온다.
-        List<MealRandomMatch> mealRandomMatches = randomMatchRepository.findMealByCreatedAtBeforeAndIsExpired(
+        List<MealRandomMatch> mealRandomMatches = randomMatchRepository.findMealPessimisticWriteByCreatedAtBeforeAndIsExpired(
             now.minusMinutes(
                 RandomMatch.MAX_WAITING_TIME), false);
 
-        List<StudyRandomMatch> studyRandomMatches = randomMatchRepository.findStudyByCreatedAtBeforeAndIsExpired(
+        List<StudyRandomMatch> studyRandomMatches = randomMatchRepository.findStudyPessimisticWriteByCreatedAtBeforeAndIsExpired(
             now.minusMinutes(
                 RandomMatch.MAX_WAITING_TIME), false);
         //2. 랜덤 매칭 테이블에서 매칭을 조건에 따라 분류한다.
@@ -64,25 +71,79 @@ public class MatchMakingTaskletService {
         //매칭 조건 그 다음 생성 순서를 기준으로
         mealRandomMatches.sort(new MatchConditionComparator());
         studyRandomMatches.sort(new StudyRandomMatch.MatchConditionComparator());
-
+        log.info("mealRandomMatches : {}", mealRandomMatches.toString());
+        List<List<String>> matchedMembersEmailList = new ArrayList<>();
         //2-2. 매칭 조건에 따라 매칭을 진행한다.
         List<RandomMatch> matchedRandomMatches = new ArrayList<>();
         for (int i = 0; i < mealRandomMatches.size(); i++) {
             MealRandomMatch mealRandomMatch = mealRandomMatches.get(i);
+            //만료된 매치은 제외
+            if (mealRandomMatch.getIsExpired()) {
+                continue;
+            }
             if (matchedRandomMatches.isEmpty()) {
                 matchedRandomMatches.add(mealRandomMatch);
-            } else if (matchedRandomMatches.size() > 0) {
+            } else if ( matchedRandomMatches.size() > 0) {
                 RandomMatch randomMatchForCompare = matchedRandomMatches.get(0);
                 if (!mealRandomMatch.isMatchConditionEquals(randomMatchForCompare)) {
                     matchedRandomMatches.clear();
+                    matchedRandomMatches.add(mealRandomMatch);
                 } else {
                     matchedRandomMatches.add(mealRandomMatch);
                     //매칭 조건 맞춰지면 매칭 진행
                     if (matchedRandomMatches.size() == RandomMatch.MATCH_COUNT) {
                         Match match = makeMatchInRDB(matchedRandomMatches, now);
+
                         //RandomMatch 테이블 isExpired = true로 변경
-                        matchedRandomMatches
-                            .forEach(RandomMatch::expire);
+                        //매칭 된 유저의 모든 신청 조건 무효화
+                        matchedRandomMatches.stream()
+                            .map(RandomMatch::getMember)
+                            .forEach(member -> {
+                                mealRandomMatches.stream()
+                                    .filter(mrm -> mrm.getMember().equals(member))
+                                    .forEach(RandomMatch::expire);
+                            });
+                        //
+                        matchedRandomMatches.clear();
+                        //매칭 맺어진 멤버의 email추가.
+                        matchedMembersEmailList.add(getMatchedParticipantsEmails(
+                            match));
+                    }
+                }
+            }
+        }
+
+        for (int i = 0; i < studyRandomMatches.size(); i++) {
+            StudyRandomMatch studyRandomMatch = studyRandomMatches.get(i);
+            //만료된 매치은 제외
+            if (studyRandomMatch.getIsExpired()) {
+                continue;
+            }
+            if (matchedRandomMatches.isEmpty()) {
+                matchedRandomMatches.add(studyRandomMatch);
+            } else if ( matchedRandomMatches.size() > 0) {
+                RandomMatch randomMatchForCompare = matchedRandomMatches.get(0);
+                if (!studyRandomMatch.isMatchConditionEquals(randomMatchForCompare)) {
+                    matchedRandomMatches.clear();
+                    matchedRandomMatches.add(studyRandomMatch);
+
+                } else {
+                    matchedRandomMatches.add(studyRandomMatch);
+                    //매칭 조건 맞춰지면 매칭 진행
+                    if (matchedRandomMatches.size() == RandomMatch.MATCH_COUNT) {
+                        Match match = makeMatchInRDB(matchedRandomMatches, now);
+
+                        //RandomMatch 테이블 isExpired = true로 변경
+                        //매칭 된 유저의 모든 신청 조건 무효화
+                        matchedRandomMatches.stream()
+                            .map(RandomMatch::getMember)
+                            .forEach(member -> {
+                                studyRandomMatches.stream()
+                                    .filter(mrm -> mrm.getMember().equals(member))
+                                    .forEach(RandomMatch::expire);
+                            });
+                        //
+                        matchedRandomMatches.clear();
                         //매칭 맺어진 멤버의 email추가.
                         matchedMembersEmailList.add(getMatchedParticipantsEmails(
                             match));
@@ -91,6 +152,11 @@ public class MatchMakingTaskletService {
             }
         }
         return matchedMembersEmailList;
+    }
+
+    private void expireMatched(List<MealRandomMatch> mealRandomMatches,
+        List<RandomMatch> matchedRandomMatches) {
+
     }
 
     private Match makeMatchInRDB(List<RandomMatch> matchedRandomMatches, LocalDateTime now) {

@@ -1,5 +1,7 @@
 package partner42.modulecommon.repository.random;
 
+import javax.persistence.LockModeType;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import partner42.modulecommon.domain.model.random.MealRandomMatch;
 import partner42.modulecommon.domain.model.random.RandomMatch;
@@ -33,19 +35,70 @@ public interface RandomMatchRepository extends JpaRepository<RandomMatch, Long> 
         @Param(value = "memberId") Long memberId,
         @Param(value  = "isExpired") boolean isExpired);
 
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @EntityGraph(attributePaths = {"member"})
+    @Query("select rm from MealRandomMatch rm "
+        + "where rm.member.id = :memberId "
+        + "and rm.createdAt > :before "
+        + "and rm.isExpired = :isExpired")
+    List<RandomMatch> findMealPessimisticWriteByCreatedAtBeforeAndIsExpiredAndMemberId(
+        @Param(value = "before") LocalDateTime before,
+        @Param(value = "memberId") Long memberId,
+        @Param(value  = "isExpired") boolean isExpired);
 
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @EntityGraph(attributePaths = {"member"})
+    @Query("select rm from StudyRandomMatch rm "
+        + "where rm.member.id = :memberId "
+        + "and rm.createdAt > :before "
+        + "and rm.isExpired = :isExpired")
+    List<RandomMatch> findStudyPessimisticWriteByCreatedAtBeforeAndIsExpiredAndMemberId(
+        @Param(value = "before") LocalDateTime before,
+        @Param(value = "memberId") Long memberId,
+        @Param(value  = "isExpired") boolean isExpired);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
 //    @EntityGraph(attributePaths = {"member"})
     @Query("select rm from MealRandomMatch rm "
         + "where rm.createdAt > :before "
         + "and rm.isExpired = :isExpired")
-    List<MealRandomMatch> findMealByCreatedAtBeforeAndIsExpired(
+    List<MealRandomMatch> findMealPessimisticWriteByCreatedAtBeforeAndIsExpired(
         @Param(value = "before") LocalDateTime before,
         @Param(value  = "isExpired") boolean isExpired);
 
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select rm from StudyRandomMatch rm "
         + "where rm.createdAt > :before "
         + "and rm.isExpired = :isExpired")
-    List<StudyRandomMatch> findStudyByCreatedAtBeforeAndIsExpired(
+    List<StudyRandomMatch> findStudyPessimisticWriteByCreatedAtBeforeAndIsExpired(
+        @Param(value = "before") LocalDateTime before,
+        @Param(value  = "isExpired") boolean isExpired);
+
+//    @Query("select rm from MealRandomMatch rm "
+//        + "where rm.createdAt > :before "
+//        + "and rm.isExpired = :isExpired")
+//    List<MealRandomMatch> findMealByCreatedAtBeforeAndIsExpired(
+//        @Param(value = "before") LocalDateTime before,
+//        @Param(value  = "isExpired") boolean isExpired);
+//
+//    @Query("select rm from StudyRandomMatch rm "
+//        + "where rm.createdAt > :before "
+//        + "and rm.isExpired = :isExpired")
+//    List<StudyRandomMatch> findStudyByCreatedAtBeforeAndIsExpired(
+//        @Param(value = "before") LocalDateTime before,
+//        @Param(value  = "isExpired") boolean isExpired);
+
+    @Query("select count(rm) from MealRandomMatch rm "
+        + "where rm.createdAt > :before "
+        + "and rm.isExpired = :isExpired")
+    Integer findCountMealByCreatedAtBeforeAndIsExpired(
+        @Param(value = "before") LocalDateTime before,
+        @Param(value  = "isExpired") boolean isExpired);
+
+    @Query("select count(rm) from StudyRandomMatch rm "
+        + "where rm.createdAt > :before "
+        + "and rm.isExpired = :isExpired")
+    Integer findCountStudyByCreatedAtBeforeAndIsExpired(
         @Param(value = "before") LocalDateTime before,
         @Param(value  = "isExpired") boolean isExpired);
 

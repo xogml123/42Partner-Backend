@@ -6,6 +6,7 @@ import static partner42.modulecommon.domain.model.match.QMatchMember.matchMember
 
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.PathBuilder;
 import com.querydsl.jpa.impl.JPAQuery;
@@ -22,6 +23,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
 import partner42.modulecommon.domain.model.match.ContentCategory;
 import partner42.modulecommon.domain.model.match.Match;
+import partner42.modulecommon.domain.model.match.MethodCategory;
 
 @RequiredArgsConstructor
 @Repository
@@ -46,7 +48,8 @@ public class MatchRepositoryCustomImpl implements MatchRepositoryCustom{
             .join(match.matchMembers, matchMember).fetchJoin()
             .where(
                 isMemberIn(memberId),
-                isContentCategory(matchSearch.getContentCategory())
+                isContentCategory(matchSearch.getContentCategory()),
+                isMethodCategory(matchSearch.getMethodCategory())
             );
 
         for (Sort.Order o : pageable.getSort()) {
@@ -65,6 +68,10 @@ public class MatchRepositoryCustomImpl implements MatchRepositoryCustom{
             matches.remove(matches.size() - 1);
         }
         return new SliceImpl<>(matches, pageable, hasnext);
+    }
+
+    private BooleanExpression isMethodCategory(MethodCategory methodCategory) {
+        return methodCategory == null ? null : match.methodCategory.eq(methodCategory);
     }
 
     private BooleanExpression isMemberIn(Long memberId) {

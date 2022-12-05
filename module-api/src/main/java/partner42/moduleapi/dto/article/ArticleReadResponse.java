@@ -16,6 +16,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import partner42.moduleapi.dto.matchcondition.MatchConditionDto;
 import partner42.modulecommon.domain.model.article.Article;
+import partner42.modulecommon.domain.model.article.ArticleMember;
 import partner42.modulecommon.domain.model.match.ContentCategory;
 import partner42.modulecommon.exception.ErrorCode;
 
@@ -63,6 +64,9 @@ public class ArticleReadResponse {
     @NotNull
     private Boolean anonymity;
 
+    @Schema(name = "isComplete", example = "true", description = "매칭 완료 여부")
+    private Boolean isComplete;
+
     @Schema(name = "isToday", example = "true", description = "당일 여부")
     @NotNull
     private Boolean isToday;
@@ -88,8 +92,7 @@ public class ArticleReadResponse {
     public static ArticleReadResponse of(Article article, MatchConditionDto matchConditionDto) {
         return ArticleReadResponse.builder()
             .nickname(article.getArticleMembers().stream()
-                .filter(a ->
-                    a.getIsAuthor())
+                .filter(ArticleMember::getIsAuthor)
                 .findAny()
                 .orElseThrow(() ->
                     new IllegalStateException(ErrorCode.NO_AUTHOR.getMessage()))
@@ -101,6 +104,7 @@ public class ArticleReadResponse {
             .date(article.getDate())
             .createdAt(article.getCreatedAt())
             .anonymity(article.getAnonymity())
+            .isComplete(article.getIsComplete())
             .isToday(article.getDate().isEqual(LocalDate.now()))
             .participantNumMax(article.getParticipantNumMax())
             .participantNum(article.getParticipantNum())

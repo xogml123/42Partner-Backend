@@ -16,7 +16,8 @@ import partner42.modulecommon.domain.model.match.ContentCategory;
 @NoArgsConstructor
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class RandomMatchCancelRequest {
-    @Schema(name = "contentCategory", example = "MEAL or STUDY", description = "식사, 공부 글인지 여부")
+
+    @Schema (description = "취소할 랜덤 매칭의 카테고리", example = "MEAL or STUDY")
     @NotNull
     private ContentCategory contentCategory;
 }

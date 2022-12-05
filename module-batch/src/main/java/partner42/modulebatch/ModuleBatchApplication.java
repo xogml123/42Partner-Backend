@@ -15,7 +15,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 )
 @EntityScan(basePackages = "partner42.modulecommon.domain")
 @EnableJpaRepositories(basePackages =  "partner42.modulecommon.repository")
-@EnableScheduling
 public class ModuleBatchApplication {
 
     public static void main(String[] args) {

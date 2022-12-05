@@ -1,5 +1,6 @@
 package partner42.moduleapi.service.article;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -10,7 +11,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronizationUtils;
+import partner42.moduleapi.dto.EmailDto;
 import partner42.moduleapi.dto.article.ArticleDto;
 import partner42.moduleapi.dto.article.ArticleOnlyIdResponse;
 import partner42.moduleapi.dto.article.ArticleReadOneResponse;
@@ -78,16 +83,13 @@ public class ArticleService {
     private final ActivityRepository activityRepository;
 
 
-    private final SlackBotApi slackBotApi;
 
     private final MemberMapper memberMapper;
     private final MatchConditionMapper matchConditionMapper;
 
-    private final SlackBotService slackBotService;
 
     @Transactional
     public ArticleOnlyIdResponse createArticle(String usename, ArticleDto articleRequest) {
-        log.info("{}", usename);
         Member member = userRepository.findByUsername(usename)
             .orElseThrow(() -> new NoEntityException(
                 ErrorCode.ENTITY_NOT_FOUND)).getMember();
@@ -141,8 +143,8 @@ public class ArticleService {
             .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
 
         //기존 조건 삭제
-        article.getArticleMatchConditions().clear();
         articleMatchConditionRepository.deleteAll(article.getArticleMatchConditions());
+        article.getArticleMatchConditions().clear();
 
         //새로운 조건 객체 생성
         List<ArticleMatchCondition> articleMatchConditions = allMatchConditionToArticleMatchCondition(
@@ -158,15 +160,17 @@ public class ArticleService {
 
 
     public ArticleReadOneResponse readOneArticle(String username, String articleId) {
-        Member member = username == null ? null : userRepository.findByUsername(username).orElseThrow(
-            () -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND)).getMember();
+        Member member =
+            username == null ? null : userRepository.findByUsername(username).orElseThrow(
+                () -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND)).getMember();
         Article article = articleRepository.findDistinctFetchArticleMatchConditionsByApiIdAndIsDeletedIsFalse(
                 articleId)
             .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
 
         List<MemberDto> memberDtos = article.getArticleMembers().stream()
             .map(am -> (
-                memberMapper.articleMemberToMemberDto(am.getMember(), am, am.getMember().equals(member))))
+                memberMapper.articleMemberToMemberDto(am.getMember(), am,
+                    am.getMember().equals(member))))
             .collect(Collectors.toList());
 
         List<MatchCondition> matchConditions = article.getArticleMatchConditions().stream()
@@ -208,7 +212,7 @@ public class ArticleService {
 
     //OptimisticLockException
     //이미 참여중인 경우 방지.
-    @Transactional
+    @Transactional(timeout = 1000)
     public ArticleOnlyIdResponse participateArticle(String username, String articleId) {
         Article article = articleRepository.findDistinctFetchArticleMembersByApiId(
                 articleId)
@@ -222,7 +226,6 @@ public class ArticleService {
         articleMemberRepository.save(participateMember);
         return ArticleOnlyIdResponse.of(article.getApiId());
     }
-
     //OptimisticLockException
     @Transactional
     public ArticleOnlyIdResponse participateCancelArticle(String username, String articleId) {
@@ -242,7 +245,7 @@ public class ArticleService {
 
     //OptimisticLockException
     @Transactional
-    public ArticleOnlyIdResponse completeArticle(String username, String articleId) {
+    public EmailDto<ArticleOnlyIdResponse> completeArticle(String username, String articleId) {
         //글 작성자아닌 경우
         verifyAuthorOfArticle(username, articleId);
 
@@ -282,12 +285,13 @@ public class ArticleService {
                     }
                 }
             );
-        //슬랙 알림(비동기)
-        slackBotService.createSlackMIIM(article.getArticleMembers().stream()
-            .map(am -> am.getMember().getUser().getEmail())
-            .collect(Collectors.toList()));
 
-        return ArticleOnlyIdResponse.of(article.getApiId());
+        return EmailDto.<ArticleOnlyIdResponse>builder()
+            .emails(article.getArticleMembers().stream()
+                .map(am -> am.getMember().getUser().getEmail())
+                .collect(Collectors.toList()))
+            .response(ArticleOnlyIdResponse.of(article.getApiId()))
+            .build();
     }
 
 

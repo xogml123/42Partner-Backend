@@ -64,7 +64,7 @@ public class Role extends BaseEntity implements Serializable {
     /********************************* 연관관계 매핑 *********************************/
 
     @Singular
-    @ManyToMany( fetch = FetchType.EAGER)
+    @ManyToMany( fetch = FetchType.LAZY)
     @JoinTable(name = "ROLE_AUTHORITY",
         joinColumns = {
             @JoinColumn(name = "ROLE_ID", referencedColumnName = "ROLE_ID", nullable = false)},

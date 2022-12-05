@@ -43,9 +43,6 @@ public class Authority extends BaseEntity implements Serializable {
     @Column(nullable = false)
     private String permission;
 
-    @Singular
-    @ManyToMany(mappedBy = "authorities", fetch = FetchType.EAGER)
-    private final Set<Role> roles = new HashSet<>();
     /********************************* 생성 메서드 *********************************/
 
     public static Authority of(String permission) {

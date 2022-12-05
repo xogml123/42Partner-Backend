@@ -2,10 +2,7 @@ package partner42.modulecommon.repository.article;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -16,10 +13,9 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import partner42.modulecommon.domain.model.article.Article;
 import partner42.modulecommon.domain.model.match.ContentCategory;
-import partner42.modulecommon.domain.model.member.Member;
 import partner42.modulecommon.repository.member.MemberRepository;
 import partner42.modulecommon.repository.user.UserRepository;
-import partner42.modulecommon.utils.CreateUserUtils;
+import partner42.modulecommon.utils.CreateTestDataUtils;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
@@ -29,7 +25,7 @@ class ArticleRepositoryTest {
     private ArticleRepository articleRepository;
 
     @Autowired
-    private CreateUserUtils createUserUtils;
+    private CreateTestDataUtils createTestDataUtils;
 
     @Autowired
     private MemberRepository memberRepository;

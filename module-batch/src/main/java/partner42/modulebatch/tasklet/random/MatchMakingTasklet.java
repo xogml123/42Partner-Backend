@@ -65,7 +65,6 @@ public class MatchMakingTasklet implements Tasklet {
         /**
          *  slack 알림 보내기. 비동기.
          *  트랜잭션안에 포함시키면 예외 발생 가능하기때문에 분리.
-         *  알림이 실패하더라도 매칭은 맺어짐.
          */
         for (List<String> emails : matchedMembersEmailList) {
             slackBotService.createSlackMIIM(emails);

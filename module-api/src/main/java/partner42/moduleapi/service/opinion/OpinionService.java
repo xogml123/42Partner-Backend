@@ -67,8 +67,7 @@ public class OpinionService {
 
     public ListResponse<OpinionResponse> findAllOpinionsInArticle(String articleId) {
         List<OpinionResponse> opinionResponses = opinionRepository.findAllByArticleApiIdAndIsDeletedIsFalse(articleId).stream()
-            .map((o) ->
-                opinionMapper.entityToOpinionResponse(o))
+            .map(opinionMapper::entityToOpinionResponse)
             .collect(Collectors.toList());
 
         return ListResponse.<OpinionResponse>builder()
