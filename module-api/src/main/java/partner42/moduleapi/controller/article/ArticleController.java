@@ -9,6 +9,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.SliceImpl;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -40,9 +41,9 @@ public class ArticleController {
     @GetMapping("/articles/{articleId}")
     public ArticleReadOneResponse readOneArticle(
         @PathVariable String articleId,
-        @Parameter(hidden = true) @AuthenticationPrincipal String username) {
+        @Parameter(hidden = true) @AuthenticationPrincipal User username) {
 
-        return articleService.readOneArticle(username, articleId);
+        return articleService.readOneArticle(username.getUsername(), articleId);
     }
 
 //    @PreAuthorize("hasAuthority('article.read')")

@@ -41,6 +41,10 @@ dependencies {
 
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 
+    //Sentry
+    implementation 'io.sentry:sentry-spring-boot-starter:6.9.2'
+    implementation 'io.sentry:sentry-logback:6.9.2'
+
     //module-common  참조
     implementation project(':module-common')
 

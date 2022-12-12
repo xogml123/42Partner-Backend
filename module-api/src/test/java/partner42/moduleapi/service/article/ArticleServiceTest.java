@@ -104,7 +104,9 @@ class ArticleServiceTest {
         countDownLatch.countDown();
         Thread.sleep(2000);
         //then
-        Assertions.assertThat(articleRepository.findByApiId(articleOnlyIdResponse.getArticleId()).get().getParticipantNum()).isEqualTo(3);
+        Assertions.assertThat(
+            articleRepository.findByApiId(articleOnlyIdResponse.getArticleId()).get()
+                .getParticipantNum()).isEqualTo(3);
 
     }
 

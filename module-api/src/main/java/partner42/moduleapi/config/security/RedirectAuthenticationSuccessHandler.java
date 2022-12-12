@@ -35,7 +35,9 @@ public class RedirectAuthenticationSuccessHandler implements AuthenticationSucce
     @Value("${jwt.secret}")
     private String jwtSecret;
 
-    //oauth 로그인 성공시 jwt생성해서 리다이렉트 응답.
+    /**
+     *     oauth 로그인 성공시 JWT Token 생성해서 리다이렉트 응답.
+     */
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
         Authentication authentication) throws IOException, ServletException {
