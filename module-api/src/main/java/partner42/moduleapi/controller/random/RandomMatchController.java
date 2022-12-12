@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -38,11 +39,11 @@ public class RandomMatchController {
     @Operation(summary = "랜덤 매칭 신청", description = "랜덤 매칭 신청")
     @PostMapping("/random-matches")
     public ResponseEntity<Void> applyRandomMatch(
-        @ApiParam(hidden = true) @AuthenticationPrincipal String username,
+        @ApiParam(hidden = true) @AuthenticationPrincipal UserDetails user,
         @Validated @Parameter @RequestBody RandomMatchDto randomMatchDto) {
         //contentCategory에 따라 필드 검증
         verifyRandomMatchDtoHasEmptyField(randomMatchDto);
-        randomMatchService.createRandomMatch(username, randomMatchDto);
+        randomMatchService.createRandomMatch(user.getUsername(), randomMatchDto);
         return ResponseEntity.status(HttpStatus.CREATED).build();
 
     }
@@ -53,9 +54,9 @@ public class RandomMatchController {
     @Operation(summary = "랜덤 매칭 취소", description = "랜덤 매칭 취소")
     @PostMapping("/random-matches/mine")
     public ResponseEntity<Void> cancelRandomMatch(@Validated @Parameter @RequestBody RandomMatchCancelRequest randomMatchCancelRequest,
-        @ApiParam(hidden = true) @AuthenticationPrincipal String username) {
+        @ApiParam(hidden = true) @AuthenticationPrincipal UserDetails user) {
         //contentCategory에 따라 필드 검증
-        randomMatchService.deleteRandomMatch(username, randomMatchCancelRequest);
+        randomMatchService.deleteRandomMatch(user.getUsername(), randomMatchCancelRequest);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
@@ -63,9 +64,9 @@ public class RandomMatchController {
     @Operation(summary = "랜덤 매칭 신청 여부 조회", description = "랜덤 매칭 신청 여부 조회")
     @GetMapping("/random-matches/mine")
     public RandomMatchExistDto checkRandomMatchExist(RandomMatchSearch randomMatchCancelRequest,
-        @ApiParam(hidden = true) @AuthenticationPrincipal String username) {
+        @ApiParam(hidden = true) @AuthenticationPrincipal UserDetails user) {
         //contentCategory에 따라 필드 검증
-        return randomMatchService.checkRandomMatchExist(username, randomMatchCancelRequest);
+        return randomMatchService.checkRandomMatchExist(user.getUsername(), randomMatchCancelRequest);
     }
 
     @Operation(summary = "랜덤 매칭 신청 인원 조회", description = "랜덤 매칭 신청 인원 조회")
@@ -78,9 +79,9 @@ public class RandomMatchController {
     @Operation(summary = "랜덤 매칭 신청 조건 조회", description = "랜덤 매칭 신청 조건 조회")
     @GetMapping("/random-matches/condition/mine")
     public RandomMatchDto readRandomMatchCondition(RandomMatchSearch randomMatchCancelRequest,
-        @ApiParam(hidden = true) @AuthenticationPrincipal String username) {
+        @ApiParam(hidden = true) @AuthenticationPrincipal UserDetails user) {
         //contentCategory에 따라 필드 검증
-        return randomMatchService.readRandomMatchCondition(username, randomMatchCancelRequest);
+        return randomMatchService.readRandomMatchCondition(user.getUsername(), randomMatchCancelRequest);
     }
 
     private void verifyRandomMatchDtoHasEmptyField(RandomMatchDto randomMatchDto) {

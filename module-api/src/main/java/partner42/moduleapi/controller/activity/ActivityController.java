@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,10 +29,10 @@ public class ActivityController {
     @Operation(summary = "자신의 활동점수 조회", description = "자신의 활동 점수 조회 월/년단위로 조회 / 밥, 공부여부 지정")
     @GetMapping("/activities/score")
     public ActivityScoreResponse readMyActivityScore(
-        @Parameter(hidden = true) @AuthenticationPrincipal String username,
+        @Parameter(hidden = true) @AuthenticationPrincipal UserDetails user,
         ActivitySearch activitySearch
         ) {
-        return activityService.readMyActivityScoreSum(username, activitySearch);
+        return activityService.readMyActivityScoreSum(user.getUsername(), activitySearch);
     }
 
 }

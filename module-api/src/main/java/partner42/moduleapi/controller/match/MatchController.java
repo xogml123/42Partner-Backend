@@ -10,6 +10,7 @@ import org.springframework.data.domain.SliceImpl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -36,33 +37,32 @@ public class MatchController {
     @Operation(summary = "자신의 매치이력 조회", description = "자신의 매치이력 조회")
     @GetMapping("/matches")
     public SliceImpl<MatchDto> readMyMatches(
-        @Parameter(hidden = true) @AuthenticationPrincipal String username,
+        @Parameter(hidden = true) @AuthenticationPrincipal UserDetails user,
         MatchSearch matchSearch,
         Pageable pageable
     ) {
-        log.info("AuthenticationPrincipal{}", username);
-        return matchService.readMyMatches(username, matchSearch, pageable);
+        return matchService.readMyMatches(user.getUsername(), matchSearch, pageable);
     }
 
     @PreAuthorize("hasAuthority('match.read')")
     @Operation(summary = "특정 매치이력 조회", description = "특정 매치이력 조회")
     @GetMapping("/matches/{matchId}")
     public MatchDto readOneMatch(
-        @Parameter(hidden = true) @AuthenticationPrincipal String username,
+        @Parameter(hidden = true) @AuthenticationPrincipal UserDetails user,
         @PathVariable("matchId") String matchId
     ) {
-        return matchService.readOneMatch(username, matchId);
+        return matchService.readOneMatch(user.getUsername(), matchId);
     }
 
     @PreAuthorize("hasAuthority('match.update') and hasAuthority('activity.create')")
     @Operation(summary = "매칭 후기 쓰기", description = "특정 매치이력 조회")
     @PostMapping("/matches/{matchId}/review")
     public ResponseEntity<Void> makeReview(
-        @Parameter(hidden = true) @AuthenticationPrincipal String username,
+        @Parameter(hidden = true) @AuthenticationPrincipal UserDetails user,
         @PathVariable("matchId") String matchId,
         @Validated @Parameter @RequestBody MatchReviewRequest request
     ) {
-        return matchService.makeReview(username, matchId, request);
+        return matchService.makeReview(user.getUsername(), matchId, request);
     }
 
 

@@ -83,7 +83,6 @@ class ArticleControllerTest {
     }
     @Test
     @WithMockUser("username")
-//    @WithUserDetails("username")
     void readOneArticle() throws Exception {
         //given
         String username = "username";

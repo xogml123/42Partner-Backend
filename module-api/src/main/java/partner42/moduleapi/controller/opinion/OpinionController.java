@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,7 +24,6 @@ import partner42.moduleapi.dto.opinion.OpinionOnlyIdResponse;
 import partner42.moduleapi.dto.opinion.OpinionResponse;
 import partner42.moduleapi.dto.opinion.OpinionUpdateRequest;
 import partner42.moduleapi.service.opinion.OpinionService;
-import partner42.modulecommon.domain.model.user.User;
 
 @Slf4j
 @RestController
@@ -36,16 +36,16 @@ public class OpinionController {
     @Operation(summary = "댓글 생성", description = "댓글 생성")
     @PostMapping("/opinions")
     public OpinionOnlyIdResponse createOpinion(@Validated @Parameter @RequestBody OpinionDto request,
-        @Parameter(hidden = true) @AuthenticationPrincipal String username) {
-        return opinionService.createOpinion(request, username);
+        @Parameter(hidden = true) @AuthenticationPrincipal UserDetails user) {
+        return opinionService.createOpinion(request, user.getUsername());
     }
     @PreAuthorize("hasAuthority('opinion.update')")
     @Operation(summary = "댓글 수정", description = "댓글 수정")
     @PutMapping("/opinions/{opinionId}")
     public OpinionOnlyIdResponse updateOpinion(@Validated @Parameter @RequestBody OpinionUpdateRequest request,
         @PathVariable String opinionId,
-        @ApiParam(hidden = true) @AuthenticationPrincipal String username) {
-        return opinionService.updateOpinion(request, opinionId, username);
+        @ApiParam(hidden = true) @AuthenticationPrincipal UserDetails user) {
+        return opinionService.updateOpinion(request, opinionId, user.getUsername());
     }
 
     @PreAuthorize("hasAuthority('opinion.update')")
@@ -53,9 +53,9 @@ public class OpinionController {
     @PostMapping("/opinions/{opinionId}/recoverable-delete")
     public OpinionOnlyIdResponse recoverableDeleteOpinion(
         @PathVariable String opinionId,
-        @ApiParam(hidden = true) @AuthenticationPrincipal String username
+        @ApiParam(hidden = true) @AuthenticationPrincipal UserDetails user
         ) {
-        return opinionService.recoverableDeleteOpinion(opinionId, username);
+        return opinionService.recoverableDeleteOpinion(opinionId, user.getUsername());
     }
 
 //    @PreAuthorize("hasAuthority('opinion.read')")
@@ -78,8 +78,8 @@ public class OpinionController {
     @DeleteMapping("/opinions/{opinionId}")
     public OpinionOnlyIdResponse completeDeleteOpinion(
         @PathVariable String opinionId,
-        @ApiParam(hidden = true) @AuthenticationPrincipal String username) {
-        return opinionService.completeDeleteOpinion(opinionId, username);
+        @ApiParam(hidden = true) @AuthenticationPrincipal UserDetails user) {
+        return opinionService.completeDeleteOpinion(opinionId, user.getUsername());
     }
 
 }

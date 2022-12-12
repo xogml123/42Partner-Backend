@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -31,8 +32,8 @@ public class UserController {
     @Operation(summary = "특정 유저 userId로 조회", description = "특정 유저 userId로 조회")
     @GetMapping("/users/{userId}")
     public UserDto getUserById(@PathVariable String userId,
-        @ApiParam(hidden = true) @AuthenticationPrincipal String username) {
-        return userService.findById(userId, username);
+        @ApiParam(hidden = true) @AuthenticationPrincipal UserDetails user) {
+        return userService.findById(userId, user.getUsername());
     }
 
     @PreAuthorize("hasAuthority('user.update')")
@@ -40,8 +41,8 @@ public class UserController {
     @PatchMapping("/users/{userId}/email")
     public UserOnlyIdResponse getUserById(@PathVariable String userId,
         @Validated @Parameter @RequestBody UserUpdateRequest userUpdateRequest,
-        @ApiParam(hidden = true) @AuthenticationPrincipal String username) {
-        return userService.updateEmail(userId, userUpdateRequest, username);
+        @ApiParam(hidden = true) @AuthenticationPrincipal UserDetails user) {
+        return userService.updateEmail(userId, userUpdateRequest, user.getUsername());
     }
 
 

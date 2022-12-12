@@ -35,6 +35,7 @@ import org.springframework.security.oauth2.client.authentication.OAuth2LoginAuth
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import partner42.moduleapi.dto.user.CustomAuthenticationPrincipal;
+import partner42.modulecommon.domain.model.user.User;
 
 
 @Slf4j
@@ -58,7 +59,7 @@ public class CustomAuthorizationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
         FilterChain filterChain) throws ServletException, IOException {
         if (request.getServletPath().equals("/oauth2/authorization/authclient") ||
-            request.getServletPath().equals("login/oauth2/code/authclient")){
+            request.getServletPath().equals("login/oauth2/code/authclient")) {
             filterChain.doFilter(request, response);
 
         } else {
@@ -73,7 +74,8 @@ public class CustomAuthorizationFilter extends OncePerRequestFilter {
                     //JWT 토큰 검증 실패하면 JWTVerificationException 발생
                     DecodedJWT decodedJWT = verifier.verify(token);
                     String username = decodedJWT.getSubject();
-                    String[] authoritiesJWT = decodedJWT.getClaim("authorities").asArray(String.class);
+                    String[] authoritiesJWT = decodedJWT.getClaim("authorities")
+                        .asArray(String.class);
                     Collection<SimpleGrantedAuthority> authorities = new ArrayList<>();
                     Arrays.stream(authoritiesJWT).forEach(authority -> {
                         authorities.add(new SimpleGrantedAuthority(authority));
@@ -89,7 +91,12 @@ public class CustomAuthorizationFilter extends OncePerRequestFilter {
                      * 이미 생성된 세션은 사용하지 않도록 SessionCreationPolicy NEVER->STATELESS로 변경하여 해결.
                      */
                     UsernamePasswordAuthenticationToken authenticationToken =
-                        new UsernamePasswordAuthenticationToken(username, null, authorities);
+                        new UsernamePasswordAuthenticationToken(CustomAuthenticationPrincipal.of(
+                            User.of(username,
+                                null, null, null, null, null), null),
+                            null,
+                            authorities);
+
                     log.info(authorities.stream()
                         .map((SimpleGrantedAuthority::getAuthority))
                         .collect(Collectors.toList()).toString());
@@ -107,7 +114,7 @@ public class CustomAuthorizationFilter extends OncePerRequestFilter {
                 }
                 //token 자체가 없는 경우. 일단 통과
                 //Authentiaation이 없기 때문에 인증해야만 접근 가능한 리소스에 접근하면 401 에러 발생
-            } else{
+            } else {
                 filterChain.doFilter(request, response);
             }
 
