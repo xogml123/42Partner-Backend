@@ -56,7 +56,6 @@ class ArticleServiceTest {
      * 낙관적 락 AOP처리 제대로 동작하는지 확인
      */
     @Test
-    @Rollback(true)
     void participateArticle() throws Exception{
         //given
         createTestDataUtils.signUpUsers();

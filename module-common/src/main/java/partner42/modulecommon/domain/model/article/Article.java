@@ -72,7 +72,7 @@ public class Article extends BaseEntity {
      * AOP를 활용하거나, Controller단에서 단순히 한번더 호출.
      */
     @Version
-    private Integer version;
+    private Long version;
 
 
     /**
@@ -129,8 +129,7 @@ public class Article extends BaseEntity {
     private List<ArticleMatchCondition> articleMatchConditions = new ArrayList<>();
 
     @Builder.Default
-    @OneToMany(mappedBy = "article", fetch = FetchType.LAZY, cascade = {CascadeType.REMOVE,
-        CascadeType.PERSIST})
+    @OneToMany(mappedBy = "article", fetch = FetchType.LAZY)
     private List<ArticleMember> articleMembers = new ArrayList<>();
 
     @Builder.Default

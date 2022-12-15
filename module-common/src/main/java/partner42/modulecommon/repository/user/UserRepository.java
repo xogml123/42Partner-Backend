@@ -1,5 +1,7 @@
 package partner42.modulecommon.repository.user;
 
+import javax.persistence.LockModeType;
+import org.springframework.data.jpa.repository.Lock;
 import partner42.modulecommon.domain.model.user.User;
 
 import java.util.List;

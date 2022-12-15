@@ -212,7 +212,7 @@ public class ArticleService {
 
     //OptimisticLockException
     //이미 참여중인 경우 방지.
-    @Transactional(timeout = 1000)
+    @Transactional
     public ArticleOnlyIdResponse participateArticle(String username, String articleId) {
         Article article = articleRepository.findDistinctFetchArticleMembersByApiId(
                 articleId)

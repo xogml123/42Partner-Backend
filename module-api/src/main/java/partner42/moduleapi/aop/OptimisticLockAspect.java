@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.dao.CannotAcquireLockException;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 
 /**
  * @Transactional annotation보다 먼저 실행되어야함.
@@ -39,7 +40,7 @@ public class OptimisticLockAspect {
             try {
                 log.info("[RETRY_COUNT]: {}", retryCount);
                 return joinPoint.proceed();
-            } catch (OptimisticLockException | CannotAcquireLockException e) {
+            } catch (OptimisticLockException | ObjectOptimisticLockingFailureException | CannotAcquireLockException e) {
                 log.error("{} 발생", e.getClass());
                 exceptionHolder = e;
                 //RETRY_WAIT_TIME ms 쉬고 다시 시도
