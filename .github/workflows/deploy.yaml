@@ -6,7 +6,7 @@ on:
       - dev
 env:
   S3_BUCKET_NAME: s3-42partner-dev
-  RESOURCE_PATH:
+  RESOURCE_PATH: ./module-api/src/main/resources-dev/application.yml
   CODE_DEPLOY_APPLICATION_NAME: 42partner-CODE-DEPLOY
   CODE_DEPLOY_DEPLOYMENT_GROUP_NAME: 42partner-CODE-DEPLOY-GROUP
 
