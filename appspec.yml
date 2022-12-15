@@ -16,4 +16,4 @@ hooks:
   ApplicationStart:
     - location: scripts/gh_deploy.sh
       timeout: 60
-      runas: ec2-user
+      runas: root
