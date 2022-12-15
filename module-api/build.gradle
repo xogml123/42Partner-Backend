@@ -83,6 +83,7 @@ tasks.named('test') {
 	useJUnitPlatform()
 }
 
+// plain.jar를 빌드하지않도록함.
 jar {
 	enabled = false
 }
