@@ -1,12 +1,11 @@
 #!/bin/bash
-PROJECT_NAME="42Partner-Backend"
-PATH="/home/ec2-user/app"
+PROJECT_PATH="/home/ec2-user/app/42Partner-Backend"
 MODULE_NAME="module-api"
-JAR_PATH="$PATH/$PROJECT_NAME/$MODULE_NAME/build/libs/*.jar"
-DEPLOY_PATH=$PATH/$PROJECT_NAME/$MODULE_NAME
-DEPLOY_LOG_PATH="$PATH/$PROJECT_NAME/$MODULE_NAME/deploy.log"
-DEPLOY_ERR_LOG_PATH="$PATH/$PROJECT_NAME/$MODULE_NAME/deploy_err.log"
-APPLICATION_LOG_PATH="$PATH/$PROJECT_NAME/$MODULE_NAME/application.log"
+JAR_PATH="$PROJECT_PATH/$MODULE_NAME/build/libs/*.jar"
+DEPLOY_PATH=$PROJECT_PATH/$MODULE_NAME
+DEPLOY_LOG_PATH="$PROJECT_PATH/$MODULE_NAME/deploy.log"
+DEPLOY_ERR_LOG_PATH="$PROJECT_PATH/$MODULE_NAME/deploy_err.log"
+APPLICATION_LOG_PATH="$PROJECT_PATH/$MODULE_NAME/application.log"
 BUILD_JAR=$(ls $JAR_PATH)
 JAR_NAME=$(basename $BUILD_JAR)
 
@@ -31,7 +30,7 @@ fi
 
 DEPLOY_JAR=$DEPLOY_PATH$JAR_NAME
 echo "> DEPLOY_JAR 배포" >> $DEPLOY_LOG_PATH
-/usr/bin/nohup /usr/bin/java -jar -Dspring.profiles.active=dev $DEPLOY_JAR >> $APPLICATION_LOG_PATH 2> $DEPLOY_ERR_LOG_PATH &
+nohup java -jar -Dspring.profiles.active=dev $DEPLOY_JAR >> $APPLICATION_LOG_PATH 2> $DEPLOY_ERR_LOG_PATH &
 
 sleep 3
 
