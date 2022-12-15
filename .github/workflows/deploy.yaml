@@ -37,7 +37,7 @@ jobs:
         shell: bash
         
       - name: Build with Gradle
-        run: ./module-api/gradlew build -x test
+        run: ./module-api/gradlew build -x test -Pprofile=dev
         shell: bash
         
       - name: Make zip file
