@@ -66,3 +66,6 @@ application*.*
 
 ### SQL ###
 /sql/*
+
+### build-send.sh ###
+build-send.sh
