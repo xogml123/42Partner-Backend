@@ -2,7 +2,7 @@ version: 0.0
 os: linux
 files:
   - source: /
-    destination: /home/ec2-user/github_action
+    destination: /home/ec2-user/app/42Partner-Backend
     overwrite: yes
 
 permissions:
