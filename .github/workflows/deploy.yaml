@@ -6,6 +6,7 @@ on:
       - dev
 env:
   S3_BUCKET_NAME: s3-42partner-dev
+  RESOURCE_PATH:
   CODE_DEPLOY_APPLICATION_NAME: 42partner-CODE-DEPLOY
   CODE_DEPLOY_DEPLOYMENT_GROUP_NAME: 42partner-CODE-DEPLOY-GROUP
 
@@ -21,7 +22,12 @@ jobs:
         uses: actions/setup-java@v1
         with: 
           java-version: 11
-      
+
+      -name: Set yml file
+       uses: microsoft/variable-substitution@v1
+       with:
+         files: ${{ env.RESOURCE_PATH }}
+
       - name: Grant execute permission for gradlew
         run: chmod +x ./module-api/gradlew
         shell: bash
