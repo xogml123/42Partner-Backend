@@ -83,4 +83,8 @@ tasks.named('test') {
 	useJUnitPlatform()
 }
 
+jar {
+	enabled = false
+}
+
 tasks.register("prepareKotlinBuildScriptModel"){}
