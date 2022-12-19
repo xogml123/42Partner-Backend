@@ -4,6 +4,7 @@ import java.util.Optional;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -14,7 +15,7 @@ public class Auditor  implements AuditorAware<String> {
         if (null == authentication || !authentication.isAuthenticated()) {
             return Optional.of("system");
         }
-        String username = (String) authentication.getPrincipal();
+        String username = ((UserDetails)authentication.getPrincipal()).getUsername();
         return Optional.of(username);
     }
 }
