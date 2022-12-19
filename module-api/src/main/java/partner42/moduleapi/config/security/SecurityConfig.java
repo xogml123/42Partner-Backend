@@ -1,8 +1,12 @@
 package partner42.moduleapi.config.security;
 
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.algorithms.Algorithm;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,6 +20,7 @@ import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
@@ -25,6 +30,9 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import partner42.moduleapi.dto.ErrorResponseDto;
+import partner42.moduleapi.dto.LoginResponseDto;
+import partner42.moduleapi.dto.user.CustomAuthenticationPrincipal;
+import partner42.modulecommon.domain.model.user.UserRole;
 
 // spring security 필터를 스프링 필터체인에 동록
 @Configuration
@@ -43,6 +51,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Value("${cors.frontend}")
     private String corsFrontend;
 
+    @Value("${jwt.access-token-expire}")
+    private String accessTokenExpire;
+
+    @Value("${jwt.secret}")
+    private String jwtSecret;
 
 //    @Bean
 //    public OAuth2AuthorizedClientService oAuth2AuthorizedClientService(ClientRegistrationRepository clientRegistrationRepository) {
@@ -111,6 +124,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 login URI: /oauth2/authorization/authclient - 설정을 하면 바꿀 수 있을 것 같음.
              */
 
+
+
             http.oauth2Login()
             .userInfoEndpoint()
             .userService(oAuth2UserService)
@@ -131,8 +146,36 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .logoutSuccessHandler((request, response, authentication) -> {
                 response.setStatus(HttpServletResponse.SC_OK);
             });
-//            .deleteCookies("JSESSIONID")
-//            .invalidateHttpSession(true);
+
+        http.formLogin(loginConfigurer ->
+            loginConfigurer
+                .successHandler((req, res, auth) -> {
+                    CustomAuthenticationPrincipal user = (CustomAuthenticationPrincipal) auth.getPrincipal();
+                    LoginResponseDto body = new LoginResponseDto();
+                    res.setStatus(200);
+                    res.setContentType("application/json");
+                    res.setCharacterEncoding("utf-8");
+//                        addSameSiteCookieAttribute(res);
+                    body.setUserId(user.getApiId());
+                    Algorithm algorithm = Algorithm.HMAC256(jwtSecret.getBytes());
+                    String accessToken = JWT.create()
+                        .withSubject(user.getUsername())
+                        .withIssuer(req.getRequestURL().toString())
+                        .withExpiresAt(
+                            new Date(System.currentTimeMillis() + Integer.parseInt(accessTokenExpire)))
+
+                        .withClaim("authorities", user.getAuthorities().stream()
+                            .map(SimpleGrantedAuthority::getAuthority)
+                            .collect(Collectors.toList()))
+                        .sign(algorithm);
+                    body.setAccessToken(accessToken);
+                    res.getWriter().write(objectMapper.writeValueAsString(body));
+                })
+                .failureHandler((req, res, e) -> {
+                    res.setStatus(401);
+                })
+                .usernameParameter("username")
+                .loginProcessingUrl("/api/auth/login"));
 
     }
 
