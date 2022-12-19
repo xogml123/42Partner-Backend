@@ -10,12 +10,16 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import partner42.moduleapi.dto.LoginResponseDto;
 import partner42.moduleapi.dto.user.UserDto;
+import partner42.moduleapi.dto.user.UserLoginRequest;
 import partner42.moduleapi.dto.user.UserOnlyIdResponse;
 import partner42.moduleapi.dto.user.UserUpdateRequest;
 import partner42.moduleapi.service.user.UserService;
@@ -45,6 +49,12 @@ public class UserController {
         return userService.updateEmail(userId, userUpdateRequest, user.getUsername());
     }
 
+    @Operation(summary = "admin Form 로그인", description = "username password 각각 자기 인트라 아이디로 하면 됩니다!")
+    @PostMapping("/auth/login")
+    public LoginResponseDto fakeLogin(@Validated @ModelAttribute UserLoginRequest request) {
+        throw new IllegalStateException(
+            "This method shouldn't be called. It's implemented by Spring Security filters.");
 
+    }
 
 }
