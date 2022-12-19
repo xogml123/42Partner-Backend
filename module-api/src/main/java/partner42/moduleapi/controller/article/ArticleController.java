@@ -3,6 +3,7 @@ package partner42.moduleapi.controller.article;
 import io.swagger.annotations.ApiParam;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
@@ -117,7 +118,8 @@ public class ArticleController {
             user.getUsername(), articleId);
         //트랜잭션 외부에서 외부 리소스 알림기능을 적용하기 위해서
         //따로 분리.
-        slackBotService.createSlackMIIM(emailDto.getEmails());
+        List<String> participantsEmails = emailDto.getEmails();
+        slackBotService.createSlackMIIM(participantsEmails);
         return emailDto.getResponse();
     }
 
