@@ -4,6 +4,7 @@ import io.swagger.annotations.ApiParam;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
@@ -45,7 +46,9 @@ public class ArticleController {
         @PathVariable String articleId,
         @Parameter(hidden = true) @AuthenticationPrincipal UserDetails user) {
 
-        return articleService.readOneArticle(user.getUsername(), articleId);
+
+        String username = user != null ? user.getUsername() : null;
+        return articleService.readOneArticle(username, articleId);
     }
 
 //    @PreAuthorize("hasAuthority('article.read')")
