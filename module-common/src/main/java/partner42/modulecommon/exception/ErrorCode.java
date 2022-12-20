@@ -41,6 +41,8 @@ public enum ErrorCode {
     COMPLETED_ARTICLE(409, "AR007", "완료된 게시글입니다."),
     FULL_ARTICLE(409, "AR008", "인원이 다 찬 게시글입니다."),
     EMPTY_ARTICLE(409, "AR009", "작성자를 제외한 참여 인원이 없는 게시글입니다."),
+
+    NOT_ALLOW_AUTHOR_MEMBER_DELETE(409, "AR010", "작성자는 참여를 취소할 수 없습니다."),
     //ArticleMember
     NO_AUTHOR(500, "AR006", "작성자가 없습니다."),
     NOT_PARTICIPATED_MEMBER(409, "AR007", "이 멤버가 참여하지 않은 방입니다."),

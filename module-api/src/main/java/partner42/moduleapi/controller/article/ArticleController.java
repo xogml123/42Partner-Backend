@@ -46,7 +46,6 @@ public class ArticleController {
         @PathVariable String articleId,
         @Parameter(hidden = true) @AuthenticationPrincipal UserDetails user) {
 
-
         String username = user != null ? user.getUsername() : null;
         return articleService.readOneArticle(username, articleId);
     }

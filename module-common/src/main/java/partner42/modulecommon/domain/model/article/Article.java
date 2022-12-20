@@ -267,6 +267,7 @@ public class Article extends BaseEntity {
         verifyCompleted();
         verifyEmpty();
         verifyUnParticipatedMember(member);
+        verifyAuthorMember(member);
         ArticleMember participateMember = this.getArticleMembers().stream()
             .filter((articleMember1) ->
                 articleMember1.getMember().equals(member))
@@ -276,6 +277,14 @@ public class Article extends BaseEntity {
         this.getArticleMembers().remove(participateMember);
         this.participantNum--;
         return participateMember;
+    }
+
+    private void verifyAuthorMember(Member member) {
+        if (this.getArticleMembers().stream()
+            .anyMatch((articleMember) ->
+                articleMember.getMember().equals(member) && articleMember.getIsAuthor())) {
+            throw new InvalidInputException(ErrorCode.NOT_ALLOW_AUTHOR_MEMBER_DELETE);
+        }
     }
 
     public void recoverableDelete(){
