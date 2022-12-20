@@ -175,15 +175,15 @@ public class DataLoader implements CommandLineRunner {
         hyenam.put("image_url", "https://cdn.intra.42.fr/users/0f260cc3e59777f0f5ba926f19cc1ec9/hyenam.jpg");
 
 
-        Map<String, Object> takim = new HashMap<>();
-        takim.put("id", 4);
-        takim.put("login", "takim");
-        takim.put("email", "takim@student.42seoul.kr");
-        takim.put("image_url", "https://cdn.intra.42.fr/users/0f260cc3e59777f0f5ba926f19cc1ec9/takim.jpg");
+        Map<String, Object> takimAdmin = new HashMap<>();
+        takimAdmin.put("id", 4);
+        takimAdmin.put("login", "takimAdmin");
+        takimAdmin.put("email", "takimAdmin@student.42seoul.kr");
+        takimAdmin.put("image_url", "https://cdn.intra.42.fr/users/0f260cc3e59777f0f5ba926f19cc1ec9/takimAdmin.jpg");
 
         loadUser(sorkim);
         loadUser(hyenam);
-        loadUser(takim);
+        loadUser(takimAdmin);
 
     }
 

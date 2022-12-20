@@ -30,10 +30,10 @@ public class SlackBotService {
         log.info("slackIds : {}", slackIds.toString());
         String MPIMId = slackBotApi.createMPIM(slackIds)
             .orElseThrow(() -> new SlackException(ErrorCode.SLACK_ERROR));
-        slackBotApi.sendMessage(MPIMId, "매칭이 완료되었습니다. 대화방에서 매칭을 확인해주세요.\n"
+        slackBotApi.sendMessage(MPIMId, "매칭이 완료되었습니다!!\n"
             + "만약, 초대 되지않은 유저가 있다면 slack에서 초대해주세요.\n"
-            + "slack에 등록된 email형식이 IntraId" + User.SEOUL_42
-            + "이 아니라면 슬랙 초대 및 알림기능이 정상적으로 동작하지 않을 수 있습니다.");
+            + "slack email형식이 IntraId" + User.SEOUL_42
+            + "와 맞지 않으면ㄴ 슬랙 초대 및 알림기능이 정상적으로 동작하지 않을 수 있습니다.");
     }
 
 
