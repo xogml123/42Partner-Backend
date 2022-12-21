@@ -243,6 +243,7 @@ public class RandomMatchService {
             randomMatchCount = randomMatchRepository.findCountStudyByCreatedAtBeforeAndIsExpired(
                 now.minusMinutes(RandomMatch.MAX_WAITING_TIME), false);
         }
+
         return RandomMatchCountResponse.builder()
             .randomMatchCount(randomMatchCount)
             .build();
