@@ -47,7 +47,7 @@ public abstract class RandomMatch extends BaseEntity implements Serializable {
 
     //매칭 maximum대기 시간
     public static final Integer MAX_WAITING_TIME = 30;
-    public static final Integer MATCH_COUNT = 3;
+    public static final Integer MATCH_COUNT = 2;
 
 //    /********************************* 랜덤 매칭 키를 만들기 위한 상수들 *********************************/
 //

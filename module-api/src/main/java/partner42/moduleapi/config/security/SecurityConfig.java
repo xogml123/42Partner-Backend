@@ -23,6 +23,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
@@ -48,6 +49,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     private final CustomAuthorizationFilter customAuthorizationFilter;
     private final AuthenticationSuccessHandler authenticationSuccessHandler;
+    private final AuthenticationFailureHandler authenticationFailureHandler;
     @Value("${cors.frontend}")
     private String corsFrontend;
 
@@ -124,22 +126,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 login URI: /oauth2/authorization/authclient - 설정을 하면 바꿀 수 있을 것 같음.
              */
 
-
-
             http.oauth2Login()
             .userInfoEndpoint()
             .userService(oAuth2UserService)
             .and()
             .successHandler(authenticationSuccessHandler)
-            .failureHandler((req, response, auth) -> {
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                response.setContentType("application/json");
-                response.setCharacterEncoding("utf-8");
-                response.getWriter().write(objectMapper.writeValueAsString(
-                    ErrorResponseDto.builder()
-                        .message("로그인에 실패하였습니다.")
-                        .build()));
-            })
+            .failureHandler(authenticationFailureHandler)
             .and()
             .logout()
             .logoutRequestMatcher(new AntPathRequestMatcher("/api/security/logout"))

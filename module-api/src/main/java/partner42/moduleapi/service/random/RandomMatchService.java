@@ -7,8 +7,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import partner42.moduleapi.dto.matchcondition.MatchConditionRandomMatchDto;
@@ -33,7 +31,6 @@ import partner42.modulecommon.exception.NoEntityException;
 import partner42.modulecommon.exception.RandomMatchAlreadyExistException;
 import partner42.modulecommon.repository.random.RandomMatchRepository;
 import partner42.modulecommon.repository.user.UserRepository;
-import partner42.modulecommon.utils.redis.RedisTransactionUtil;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -235,16 +232,17 @@ public class RandomMatchService {
         RandomMatchSearch randomMatchCancelRequest) {
         LocalDateTime now = LocalDateTime.now();
 
-        Integer randomMatchCount = 0;
-        if (randomMatchCancelRequest.getContentCategory() == ContentCategory.MEAL) {
-            randomMatchCount = randomMatchRepository.findCountMealByCreatedAtBeforeAndIsExpired(
-                now.minusMinutes(RandomMatch.MAX_WAITING_TIME),false);
-        } else if (randomMatchCancelRequest.getContentCategory() == ContentCategory.STUDY) {
-            randomMatchCount = randomMatchRepository.findCountStudyByCreatedAtBeforeAndIsExpired(
-                now.minusMinutes(RandomMatch.MAX_WAITING_TIME), false);
-        }
+        List<RandomMatch> randomMatches = randomMatchRepository.findRandomMatchesByCreatedAtBeforeAndIsExpired(
+            now.minusMinutes(RandomMatch.MAX_WAITING_TIME), false, randomMatchCancelRequest.getContentCategory());
+
+        int randomMatchParticipantCount = randomMatches.stream()
+            .map(RandomMatch::getMember)
+            .map(Member::getNickname)
+            .collect(Collectors.toSet())
+            .size();
+
         return RandomMatchCountResponse.builder()
-            .randomMatchCount(randomMatchCount)
+            .randomMatchCount(randomMatchParticipantCount)
             .build();
     }
 }

@@ -3,6 +3,7 @@ package partner42.modulecommon.repository.random;
 import javax.persistence.LockModeType;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
+import partner42.modulecommon.domain.model.match.ContentCategory;
 import partner42.modulecommon.domain.model.random.MealRandomMatch;
 import partner42.modulecommon.domain.model.random.RandomMatch;
 import java.time.LocalDateTime;
@@ -88,20 +89,27 @@ public interface RandomMatchRepository extends JpaRepository<RandomMatch, Long> 
 //        @Param(value = "before") LocalDateTime before,
 //        @Param(value  = "isExpired") boolean isExpired);
 
-    @Query("select count(rm) from MealRandomMatch rm "
-        + "where rm.createdAt > :before "
-        + "and rm.isExpired = :isExpired")
-    Integer findCountMealByCreatedAtBeforeAndIsExpired(
-        @Param(value = "before") LocalDateTime before,
-        @Param(value  = "isExpired") boolean isExpired);
+//    @Query("select rm from MealRandomMatch rm "
+//        + "where rm.createdAt > :before "
+//        + "and rm.isExpired = :isExpired")
+//    MealRandomMatch findMealByCreatedAtBeforeAndIsExpired(
+//        @Param(value = "before") LocalDateTime before,
+//        @Param(value  = "isExpired") boolean isExpired);
+//
+//    @Query("select rm from StudyRandomMatch rm "
+//        + "where rm.createdAt > :before "
+//        + "and rm.isExpired = :isExpired")
+//    StudyRandomMatch findStudyByCreatedAtBeforeAndIsExpired(
+//        @Param(value = "before") LocalDateTime before,
+//        @Param(value  = "isExpired") boolean isExpired);
 
-    @Query("select count(rm) from StudyRandomMatch rm "
+    @Query("select rm from RandomMatch rm "
         + "where rm.createdAt > :before "
-        + "and rm.isExpired = :isExpired")
-    Integer findCountStudyByCreatedAtBeforeAndIsExpired(
-        @Param(value = "before") LocalDateTime before,
-        @Param(value  = "isExpired") boolean isExpired);
-
+        + "and rm.isExpired = :isExpired "
+        + "and rm.contentCategory = :contentCategory")
+    List<RandomMatch> findRandomMatchesByCreatedAtBeforeAndIsExpired(@Param(value = "before") LocalDateTime before,
+        @Param(value  = "isExpired") boolean isExpired,
+        @Param(value = "contentCategory") ContentCategory contentCategory);
 
     /**
      * 벌크성 수정 쿼리는 @Modifying 어노테이션을 사용해야 한다.
@@ -115,4 +123,5 @@ public interface RandomMatchRepository extends JpaRepository<RandomMatch, Long> 
         + "where rm.createdAt > :after ")
     void bulkUpdateIsExpired(@Param(value  = "isExpired") boolean isExpired,
         @Param(value = "after") LocalDateTime after);
+
 }
