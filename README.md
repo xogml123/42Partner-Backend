@@ -34,7 +34,8 @@
 
 ## Architecture Design
 <img width="717" alt="image" src="https://user-images.githubusercontent.com/47822403/210039280-49cfd160-796d-42e3-84df-67cb596ddf4b.png">
-![image](https://user-images.githubusercontent.com/47822403/210048095-cd6d5cdc-e96d-4271-be46-79e10a740cba.png)
+![image](https://user-images.githubusercontent.com/47822403/210048126-ffae2fd4-1cc1-400b-ad29-6eb256ff5c47.png)
+
 
 [아키텍처 설계 과정](https://indigo-catsup-e60.notion.site/Architecture-Design-c103a3d951644e47b327293aadde2ed3)
 
