@@ -21,10 +21,10 @@ public class RedirectAuthenticationFailureHandler implements AuthenticationFailu
     @Override
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
         AuthenticationException exception) throws IOException, ServletException {
-        String referer =
-            request.getHeader(HttpHeaders.REFERER) == null ? corsFrontend
-                : request.getHeader("Referer");
-        log.info("referer: {}", request.getHeader(HttpHeaders.REFERER));
+        String referer = corsFrontend;
+//            request.getHeader(HttpHeaders.REFERER) == null ? corsFrontend
+//                : request.getHeader("Referer");
+//        log.info("referer: {}", request.getHeader(HttpHeaders.REFERER));
         response.sendRedirect(
             referer +
                 "?login_success=" + false);
