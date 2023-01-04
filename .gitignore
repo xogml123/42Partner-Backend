@@ -68,4 +68,4 @@ application*.*
 /sql/*
 
 ### build-send.sh ###
-build-send.shg
+build-send.sh
