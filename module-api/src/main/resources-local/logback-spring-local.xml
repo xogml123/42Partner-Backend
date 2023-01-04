@@ -1,0 +1,18 @@
+<include>
+
+  <include resource="org/springframework/boot/logging/logback/console-appender.xml" />
+
+  <!--
+  <included>
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+      <encoder>
+        <pattern>${CONSOLE_LOG_PATTERN}</pattern>
+        <charset>${CONSOLE_LOG_CHARSET}</charset>
+      </encoder>
+    </appender>
+  </included>
+  -->
+  <root level="DEBUG">
+    <appender-ref ref="CONSOLE" />
+  </root>
+</include>
