@@ -3,7 +3,8 @@ name: CI-CD
 on:
   push:
     branches:
-      - dev
+#      - dev
+      - release/1.0.0
 env:
   S3_BUCKET_NAME: s3-42partner-dev
   RESOURCE_PATH: ./module-api/src/main/resources/application.yml
@@ -27,10 +28,10 @@ jobs:
 #        uses: microsoft/variable-substitution@v1
 #        with:
 #          files: ${{ env.RESOURCE_PATH }}
-      - run: mkdir ./module-api/src/main/resources-dev
-      - run: touch ./module-api/src/main/resources-dev/application.yml
-      - run: echo "${{ secrets.APPLICATION_DEV }}" > ./module-api/src/main/resources-dev/application.yml
-      - run: cat ./module-api/src/main/resources-dev/application.yml
+      - run: mkdir ./module-api/src/main/resources
+      - run: touch ./module-api/src/main/resources/application.yml
+      - run: echo "${{ secrets.APPLICATION_DEV }}" > ./module-api/src/main/resources/application.yml
+      - run: cat ./module-api/src/main/resources/application.yml
 
       - name: Grant execute permission for gradlew
         run: chmod +x ./module-api/gradlew
