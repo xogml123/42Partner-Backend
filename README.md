@@ -29,6 +29,7 @@
 ## Database Design
 
 <img width="1521" alt="image" src="https://user-images.githubusercontent.com/47822403/210037066-4435282b-6d49-4d1c-9c13-bad5bab46ea6.png">
+
 [DB 최신 설계도](https://www.erdcloud.com/d/zrkNWk5ncp6WJCMyS)
 [DB 설계과정](https://indigo-catsup-e60.notion.site/Database-DB-Design-bf9ce489736f4001b471ba33c66f35e9)
 
