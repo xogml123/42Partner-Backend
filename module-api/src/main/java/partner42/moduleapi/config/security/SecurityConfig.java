@@ -186,6 +186,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             HttpMethod.GET.name(), HttpMethod.POST.name(), HttpMethod.PUT.name(),
             HttpMethod.DELETE.name(), HttpMethod.PATCH.name(),
             HttpMethod.OPTIONS.name()));
+
         // setAllowCredentials(true) is important, otherwise:
         // The value of the 'Access-Control-Allow-Origin' header in the response must not be the wildcard '*' when the request's credentials mode is 'include'.
         configuration.setAllowCredentials(true);
@@ -194,6 +195,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         configuration.setAllowedHeaders(
             List.of(HttpHeaders.AUTHORIZATION, HttpHeaders.CACHE_CONTROL,
                 HttpHeaders.CONTENT_TYPE, HttpHeaders.ACCEPT));
+
         final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
