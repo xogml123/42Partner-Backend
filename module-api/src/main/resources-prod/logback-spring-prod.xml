@@ -1,3 +1,0 @@
-<include>
-  <include resource="org/springframework/boot/logging/logback/file-appender.xml" />
-</include>

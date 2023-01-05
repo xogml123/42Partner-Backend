@@ -90,6 +90,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/webjars/**").permitAll()
                 .antMatchers("/v3/api-docs/**").permitAll()
                 .antMatchers("/swagger-ui/**").permitAll()
+                //cors preflight
+                .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 //UserController
                 .antMatchers(HttpMethod.GET, "/api/users/*").authenticated()
                 .antMatchers(HttpMethod.PATCH, "/api/users/*/email").authenticated()
@@ -179,15 +181,19 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         final CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("https://www.42partner.com", corsFrontend));
-        configuration.setAllowedMethods(List.of("HEAD",
-            "GET", "POST", "PUT", "DELETE", "PATCH"));
+        configuration.setAllowedOrigins(List.of(corsFrontend));
+        configuration.setAllowedMethods(List.of(HttpMethod.HEAD.name(),
+            HttpMethod.GET.name(), HttpMethod.POST.name(), HttpMethod.PUT.name(),
+            HttpMethod.DELETE.name(), HttpMethod.PATCH.name(),
+            HttpMethod.OPTIONS.name()));
         // setAllowCredentials(true) is important, otherwise:
         // The value of the 'Access-Control-Allow-Origin' header in the response must not be the wildcard '*' when the request's credentials mode is 'include'.
         configuration.setAllowCredentials(true);
         // setAllowedHeaders is important! Without it, OPTIONS preflight request
         // will fail with 403 Invalid CORS request
-        configuration.setAllowedHeaders(List.of("Authorization", "Cache-Control", "Content-Type", "user-token"));
+        configuration.setAllowedHeaders(
+            List.of(HttpHeaders.AUTHORIZATION, HttpHeaders.CACHE_CONTROL,
+                HttpHeaders.CONTENT_TYPE, HttpHeaders.ACCEPT));
         final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
