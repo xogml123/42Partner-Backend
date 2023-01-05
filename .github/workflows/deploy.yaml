@@ -29,6 +29,7 @@ jobs:
 #        uses: microsoft/variable-substitution@v1
 #        with:
 #          files: ${{ env.RESOURCE_PATH }}
+      - run: rm -rf ./module-api/src/main/resources
       - run: mkdir -p ./module-api/src/main/resources
       - run: touch ./module-api/src/main/resources/application.yml
       - run: echo "${{ secrets.APPLICATION_DEV }}" > ./module-api/src/main/resources/application.yml
