@@ -113,7 +113,7 @@ public class CustomAuthorizationFilter extends OncePerRequestFilter {
 
                 }
                 //token 자체가 없는 경우. 일단 통과
-                //Authentiaation이 없기 때문에 인증해야만 접근 가능한 리소스에 접근하면 401 에러 발생
+                //Authentiation이 없기 때문에 인증해야만 접근 가능한 리소스에 접근하면 401 에러 발생
             } else {
                 filterChain.doFilter(request, response);
             }

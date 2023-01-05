@@ -1,6 +1,7 @@
 #!/bin/bash
 PROJECT_PATH="/home/ec2-user/app/42Partner-Backend"
 MODULE_NAME="module-api"
+CONTEXT="dev"
 JAR_PATH="$PROJECT_PATH/$MODULE_NAME/build/libs/*.jar"
 DEPLOY_PATH=$PROJECT_PATH/$MODULE_NAME
 DEPLOY_LOG_PATH="$PROJECT_PATH/$MODULE_NAME/deploy.log"
@@ -30,8 +31,7 @@ fi
 
 DEPLOY_JAR="$DEPLOY_PATH/build/libs/$JAR_NAME"
 echo "> DEPLOY_JAR 배포" >> $DEPLOY_LOG_PATH
-nohup java -jar -Dspring.profiles.active=dev $DEPLOY_JAR >> $APPLICATION_LOG_PATH 2> $DEPLOY_ERR_LOG_PATH &
+nohup java -jar -Dspring.profiles.active=$CONTEXT $DEPLOY_JAR >> $APPLICATION_LOG_PATH 2> $DEPLOY_ERR_LOG_PATH &
 
 sleep 3
-
 echo "> 배포 종료 : $(date +%c)" >> $DEPLOY_LOG_PATH
