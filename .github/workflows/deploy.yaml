@@ -6,7 +6,8 @@ on:
 #      - dev
       - release/1.0.0
 env:
-  S3_BUCKET_NAME: s3-42partner-dev
+  CONTEXT: dev
+  S3_BUCKET_NAME: partner-cicd-s3
   RESOURCE_PATH: ./module-api/src/main/resources/application.yml
   CODE_DEPLOY_APPLICATION_NAME: 42partner-CODE-DEPLOY
   CODE_DEPLOY_DEPLOYMENT_GROUP_NAME: 42partner-CODE-DEPLOY-GROUP
@@ -38,7 +39,7 @@ jobs:
         shell: bash
         
       - name: Build with Gradle
-        run: ./module-api/gradlew build -x test -Pprofile=dev
+        run: ./module-api/gradlew build -x test -Pprofile="${{ env.CONTEXT }}"
         shell: bash
         
       - name: Make zip file
@@ -50,10 +51,10 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{  secrets.AWS_REGION }}
+          aws-region: ${{ secrets.AWS_REGION }}
      
       - name: Upload to S3
-        run: aws s3 cp --region ap-northeast-2 ./$GITHUB_SHA.zip s3://$S3_BUCKET_NAME/$GITHUB_SHA.zip
+        run: aws s3 cp --region ${{ secrets.AWS_REGION }} ./$GITHUB_SHA.zip s3://$S3_BUCKET_NAME/$GITHUB_SHA.zip
         
       - name: Code Deploy
         run: |
