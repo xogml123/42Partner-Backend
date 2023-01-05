@@ -39,7 +39,7 @@ jobs:
         shell: bash
         
       - name: Build with Gradle
-        run: ./module-api/gradlew build -x test -Pprofile=${{ env.CONTEXT }}
+        run: ./module-api/gradlew build -x test
         shell: bash
         
       - name: Make zip file
