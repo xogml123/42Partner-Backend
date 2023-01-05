@@ -3,11 +3,12 @@ name: CI-CD
 on:
   push:
     branches:
-      - dev
+#      - dev
+      - release/1.0.0
 env:
-  S3_BUCKET_NAME: s3-42partner-dev
+  CONTEXT: dev
+  S3_BUCKET_NAME: partner-cicd-s3
   RESOURCE_PATH: ./module-api/src/main/resources/application.yml
-
   CODE_DEPLOY_APPLICATION_NAME: 42partner-CODE-DEPLOY
   CODE_DEPLOY_DEPLOYMENT_GROUP_NAME: 42partner-CODE-DEPLOY-GROUP
 
@@ -23,36 +24,26 @@ jobs:
         uses: actions/setup-java@v1
         with: 
           java-version: 11
-<<<<<<< HEAD
 
 #      - name: Set yml file
 #        uses: microsoft/variable-substitution@v1
 #        with:
 #          files: ${{ env.RESOURCE_PATH }}
-      - run: mkdir ./module-api/src/main/resources-dev
-      - run: touch ./module-api/src/main/resources-dev/application.yml
-      - run: echo "${{ secrets.APPLICATION_DEV }}" > ./module-api/src/main/resources-dev/application.yml
-      - run: cat ./module-api/src/main/resources-dev/application.yml
+      - run: mkdir ./module-api/src/main/resources
+      - run: touch ./module-api/src/main/resources/application.yml
+      - run: echo "${{ secrets.APPLICATION_DEV }}" > ./module-api/src/main/resources/application.yml
+      - run: cat ./module-api/src/main/resources/application.yml
 
       - name: Grant execute permission for gradlew
         run: chmod +x ./module-api/gradlew
-=======
-      
-      - name: Grant execute permission for gradlew
-        run: chmod +x ./gradlew
->>>>>>> fbcea7df3c74eea21da42030146c128d0b515004
         shell: bash
         
       - name: Build with Gradle
-        run: ./module-api/gradlew build -x test -Pprofile=dev
+        run: ./module-api/gradlew build -x test -Pprofile="${{ env.CONTEXT }}"
         shell: bash
         
       - name: Make zip file
-<<<<<<< HEAD
         run: zip -r ./$GITHUB_SHA .
-=======
-        run: zip -r ./#GITHUB_SHA .
->>>>>>> fbcea7df3c74eea21da42030146c128d0b515004
         shell: bash
         
       - name: Configure AWS credentials
@@ -60,23 +51,15 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{  secrets.AWS_REGION }}
+          aws-region: ${{ secrets.AWS_REGION }}
      
       - name: Upload to S3
-        run: aws s3 cp --region ap-northeast-2 ./$GITHUB_SHA.zip s3://$S3_BUCKET_NAME/$GITHUB_SHA.zip
+        run: aws s3 cp --region ${{ secrets.AWS_REGION }} ./$GITHUB_SHA.zip s3://$S3_BUCKET_NAME/$GITHUB_SHA.zip
         
       - name: Code Deploy
-<<<<<<< HEAD
         run: |
           aws deploy create-deployment \
           --deployment-config-name CodeDeployDefault.AllAtOnce \
           --application-name ${{ env.CODE_DEPLOY_APPLICATION_NAME }} \
           --deployment-group-name ${{ env.CODE_DEPLOY_DEPLOYMENT_GROUP_NAME }} \
-=======
-        run: | 
-          aws deploy create-deployment \ 
-          --deployment-config-name CodeDeployDefault.AllAtOnce \
-          --application-name ${{ env.CODE_DEPLOY_APPLICATION_NAME }}
-          --deployment-group-name ${{ env.CODE_DEPLOY_DEPLOYMENT_GROUP_NAME }}
->>>>>>> fbcea7df3c74eea21da42030146c128d0b515004
           --s3-location bucket=$S3_BUCKET_NAME,bundleType=zip,key=$GITHUB_SHA.zip
