@@ -38,8 +38,8 @@ import partner42.modulecommon.domain.model.user.UserRole;
 // spring security 필터를 스프링 필터체인에 동록
 @Configuration
 @EnableWebSecurity
-@EnableGlobalMethodSecurity(securedEnabled = true, prePostEnabled = true, proxyTargetClass = true)
 //Secured, PrePost 어노테이션 활성화
+@EnableGlobalMethodSecurity(securedEnabled = true, prePostEnabled = true, proxyTargetClass = true)
 @RequiredArgsConstructor
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private final DefaultOAuth2UserService oAuth2UserService;
@@ -58,11 +58,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Value("${jwt.secret}")
     private String jwtSecret;
-
-//    @Bean
-//    public OAuth2AuthorizedClientService oAuth2AuthorizedClientService(ClientRegistrationRepository clientRegistrationRepository) {
-//        return new JdbcOAuth2AuthorizedClientService(jdbc, clientRegistrationRepository);
-//    }
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {

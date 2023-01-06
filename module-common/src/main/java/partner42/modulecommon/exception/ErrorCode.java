@@ -1,6 +1,7 @@
 package partner42.modulecommon.exception;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import org.springframework.http.HttpStatus;
 
 
 @JsonFormat(shape = JsonFormat.Shape.OBJECT)
@@ -17,6 +18,8 @@ public enum ErrorCode {
 
     INVALID_JSON_FORMAT(400, "C007", "Json형식과 맞지 않습니다."),
 
+    //Authentication
+    ACCESS_TOKEN_EXPIRED(403, "AU001", "토큰이 만료되었습니다."),
 
 
 //    //InfraException
