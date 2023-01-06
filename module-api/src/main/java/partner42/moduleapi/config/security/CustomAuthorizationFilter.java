@@ -45,15 +45,13 @@ public class CustomAuthorizationFilter extends OncePerRequestFilter {
     @Value("${jwt.secret}")
     private String secret;
 
-    private static final String bearer = "Bearer ";
-
-
+    private static final String BEARER = "Bearer ";
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
         FilterChain filterChain) throws ServletException, IOException {
         String authorizationHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
 
-        if (authorizationHeader != null && authorizationHeader.startsWith(bearer)) {
+        if (authorizationHeader != null && authorizationHeader.startsWith(BEARER)) {
             String token = getToken(authorizationHeader);
             Algorithm algorithm = Algorithm.HMAC256(secret.getBytes());
             JWTInfo jwtInfo = null;

@@ -57,7 +57,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Value("${jwt.access-token-expire}")
     private String accessTokenExpire;
 
-    @Value("${jwt.access-token-expire}")
+    @Value("${jwt.refresh-token-expire}")
     private String refreshTokenExpire;
     @Value("${jwt.secret}")
     private String jwtSecret;
@@ -156,7 +156,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                             .collect(Collectors.toList()));
                     String refreshToken = JWTUtil.createToken(req.getRequestURL().toString(),
                         user.getUsername(), refreshTokenExpire, algorithm);
-                    res.setHeader(HttpHeaders.SET_COOKIE, "refresh_token=" + refreshToken);
+                    res.setHeader(HttpHeaders.SET_COOKIE, "refresh-token=" + refreshToken);
                     body.setAccessToken(accessToken);
                     res.getWriter().write(objectMapper.writeValueAsString(body));
                 })

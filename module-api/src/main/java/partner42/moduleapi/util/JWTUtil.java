@@ -65,16 +65,15 @@ public class JWTUtil {
         DecodedJWT decodedJWT = verifier.verify(token);
         String username = decodedJWT.getSubject();
         String[] authoritiesJWT = null;
-        try {
-            authoritiesJWT = decodedJWT.getClaim("authorities")
-                .asArray(String.class);
+        authoritiesJWT = decodedJWT.getClaim("authorities")
+            .asArray(String.class);
+        if (authoritiesJWT != null) {
             Collection<SimpleGrantedAuthority> authorities = new ArrayList<>();
             Arrays.stream(authoritiesJWT).forEach(authority -> {
                 authorities.add(new SimpleGrantedAuthority(authority));
             });
-        } catch (JWTDecodeException e) {
-            //refresh token의 경우 authorities를 가지고 있지 않으므로 Exception 발생.
         }
+
         return JWTInfo.builder()
             .username(username)
             .authorities(authoritiesJWT)

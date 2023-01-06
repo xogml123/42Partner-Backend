@@ -20,9 +20,13 @@ public enum ErrorCode {
 
     //Authentication
     ACCESS_TOKEN_EXPIRED(403, "AU001", "토큰이 만료되었습니다."),
+    REFRESH_TOKEN_NOT_IN_COOKIE(401, "AU002", "쿠키에 refresh-token이 없습니다."),
+    INVALID_REFRESH_TOKEN(401, "AU003", "쿠키에 저장된 refresh-token이 만료되었거나 인증이 불가능합니다."),
+
+    USER_TOKEN_NOT_AVAILABLE(401, "AU004", "Access token을 재발급 받을 수 없습니다."),
 
 
-//    //InfraException
+    //    //InfraException
       //비동기 이기 때문에 예외 발생 시 에러코드를 리턴하지 않고 로그 정도만 남김
     SLACK_ERROR(500, "S001", "Slack Error"),
 

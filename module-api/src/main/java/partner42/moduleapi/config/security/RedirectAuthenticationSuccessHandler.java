@@ -53,7 +53,7 @@ public class RedirectAuthenticationSuccessHandler implements AuthenticationSucce
         String refreshToken = JWTUtil.createToken(request.getRequestURL().toString(),
             user.getUsername(), refreshTokenExpire, algorithm);
 
-        response.setHeader(HttpHeaders.SET_COOKIE, "refresh_token=" + refreshToken);
+        response.setHeader(HttpHeaders.SET_COOKIE, "refresh-token=" + refreshToken);
         response.sendRedirect(
             referer +
                 "?access_token=" + accessToken +
