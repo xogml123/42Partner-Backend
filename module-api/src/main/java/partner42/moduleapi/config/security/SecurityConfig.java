@@ -149,7 +149,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     res.setStatus(200);
                     res.setContentType("application/json");
                     res.setCharacterEncoding("utf-8");
-//                        addSameSiteCookieAttribute(res);
                     body.setUserId(user.getApiId());
                     Algorithm algorithm = Algorithm.HMAC256(jwtSecret.getBytes());
                     String accessToken = JWT.create()
@@ -173,10 +172,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     }
 
-//    @Override
-//    public void configure(WebSecurity web) throws Exception {
-//        web.ignoring();
-//    }
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
@@ -209,20 +204,5 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 //        security.userDetailsService(new JpaUserDetailService(userRepository)).passwordEncoder(bCryptPasswordEncoder());
 //    }
 
-//    private void addSameSiteCookieAttribute(HttpServletResponse response) {
-//        Collection<String> headers = response.getHeaders(HttpHeaders.SET_COOKIE);
-//        boolean firstHeader = true;
-//        // there can be multiple Set-Cookie attributes
-//        for (String header : headers) {
-//            if (firstHeader) {
-//                response.setHeader(HttpHeaders.SET_COOKIE,
-//                    String.format("%s; %s", header, "SameSite=None"));
-//                firstHeader = false;
-//                continue;
-//            }
-//            response.addHeader(HttpHeaders.SET_COOKIE,
-//                String.format("%s; %s", header, "SameSite=None"));
-//        }
-//    }
 
 }

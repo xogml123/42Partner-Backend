@@ -12,26 +12,19 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Slice;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.client.authentication.OAuth2LoginAuthenticationToken;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import partner42.moduleapi.dto.user.CustomAuthenticationPrincipal;
@@ -45,15 +38,6 @@ public class CustomAuthorizationFilter extends OncePerRequestFilter {
     @Value("${jwt.secret}")
     private String secret;
 
-    private final String AUTHORIZATION_HEADER_CUSTOM = "user-token";
-
-//    public static final Set<String> permitAllList = new HashSet<>();
-//    static{
-//        permitAllList.addAll(Arrays.asList(
-//            "/oauth2/authorization/authclient",
-//            "login/oauth2/code/authclient",
-//            ));
-//    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
@@ -64,7 +48,6 @@ public class CustomAuthorizationFilter extends OncePerRequestFilter {
 
         } else {
             String authorizationHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
-//            String authorizationHeader = request.getHeader(AUTHORIZATION_HEADER_CUSTOM);
 
             if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
                 try {
@@ -104,13 +87,13 @@ public class CustomAuthorizationFilter extends OncePerRequestFilter {
                     filterChain.doFilter(request, response);
                 } catch (Exception exception) {
                     log.error("Error logging in: {}", exception.getMessage());
-//                    response.sendError(HttpStatus.UNAUTHORIZED.value());
-//                    Map<String, String> error = new HashMap<>();
-//                    error.put("error_message", exception.getMessage());
-//                    response.setContentType(APPLICATION_JSON_VALUE);
-//                    new ObjectMapper().writeValue(response.getOutputStream(), error);
-                    filterChain.doFilter(request, response);
 
+                    filterChain.doFilter(request, response);
+                    response.sendError(HttpStatus.UNAUTHORIZED.value());
+                    Map<String, String> error = new HashMap<>();
+                    error.put("error_message", exception.getMessage());
+                    response.setContentType(APPLICATION_JSON_VALUE);
+                    new ObjectMapper().writeValue(response.getOutputStream(), error);
                 }
                 //token 자체가 없는 경우. 일단 통과
                 //Authentiation이 없기 때문에 인증해야만 접근 가능한 리소스에 접근하면 401 에러 발생
