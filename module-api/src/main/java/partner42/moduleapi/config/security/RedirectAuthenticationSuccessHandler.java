@@ -19,6 +19,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 import partner42.moduleapi.dto.user.CustomAuthenticationPrincipal;
+import partner42.moduleapi.util.JWTUtil;
 
 @Slf4j
 @Component
@@ -45,27 +46,17 @@ public class RedirectAuthenticationSuccessHandler implements AuthenticationSucce
         String referer = corsFrontend;
         boolean createFlag = (boolean) (user.getAttributes().get("create_flag"));
         Algorithm algorithm = Algorithm.HMAC256(jwtSecret.getBytes());
-        String accessToken = JWT.create()
-            .withSubject(user.getUsername())
-            .withIssuer(request.getRequestURL().toString())
-            .withExpiresAt(
-                new Date(System.currentTimeMillis() + Integer.parseInt(accessTokenExpire)))
+        String accessToken = JWTUtil.createToken(request.getRequestURL().toString(),
+            user.getUsername(), accessTokenExpire, algorithm, user.getAuthorities().stream()
+                .map(SimpleGrantedAuthority::getAuthority).collect(Collectors.toList()));
 
-            .withClaim("authorities", user.getAuthorities().stream()
-                .map(SimpleGrantedAuthority::getAuthority)
-                .collect(Collectors.toList()))
-            .sign(algorithm);
+        String refreshToken = JWTUtil.createToken(request.getRequestURL().toString(),
+            user.getUsername(), refreshTokenExpire, algorithm);
 
-        String refreshToken = JWT.create()
-            .withSubject(user.getApiId())
-            .withIssuer(request.getRequestURL().toString())
-            .withExpiresAt(
-                new Date(System.currentTimeMillis() + Integer.parseInt(refreshTokenExpire)))
-            .sign(algorithm);
+        response.setHeader(HttpHeaders.SET_COOKIE, "refresh_token=" + refreshToken);
         response.sendRedirect(
             referer +
                 "?access_token=" + accessToken +
-                "&refresh_token=" + refreshToken +
                 "&create_flag=" + createFlag +
                 "&userId=" + user.getApiId());
     }

@@ -9,6 +9,8 @@ import com.auth0.jwt.interfaces.DecodedJWT;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Date;
+import java.util.stream.Collectors;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -16,19 +18,40 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 public class JWTUtil {
 
-//    public static createToken() {
-//
-//    }
+    public static String createToken(String requestUrl, String subject,
+        String tokenExpire, Algorithm algorithm, Collection<String> authorities) {
+
+        return JWT.create()
+            .withSubject(subject)
+            .withIssuer(requestUrl)
+            .withExpiresAt(
+                new Date(System.currentTimeMillis() + Integer.parseInt(tokenExpire)))
+            .withClaim("authorities",
+                new ArrayList<>(authorities))
+            .sign(algorithm);
+    }
+
+    public static String createToken(String requestUrl, String subject,
+        String tokenExpire, Algorithm algorithm) {
+
+        return JWT.create()
+            .withSubject(subject)
+            .withIssuer(requestUrl)
+            .withExpiresAt(
+                new Date(System.currentTimeMillis() + Integer.parseInt(tokenExpire)))
+            .sign(algorithm);
+    }
 
     /**
-     * 1. 토큰이 정상적인지 검증(위조, 만료 여부)
-     * 2. Access Token인지 Refresh Token인지 구분
+     * 1. 토큰이 정상적인지 검증(위조, 만료 여부) 2. Access Token인지 Refresh Token인지 구분
+     *
      * @param algorithm
      * @param token
      * @return
      * @throws JWTVerificationException
      */
-    public static JWTInfo decodeToken(Algorithm algorithm, String token) throws JWTVerificationException {
+    public static JWTInfo decodeToken(Algorithm algorithm, String token)
+        throws JWTVerificationException {
         JWTVerifier verifier = JWT.require(algorithm).build();
 
         /**
@@ -42,14 +65,14 @@ public class JWTUtil {
         DecodedJWT decodedJWT = verifier.verify(token);
         String username = decodedJWT.getSubject();
         String[] authoritiesJWT = null;
-        try{
+        try {
             authoritiesJWT = decodedJWT.getClaim("authorities")
                 .asArray(String.class);
             Collection<SimpleGrantedAuthority> authorities = new ArrayList<>();
             Arrays.stream(authoritiesJWT).forEach(authority -> {
                 authorities.add(new SimpleGrantedAuthority(authority));
             });
-        } catch (JWTDecodeException e){
+        } catch (JWTDecodeException e) {
             //refresh token의 경우 authorities를 가지고 있지 않으므로 Exception 발생.
         }
         return JWTInfo.builder()
@@ -57,9 +80,11 @@ public class JWTUtil {
             .authorities(authoritiesJWT)
             .build();
     }
+
     @Getter
     @Builder
-    public static class JWTInfo{
+    public static class JWTInfo {
+
         private final String username;
         private final String[] authorities;
     }

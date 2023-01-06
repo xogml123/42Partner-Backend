@@ -62,16 +62,15 @@ public class CustomAuthorizationFilter extends OncePerRequestFilter {
                 jwtInfo = JWTUtil.decodeToken(algorithm, token);
                 log.debug(jwtInfo.toString());
 
+                //access token이 만료된 경우 403과 응답 코드를 전달
             } catch(TokenExpiredException tokenExpiredException){
                 log.debug(tokenExpiredException.getMessage());
-                //access token이 만료된 경우 요청 경로를 access token 재발급 경로로 변경
                 final ErrorResponse errorResponse = ErrorResponse.of(
                     ErrorCode.ACCESS_TOKEN_EXPIRED);
                 setAccessTokenExpiredResponse(response, errorResponse);
                 return ;
             } catch (JWTVerificationException jwtException) {
                 log.debug("JWT Verification Failure : {}", jwtException.getMessage());
-
             }
             /**
              * Access Token인 경우 authorities가 존재하므로
@@ -89,7 +88,7 @@ public class CustomAuthorizationFilter extends OncePerRequestFilter {
             //Security Filter chain에서 인증, 인가 여부 검증.
         }
         log.debug("Authorization Bearer");
-
+        //access token 만료를 제외 하면 모두 filter chain호출.
         filterChain.doFilter(request, response);
     }
 
