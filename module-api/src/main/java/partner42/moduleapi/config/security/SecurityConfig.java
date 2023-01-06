@@ -160,14 +160,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                             .collect(Collectors.toList()));
                     String refreshToken = JWTUtil.createToken(req.getRequestURL().toString(),
                         user.getUsername(), refreshTokenExpire, algorithm);
-                    ResponseCookie cookie = ResponseCookie.from("refresh-token", refreshToken) // key & value
+                    ResponseCookie cookie = ResponseCookie.from(JWTUtil.REFRESH_TOKEN, refreshToken) // key & value
                         .httpOnly(true)
                         .secure(true)
                         .path("/")      // path
                         .maxAge(Duration.ofDays(15))
                         .sameSite("None")  // sameSite
-                        .build()
-                        ;
+                        .build();
                     res.setHeader(HttpHeaders.SET_COOKIE, cookie.toString());
                     body.setAccessToken(accessToken);
                     res.getWriter().write(objectMapper.writeValueAsString(body));

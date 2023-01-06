@@ -28,6 +28,7 @@ import partner42.moduleapi.dto.user.UserLoginRequest;
 import partner42.moduleapi.dto.user.UserOnlyIdResponse;
 import partner42.moduleapi.dto.user.UserUpdateRequest;
 import partner42.moduleapi.service.user.UserService;
+import partner42.moduleapi.util.JWTUtil;
 import partner42.modulecommon.exception.ErrorCode;
 import partner42.modulecommon.exception.InvalidInputException;
 
@@ -37,7 +38,6 @@ import partner42.modulecommon.exception.InvalidInputException;
 @RequiredArgsConstructor
 public class UserController {
 
-    private static final String cookieKey = "refresh-token";
     private final UserService userService;
 
     @PreAuthorize("hasAuthority('user.read')")
@@ -66,7 +66,7 @@ public class UserController {
             throw new InvalidInputException(ErrorCode.REFRESH_TOKEN_NOT_IN_COOKIE);
         }
         String refreshToken = Arrays.stream(request.getCookies())
-            .filter(cookie -> cookie.getName().equals(cookieKey))
+            .filter(cookie -> cookie.getName().equals(JWTUtil.REFRESH_TOKEN))
             .map(Cookie::getValue)
             .findFirst().orElseThrow(() ->
                 new InvalidInputException(ErrorCode.REFRESH_TOKEN_NOT_IN_COOKIE));

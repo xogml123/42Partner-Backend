@@ -4,6 +4,7 @@ package partner42.moduleapi.config.security;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -14,6 +15,7 @@ import javax.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
@@ -53,7 +55,14 @@ public class RedirectAuthenticationSuccessHandler implements AuthenticationSucce
         String refreshToken = JWTUtil.createToken(request.getRequestURL().toString(),
             user.getUsername(), refreshTokenExpire, algorithm);
 
-        response.setHeader(HttpHeaders.SET_COOKIE, "refresh-token=" + refreshToken);
+        ResponseCookie cookie = ResponseCookie.from(JWTUtil.REFRESH_TOKEN, refreshToken)
+            .httpOnly(true)
+            .secure(true)
+            .path("/")      // path
+            .maxAge(Duration.ofDays(15))
+            .sameSite("None")  // sameSite
+            .build();
+        response.setHeader(HttpHeaders.SET_COOKIE, cookie.toString());
         response.sendRedirect(
             referer +
                 "?access_token=" + accessToken +

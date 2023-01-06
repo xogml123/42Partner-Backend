@@ -18,6 +18,8 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 public class JWTUtil {
 
+    public static final String REFRESH_TOKEN = "refresh-token";
+
     public static String createToken(String requestUrl, String subject,
         String tokenExpire, Algorithm algorithm, Collection<String> authorities) {
 
