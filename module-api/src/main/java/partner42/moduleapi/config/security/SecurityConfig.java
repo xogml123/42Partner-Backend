@@ -33,13 +33,14 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import partner42.moduleapi.dto.ErrorResponseDto;
 import partner42.moduleapi.dto.LoginResponseDto;
 import partner42.moduleapi.dto.user.CustomAuthenticationPrincipal;
+import partner42.moduleapi.util.JWTUtil;
 import partner42.modulecommon.domain.model.user.UserRole;
 
 // spring security 필터를 스프링 필터체인에 동록
 @Configuration
 @EnableWebSecurity
-@EnableGlobalMethodSecurity(securedEnabled = true, prePostEnabled = true, proxyTargetClass = true)
 //Secured, PrePost 어노테이션 활성화
+@EnableGlobalMethodSecurity(securedEnabled = true, prePostEnabled = true, proxyTargetClass = true)
 @RequiredArgsConstructor
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private final DefaultOAuth2UserService oAuth2UserService;
@@ -56,13 +57,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Value("${jwt.access-token-expire}")
     private String accessTokenExpire;
 
+    @Value("${jwt.refresh-token-expire}")
+    private String refreshTokenExpire;
     @Value("${jwt.secret}")
     private String jwtSecret;
-
-//    @Bean
-//    public OAuth2AuthorizedClientService oAuth2AuthorizedClientService(ClientRegistrationRepository clientRegistrationRepository) {
-//        return new JdbcOAuth2AuthorizedClientService(jdbc, clientRegistrationRepository);
-//    }
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
@@ -149,19 +147,16 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     res.setStatus(200);
                     res.setContentType("application/json");
                     res.setCharacterEncoding("utf-8");
-//                        addSameSiteCookieAttribute(res);
                     body.setUserId(user.getApiId());
                     Algorithm algorithm = Algorithm.HMAC256(jwtSecret.getBytes());
-                    String accessToken = JWT.create()
-                        .withSubject(user.getUsername())
-                        .withIssuer(req.getRequestURL().toString())
-                        .withExpiresAt(
-                            new Date(System.currentTimeMillis() + Integer.parseInt(accessTokenExpire)))
-
-                        .withClaim("authorities", user.getAuthorities().stream()
+                    String accessToken = JWTUtil.createToken(req.getRequestURL().toString(),
+                        user.getUsername(), accessTokenExpire, algorithm,
+                        user.getAuthorities().stream()
                             .map(SimpleGrantedAuthority::getAuthority)
-                            .collect(Collectors.toList()))
-                        .sign(algorithm);
+                            .collect(Collectors.toList()));
+                    String refreshToken = JWTUtil.createToken(req.getRequestURL().toString(),
+                        user.getUsername(), refreshTokenExpire, algorithm);
+                    res.setHeader(HttpHeaders.SET_COOKIE, "refresh-token=" + refreshToken);
                     body.setAccessToken(accessToken);
                     res.getWriter().write(objectMapper.writeValueAsString(body));
                 })
@@ -173,10 +168,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     }
 
-//    @Override
-//    public void configure(WebSecurity web) throws Exception {
-//        web.ignoring();
-//    }
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
@@ -209,20 +200,5 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 //        security.userDetailsService(new JpaUserDetailService(userRepository)).passwordEncoder(bCryptPasswordEncoder());
 //    }
 
-//    private void addSameSiteCookieAttribute(HttpServletResponse response) {
-//        Collection<String> headers = response.getHeaders(HttpHeaders.SET_COOKIE);
-//        boolean firstHeader = true;
-//        // there can be multiple Set-Cookie attributes
-//        for (String header : headers) {
-//            if (firstHeader) {
-//                response.setHeader(HttpHeaders.SET_COOKIE,
-//                    String.format("%s; %s", header, "SameSite=None"));
-//                firstHeader = false;
-//                continue;
-//            }
-//            response.addHeader(HttpHeaders.SET_COOKIE,
-//                String.format("%s; %s", header, "SameSite=None"));
-//        }
-//    }
 
 }
