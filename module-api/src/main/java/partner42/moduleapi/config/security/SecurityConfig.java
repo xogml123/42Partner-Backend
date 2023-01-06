@@ -3,6 +3,7 @@ package partner42.moduleapi.config.security;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.Duration;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -14,6 +15,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
@@ -49,6 +51,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private final ObjectMapper objectMapper;
 
     private final CustomAuthorizationFilter customAuthorizationFilter;
+
     private final AuthenticationSuccessHandler authenticationSuccessHandler;
     private final AuthenticationFailureHandler authenticationFailureHandler;
     @Value("${cors.frontend}")
@@ -68,6 +71,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http.cors().configurationSource(corsConfigurationSource());
         http.exceptionHandling().authenticationEntryPoint(authenticationEntryPoint);
         http.addFilterBefore(customAuthorizationFilter, UsernamePasswordAuthenticationFilter.class);
+
         //session생성하지 않음. -> jwt 사용.
         //https://www.baeldung.com/spring-security-session
         http.sessionManagement()
@@ -156,7 +160,15 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                             .collect(Collectors.toList()));
                     String refreshToken = JWTUtil.createToken(req.getRequestURL().toString(),
                         user.getUsername(), refreshTokenExpire, algorithm);
-                    res.setHeader(HttpHeaders.SET_COOKIE, "refresh-token=" + refreshToken);
+                    ResponseCookie cookie = ResponseCookie.from("refresh-token", refreshToken) // key & value
+                        .httpOnly(true)
+                        .secure(true)
+                        .path("/")      // path
+                        .maxAge(Duration.ofDays(15))
+                        .sameSite("None")  // sameSite
+                        .build()
+                        ;
+                    res.setHeader(HttpHeaders.SET_COOKIE, cookie.toString());
                     body.setAccessToken(accessToken);
                     res.getWriter().write(objectMapper.writeValueAsString(body));
                 })
