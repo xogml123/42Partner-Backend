@@ -33,6 +33,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import partner42.moduleapi.dto.ErrorResponseDto;
 import partner42.moduleapi.dto.LoginResponseDto;
 import partner42.moduleapi.dto.user.CustomAuthenticationPrincipal;
+import partner42.moduleapi.util.JWTUtil;
 import partner42.modulecommon.domain.model.user.UserRole;
 
 // spring security 필터를 스프링 필터체인에 동록
@@ -56,6 +57,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Value("${jwt.access-token-expire}")
     private String accessTokenExpire;
 
+    @Value("${jwt.access-token-expire}")
+    private String refreshTokenExpire;
     @Value("${jwt.secret}")
     private String jwtSecret;
 
@@ -146,16 +149,14 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     res.setCharacterEncoding("utf-8");
                     body.setUserId(user.getApiId());
                     Algorithm algorithm = Algorithm.HMAC256(jwtSecret.getBytes());
-                    String accessToken = JWT.create()
-                        .withSubject(user.getUsername())
-                        .withIssuer(req.getRequestURL().toString())
-                        .withExpiresAt(
-                            new Date(System.currentTimeMillis() + Integer.parseInt(accessTokenExpire)))
-
-                        .withClaim("authorities", user.getAuthorities().stream()
+                    String accessToken = JWTUtil.createToken(req.getRequestURL().toString(),
+                        user.getUsername(), accessTokenExpire, algorithm,
+                        user.getAuthorities().stream()
                             .map(SimpleGrantedAuthority::getAuthority)
-                            .collect(Collectors.toList()))
-                        .sign(algorithm);
+                            .collect(Collectors.toList()));
+                    String refreshToken = JWTUtil.createToken(req.getRequestURL().toString(),
+                        user.getUsername(), refreshTokenExpire, algorithm);
+                    res.setHeader(HttpHeaders.SET_COOKIE, "refresh_token=" + refreshToken);
                     body.setAccessToken(accessToken);
                     res.getWriter().write(objectMapper.writeValueAsString(body));
                 })
