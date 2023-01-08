@@ -38,7 +38,7 @@ import partner42.modulecommon.exception.InvalidInputException;
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "dtype")
 @Table(name = "RANDOM_MATCHES"
-//    , indexes = @Index(name = "idx__created_at", columnList = "createdAt")
+    , indexes = @Index(name = "idx__created_at", columnList = "createdAt")
 )
 public abstract class RandomMatch extends BaseEntity implements Serializable {
 

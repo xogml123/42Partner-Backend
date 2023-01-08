@@ -75,7 +75,6 @@ public class UserController {
         return userService.validateRefreshTokenAndCreateAccessToken(refreshToken, request.getRequestURL().toString());
     }
 
-
     @Operation(summary = "admin Form 로그인", description = "username password 각각 자기 인트라 아이디로 하면 됩니다!")
     @PostMapping("/auth/login")
     public LoginResponseDto fakeLogin(@Validated @ModelAttribute UserLoginRequest request) {

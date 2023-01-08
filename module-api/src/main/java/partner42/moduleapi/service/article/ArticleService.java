@@ -91,8 +91,8 @@ public class ArticleService {
 
 
     @Transactional
-    public ArticleOnlyIdResponse createArticle(String usename, ArticleDto articleRequest) {
-        Member member = userRepository.findByUsername(usename)
+    public ArticleOnlyIdResponse createArticle(String username, ArticleDto articleRequest) {
+        Member member = userRepository.findByUsername(username)
             .orElseThrow(() -> new NoEntityException(
                 ErrorCode.ENTITY_NOT_FOUND)).getMember();
         Article article = articleRepository.save(
@@ -296,6 +296,21 @@ public class ArticleService {
             .build();
     }
 
+    private void verifyAuthorOfArticle(String username, String articleId) {
+
+        User user = userRepository.findByUsername(username)
+            .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
+        Article article = articleRepository.findByApiId(articleId)
+            .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
+        if (!user.getUserRoles().stream()
+            .map(UserRole::getRole)
+            .map(Role::getValue)
+            .collect(Collectors.toSet())
+            .contains(RoleEnum.ROLE_ADMIN) &&
+            !article.getAuthorMember().equals(user.getMember())) {
+            throw new NotAuthorException(ErrorCode.NOT_ARTICLE_AUTHOR);
+        }
+    }
 
     private List<String> allMatchConditionToStringList(ArticleDto articleRequest) {
         List<String> matchConditionStrings = new ArrayList<>();
@@ -346,19 +361,5 @@ public class ArticleService {
             .collect(Collectors.toList());
     }
 
-    private void verifyAuthorOfArticle(String username, String articleId) {
 
-        User user = userRepository.findByUsername(username)
-            .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
-        Article article = articleRepository.findByApiId(articleId)
-            .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
-        if (!user.getUserRoles().stream()
-            .map(UserRole::getRole)
-            .map(Role::getValue)
-            .collect(Collectors.toSet())
-            .contains(RoleEnum.ROLE_ADMIN) &&
-            !article.getAuthorMember().equals(user.getMember())) {
-            throw new NotAuthorException(ErrorCode.NOT_ARTICLE_AUTHOR);
-        }
-    }
 }
