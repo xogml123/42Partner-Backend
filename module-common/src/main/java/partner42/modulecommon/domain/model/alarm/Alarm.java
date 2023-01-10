@@ -62,10 +62,17 @@ public class Alarm extends BaseEntity {
     private final String apiId = UUID.randomUUID().toString();
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private AlarmType alarmType;
+
+    @Builder.Default
+    @Column(nullable = false)
+    private boolean isRead = false;
 
     /**
      * 알람 기능이 확장 될 때 필요한 정보들을 저장.
+     * json 형태로 저장하면 각 정보를 Column으로 저장하는 것 보다
+     * 여러 알림 형태에 대응하기 좋음.
      * ex) 이벤트가 발생한 글 정보를 저장하여 링크 클릭 시 그 글로 이동할 수 있도록 함.
      */
     @Type(type = "json")
@@ -92,6 +99,12 @@ public class Alarm extends BaseEntity {
             .alarmArgs(alarmArgs)
             .calledMember(calledMember)
             .build();
+    }
+
+    public void read() {
+        if (!this.isRead) {
+            this.isRead = true;
+        }
     }
 
     /********************************* 비니지스 로직 *********************************/

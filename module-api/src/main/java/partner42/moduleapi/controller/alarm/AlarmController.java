@@ -13,6 +13,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import partner42.moduleapi.dto.alarm.AlarmDto;
 import partner42.moduleapi.service.alarm.AlarmService;
 
@@ -29,6 +30,14 @@ public class AlarmController {
     @GetMapping("/alarms")
     public Slice<AlarmDto> readAllArticle(@ApiParam(hidden = true) @AuthenticationPrincipal UserDetails user,
         Pageable pageable) {
-        return alarmService.findAlarms(pageable, user.getUsername());
+        return alarmService.sendAlarmSliceAndIsReadToTrue(pageable, user.getUsername());
+    }
+
+    @PreAuthorize("hasAuthority('alarm.read')")
+    @Operation(summary = "알람 sse 구독", description = "알람 sse 구독,  구독 해두면 알람 발생 시 비동기적으로 알림 발송할 수 있게 구독하는 api")
+    @GetMapping("/alarm/subscribe")
+    public SseEmitter alarmSubscribe(
+        @ApiParam(hidden = true) @AuthenticationPrincipal UserDetails user) {
+        return alarmService.subscribe(user.getUsername());
     }
 }

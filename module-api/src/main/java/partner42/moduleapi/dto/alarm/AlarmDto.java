@@ -31,4 +31,7 @@ public class AlarmDto {
     @Schema(name = "alarmArgsDto", example = "json형식 객체", description = "알림 자세한 정보 담은 객체")
     private AlarmArgsDto alarmArgsDto;
 
+    @Schema(name = "isRead", example = "true", description = "알림을 조회 했었는지, ui적으로 다르게 보이게 해주어야함.")
+    private Boolean isRead;
+
 }

@@ -102,7 +102,6 @@ public class UserService {
             //JWT 토큰 검증 실패하면 JWTVerificationException 발생
             jwtInfo = JWTUtil.decodeToken(algorithm, refreshToken);
             log.debug(jwtInfo.toString());
-
         } catch (JWTVerificationException jwtException) {
             log.debug("JWT Verification Failure : {}", jwtException.getMessage());
             throw new InvalidInputException(ErrorCode.INVALID_REFRESH_TOKEN);

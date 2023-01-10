@@ -68,24 +68,21 @@ public class DataLoader implements CommandLineRunner {
         Authority readUser = saveNewAuthority("user.read");
         Authority deleteUser = saveNewAuthority("user.delete");
 
-        System.out.println("--------------------------------------------------------");
         Authority createOpinion = saveNewAuthority("opinion.create");
         Authority updateOpinion = saveNewAuthority("opinion.update");
         Authority readOpinion = saveNewAuthority("opinion.read");
         Authority deleteOpinion = saveNewAuthority("opinion.delete");
-        System.out.println("--------------------------------------------------------");
+
 
         Authority createArticle = saveNewAuthority("article.create");
         Authority updateArticle = saveNewAuthority("article.update");
         Authority readArticle = saveNewAuthority("article.read");
         Authority deleteArticle = saveNewAuthority("article.delete");
-        System.out.println("--------------------------------------------------------");
 
         Authority createMatch = saveNewAuthority("match.create");
         Authority updateMatch = saveNewAuthority("match.update");
         Authority readMatch = saveNewAuthority("match.read");
         Authority deleteMatch = saveNewAuthority("match.delete");
-        System.out.println("--------------------------------------------------------");
 
         Authority createActivity = saveNewAuthority("activity.create");
         Authority updateActivity = saveNewAuthority("activity.update");
@@ -97,7 +94,10 @@ public class DataLoader implements CommandLineRunner {
         Authority readRandomMatch = saveNewAuthority("random-match.read");
         Authority deleteRandomMatch = saveNewAuthority("random-match.delete");
 
-
+        Authority createAlarm = saveNewAuthority("alarm.create");
+        Authority updateAlarm = saveNewAuthority("alarm.update");
+        Authority readAlarm = saveNewAuthority("alarm.read");
+        Authority deleteAlarm = saveNewAuthority("alarm.delete");
 
         //Role 생성
         Role adminRole = saveNewRole(RoleEnum.ROLE_ADMIN);
@@ -112,7 +112,8 @@ public class DataLoader implements CommandLineRunner {
             createArticle, updateArticle, readArticle, deleteArticle,
             createMatch, updateMatch, readMatch, deleteMatch,
             createActivity, updateActivity, readActivity, deleteActivity,
-            createRandomMatch, updateRandomMatch, readRandomMatch, deleteRandomMatch);
+            createRandomMatch, updateRandomMatch, readRandomMatch, deleteRandomMatch,
+            createAlarm, updateAlarm, readAlarm, deleteAlarm);
 
 
         userRole.getAuthorities().clear();
@@ -121,7 +122,8 @@ public class DataLoader implements CommandLineRunner {
             createArticle, updateArticle, readArticle, deleteArticle,
             createMatch, updateMatch, readMatch, deleteMatch,
             createActivity, updateActivity, readActivity, deleteActivity,
-            createRandomMatch, updateRandomMatch, readRandomMatch, deleteRandomMatch);
+            createRandomMatch, updateRandomMatch, readRandomMatch, deleteRandomMatch,
+            createAlarm, updateAlarm, readAlarm, deleteAlarm);
 
         roleRepository.saveAll(Arrays.asList(adminRole, userRole));
 

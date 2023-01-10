@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import partner42.moduleapi.dto.LoginResponseDto;
 import partner42.moduleapi.dto.user.AccessTokenResponse;
 import partner42.moduleapi.dto.user.UserDto;
@@ -75,6 +76,8 @@ public class UserController {
         return userService.validateRefreshTokenAndCreateAccessToken(refreshToken, request.getRequestURL().toString());
     }
 
+
+
     @Operation(summary = "admin Form 로그인", description = "username password 각각 자기 인트라 아이디로 하면 됩니다!")
     @PostMapping("/auth/login")
     public LoginResponseDto fakeLogin(@Validated @ModelAttribute UserLoginRequest request) {
@@ -82,6 +85,7 @@ public class UserController {
             "This method shouldn't be called. It's implemented by Spring Security filters.");
 
     }
+
 
 
 }
