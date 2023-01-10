@@ -21,6 +21,9 @@ import partner42.moduleapi.dto.member.MemberDto;
 import partner42.moduleapi.mapper.MatchConditionMapper;
 import partner42.moduleapi.mapper.MemberMapper;
 import partner42.modulecommon.domain.model.activity.ActivityMatchScore;
+import partner42.modulecommon.domain.model.alarm.Alarm;
+import partner42.modulecommon.domain.model.alarm.AlarmArgs;
+import partner42.modulecommon.domain.model.alarm.AlarmType;
 import partner42.modulecommon.domain.model.user.Role;
 import partner42.modulecommon.domain.model.user.UserRole;
 import partner42.modulecommon.domain.model.activity.Activity;
@@ -45,6 +48,7 @@ import partner42.modulecommon.exception.ErrorCode;
 import partner42.modulecommon.exception.NoEntityException;
 import partner42.modulecommon.exception.NotAuthorException;
 import partner42.modulecommon.repository.activity.ActivityRepository;
+import partner42.modulecommon.repository.alarm.AlarmRepository;
 import partner42.modulecommon.repository.article.ArticleRepository;
 import partner42.modulecommon.repository.article.ArticleSearch;
 import partner42.modulecommon.repository.articlemember.ArticleMemberRepository;
@@ -75,6 +79,8 @@ public class ArticleService {
     private final MatchMemberRepository matchMemberRepository;
 
     private final ActivityRepository activityRepository;
+
+    private final AlarmRepository alarmRepository;
     private final MemberMapper memberMapper;
     private final MatchConditionMapper matchConditionMapper;
 
@@ -211,12 +217,22 @@ public class ArticleService {
         Article article = articleRepository.findDistinctFetchArticleMembersByApiId(
                 articleId)
             .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
-
-        Member member = getUserByUsernameOrException(username).getMember();
+        User user = getUserByUsernameOrException(username);
+        Member member = user.getMember();
 
         ArticleMember participateMember = article.participateMember(member);
 
         articleMemberRepository.save(participateMember);
+
+        // 알림 생성
+        alarmRepository.save(Alarm.of(AlarmType.PARTICIPATION_ON_MY_POST, AlarmArgs.builder()
+            .opinionId(null)
+            .articleId(articleId)
+            .callingMemberId(user.getApiId())
+            .build(), article.getAuthorMember()));
+
+        //sse event 생성.
+
         return ArticleOnlyIdResponse.of(article.getApiId());
     }
     //OptimisticLockException
@@ -227,11 +243,20 @@ public class ArticleService {
                 articleId)
             .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
 
-        Member member = getUserByUsernameOrException(username)
-            .getMember();
+        User user = getUserByUsernameOrException(username);
+        Member member = user.getMember();
 
         ArticleMember participateMember = article.participateCancelMember(member);
         articleMemberRepository.delete(participateMember);
+
+        // 알림 생성
+        alarmRepository.save(Alarm.of(AlarmType.PARTICIPATION_CANCEL_ON_MY_POST, AlarmArgs.builder()
+            .opinionId(null)
+            .articleId(articleId)
+            .callingMemberId(user.getApiId())
+            .build(), article.getAuthorMember()));
+
+        //sse
         return ArticleOnlyIdResponse.of(article.getApiId());
     }
 
@@ -277,6 +302,19 @@ public class ArticleService {
                     }
                 }
             );
+
+        // 알림 생성
+        for (ArticleMember articleMember : article.getArticleMembers()) {
+            Member matchedMember = articleMember.getMember();
+
+            alarmRepository.save(Alarm.of(AlarmType.MATCH_CONFIRMED, AlarmArgs.builder()
+                .opinionId(null)
+                .articleId(articleId)
+                .callingMemberId(getUserByUsernameOrException(username).getApiId())
+                .build(), matchedMember));
+            //sse
+
+        }
 
         return EmailDto.<ArticleOnlyIdResponse>builder()
             .emails(article.getArticleMembers().stream()

@@ -57,15 +57,21 @@ public class OpinionService {
         );
         opinionRepository.save(opinion);
 
-        Member parentOpinionAuthor = opinionRepository.findByApiId(parentOpinionId)
-            .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND))
-            .getMemberAuthor();
+        //부모 댓글이 있는 경우
+        if (request.getLevel() > 1 && request.getParentId() != null) {
+            Member parentOpinionAuthor = opinionRepository.findByApiId(parentOpinionId)
+                .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND))
+                .getMemberAuthor();
 
-        Alarm.of(AlarmType.COMMENT_ON_MY_COMMENT, AlarmArgs.builder()
-            .opinionId(parentOpinionId)
-            .articleId(request.getArticleId())
-            .callingMemberId(user.getApiId())
-            .build(), parentOpinionAuthor);
+            alarmRepository.save(Alarm.of(AlarmType.COMMENT_ON_MY_COMMENT, AlarmArgs.builder()
+                .opinionId(parentOpinionId)
+                .articleId(request.getArticleId())
+                .callingMemberId(user.getApiId())
+                .build(), parentOpinionAuthor));
+
+            //sse event 생성.
+        }
+
         return opinionMapper.entityToOpinionOnlyIdResponse(opinion);
     }
 
