@@ -94,11 +94,17 @@ public class Alarm extends BaseEntity {
 
     /********************************* 생성 메서드 *********************************/
     public static Alarm of(AlarmType alarmType, AlarmArgs alarmArgs, Member calledMember) {
-        return Alarm.builder()
+        Alarm alarm = Alarm.builder()
             .alarmType(alarmType)
             .alarmArgs(alarmArgs)
-            .calledMember(calledMember)
             .build();
+        alarm.setCalledMember(calledMember);
+        return alarm;
+    }
+
+    private void setCalledMember(Member calledMember) {
+        this.calledMember = calledMember;
+        calledMember.getAlarms().add(this);
     }
 
     public void read() {

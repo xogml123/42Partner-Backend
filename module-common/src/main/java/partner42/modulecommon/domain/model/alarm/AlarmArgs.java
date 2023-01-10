@@ -17,4 +17,6 @@ public class AlarmArgs {
     private String articleId;
     // 알람 발생 시킨 댓글id
     private String opinionId;
+    //링크 url
+    private String linkUrl;
 }
