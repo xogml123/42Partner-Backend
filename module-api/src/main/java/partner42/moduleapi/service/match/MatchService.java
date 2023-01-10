@@ -58,9 +58,7 @@ public class MatchService {
 
     public SliceImpl<MatchDto> readMyMatches(String username, MatchSearch matchSearch,
         Pageable pageable) {
-        Member member = userRepository.findByUsername(username)
-            .orElseThrow(() ->
-                new NoEntityException(ErrorCode.ENTITY_NOT_FOUND))
+        Member member = getUserByUsernameOrException(username)
             .getMember();
         Slice<Match> matchSlices = matchRepository.findAllFetchJoinMatchMemberId(
             member.getId(), matchSearch, pageable);
@@ -99,13 +97,17 @@ public class MatchService {
         return new SliceImpl<MatchDto>(content, matchSlices.getPageable(), matchSlices.hasNext());
     }
 
+    private User getUserByUsernameOrException(String username) {
+        return userRepository.findByUsername(username)
+            .orElseThrow(() ->
+                new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
+    }
+
     public MatchDto readOneMatch(String username, String matchId) {
         //자기 매치인지 확인
         verifyNotMatchParticipated(username, matchId);
 
-        Member member = userRepository.findByUsername(username)
-            .orElseThrow(() ->
-                new NoEntityException(ErrorCode.ENTITY_NOT_FOUND))
+        Member member = getUserByUsernameOrException(username)
             .getMember();
 
         Match match = matchRepository.findByApiId(matchId)
@@ -201,9 +203,7 @@ public class MatchService {
     //자기 매치인지 확인
     private void verifyNotMatchParticipated(String username, String matchId) {
 
-        User user = userRepository.findByUsername(username)
-            .orElseThrow(() ->
-                new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
+        User user = getUserByUsernameOrException(username);
         Match match = matchRepository.findByApiId(matchId)
             .orElseThrow(() ->
                 new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));

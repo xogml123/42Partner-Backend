@@ -16,6 +16,7 @@ import partner42.moduleapi.dto.random.RandomMatchCountResponse;
 import partner42.moduleapi.dto.random.RandomMatchDto;
 import partner42.moduleapi.dto.random.RandomMatchExistDto;
 import partner42.moduleapi.dto.random.RandomMatchSearch;
+import partner42.modulecommon.domain.model.user.User;
 import partner42.modulecommon.utils.CustomTimeUtils;
 import partner42.modulecommon.domain.model.match.ContentCategory;
 import partner42.modulecommon.domain.model.matchcondition.Place;
@@ -45,9 +46,7 @@ public class RandomMatchService {
     @Transactional
     public void createRandomMatch(String username,
         RandomMatchDto randomMatchDto) {
-        Member member = userRepository.findByUsername(username)
-            .orElseThrow(() -> new NoEntityException(
-                ErrorCode.ENTITY_NOT_FOUND)).getMember();
+        Member member = getUserByUsernameOrException(username).getMember();
         //"2020-12-01T00:00:00"
         LocalDateTime now = CustomTimeUtils.nowWithoutNano();
         //이미 RandomMatch.MAX_WAITING_TIME분 이내에 랜덤 매칭 신청을 한 경우 인지 체크
@@ -62,6 +61,11 @@ public class RandomMatchService {
 
     }
 
+    private User getUserByUsernameOrException(String username) {
+        return userRepository.findByUsername(username)
+            .orElseThrow(() -> new NoEntityException(
+                ErrorCode.ENTITY_NOT_FOUND));
+    }
 
 //    private void verifyAlreadyAppliedPessimisticWriteLock(ContentCategory contentCategory, Member member,
 //        LocalDateTime now) {
@@ -96,9 +100,7 @@ public class RandomMatchService {
     @Transactional
     public void deleteRandomMatch(String username,
         RandomMatchCancelRequest request) {
-        Long memberId = userRepository.findByUsername(username)
-            .orElseThrow(() -> new NoEntityException(
-                ErrorCode.ENTITY_NOT_FOUND)).getMember().getId();
+        Long memberId = getUserByUsernameOrException(username).getMember().getId();
         List<RandomMatch> randomMatches = new ArrayList<>();
         LocalDateTime now = LocalDateTime.now();
         //생성된 지 RandomMatch.MAX_WAITING_TIME분 이내 + 취소되지 않은 신청 내역 있는지 확인.
@@ -180,9 +182,7 @@ public class RandomMatchService {
 
     public RandomMatchExistDto checkRandomMatchExist(String username,
         RandomMatchSearch randomMatchCancelRequest) {
-        Member member = userRepository.findByUsername(username)
-            .orElseThrow(() -> new NoEntityException(
-                ErrorCode.ENTITY_NOT_FOUND)).getMember();
+        Member member = getUserByUsernameOrException(username).getMember();
         try {
             verifyAlreadyApplied(randomMatchCancelRequest.getContentCategory(), member,
                 LocalDateTime.now());
@@ -197,9 +197,7 @@ public class RandomMatchService {
     public RandomMatchDto readRandomMatchCondition(String username,
         RandomMatchSearch randomMatchCancelRequest) {
 
-        Member member = userRepository.findByUsername(username)
-            .orElseThrow(() -> new NoEntityException(
-                ErrorCode.ENTITY_NOT_FOUND)).getMember();
+        Member member = getUserByUsernameOrException(username).getMember();
         Long memberId = member.getId();
         LocalDateTime now = LocalDateTime.now();
         List<RandomMatch> randomMatches = new ArrayList<>();

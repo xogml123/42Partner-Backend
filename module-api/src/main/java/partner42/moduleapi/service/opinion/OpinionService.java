@@ -42,8 +42,7 @@ public class OpinionService {
         Article article = articleRepository.findByApiIdAndIsDeletedIsFalse(request.getArticleId())
             .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
         Opinion opinion = Opinion.of(request.getContent(),
-            userRepository.findByUsername(username)
-                .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND))
+            getUserByUsernameOrException(username)
                 .getMember(),
             article,
             request.getParentId(),
@@ -51,6 +50,11 @@ public class OpinionService {
         );
         opinionRepository.save(opinion);
         return opinionMapper.entityToOpinionOnlyIdResponse(opinion);
+    }
+
+    private User getUserByUsernameOrException(String username) {
+        return userRepository.findByUsername(username)
+            .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
     }
 
     @Transactional
@@ -102,8 +106,7 @@ public class OpinionService {
     }
 
     private void verifyAuthorOfOpinion(String username, String opinionId) {
-        User user = userRepository.findByUsername(username)
-            .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
+        User user = getUserByUsernameOrException(username);
         Opinion opinion = opinionRepository.findByApiId(opinionId)
             .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
         if (!user.getUserRoles().stream()

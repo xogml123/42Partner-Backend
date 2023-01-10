@@ -67,8 +67,7 @@ public class UserService {
     }
 
     private void verifyUserIsNotMe(String userId, String username) {
-        User user = userRepository.findByUsername(username)
-            .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
+        User user = getUserByUsernameOrException(username);
         User userTarget = userRepository.findByApiId(userId).orElseThrow(() ->
             new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
         if (!user.getUserRoles().stream()
@@ -79,6 +78,11 @@ public class UserService {
             !userTarget.equals(user)) {
             throw new InvalidInputException(ErrorCode.NOT_MINE);
         }
+    }
+
+    private User getUserByUsernameOrException(String username) {
+        return userRepository.findByUsername(username)
+            .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
     }
 
     /**
@@ -118,8 +122,7 @@ public class UserService {
     }
 
     private User getUserFromJWTInfo(JWTInfo jwtInfo) {
-        User user = userRepository.findByUsername(jwtInfo.getUsername())
-            .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
+        User user = getUserByUsernameOrException(jwtInfo.getUsername());
         if (!user.getIsAvailable()) {
             throw new InvalidInputException(ErrorCode.USER_TOKEN_NOT_AVAILABLE);
         }
