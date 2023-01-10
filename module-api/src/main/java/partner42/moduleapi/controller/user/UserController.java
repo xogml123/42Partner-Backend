@@ -58,7 +58,7 @@ public class UserController {
     }
 
     @Operation(summary = "Access_token 만료시 요청해서 재발급", description = "Access_token 만료시 요청해서 재발급")
-    @GetMapping("/token/refresh")
+    @PostMapping("/token/refresh")
     public AccessTokenResponse getAccessTokenUsingRefreshToken(HttpServletRequest request,
         HttpServletResponse response) {
 
