@@ -52,6 +52,7 @@ public class AlarmService {
             alarmSlices.getPageable(), alarmSlices.hasNext());
     }
     public SseEmitter subscribe(String username) {
+        User user = getUserByUsernameOrException(username);
         SseEmitter sse = new SseEmitter(DEFAULT_TIMEOUT);
 
         sse.onCompletion();
