@@ -4,6 +4,7 @@ package partner42.moduleapi.service.alarm;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
@@ -25,7 +26,13 @@ import partner42.modulecommon.repository.user.UserRepository;
 @Service
 public class AlarmService {
 
-    private static final Long DEFAULT_TIMEOUT = 60L * 1000 * 60;
+    @Value("${sse.timeout}")
+    private String sseTimeout;
+    private static final Long String.
+
+    parseLong() {
+
+    }sseTimeout = 60L * 1000 * 60;
     private final AlarmRepository alarmRepository;
     private final UserRepository userRepository;
 
@@ -53,7 +60,7 @@ public class AlarmService {
     }
     public SseEmitter subscribe(String username) {
         User user = getUserByUsernameOrException(username);
-        SseEmitter sse = new SseEmitter(DEFAULT_TIMEOUT);
+        SseEmitter sse = new SseEmitter(Long.parseLong(sseTimeout));
 
         sse.onCompletion();
         return null;
