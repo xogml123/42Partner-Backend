@@ -39,7 +39,8 @@ public class AlarmController {
     @Operation(summary = "알람 sse 구독", description = "알람 sse 구독, sseEmitter객체 반환.")
     @GetMapping(value = "/alarm/subscribe", produces = "text/event-stream")
     public SseEmitter alarmSubscribe(
-        @ApiParam(hidden = true) @AuthenticationPrincipal UserDetails user) {
+        @ApiParam(hidden = true) @AuthenticationPrincipal UserDetails user,
+        @RequestHeader(value = HttpHeaders.LAST_EVENT_ID, required = false) String lastEventId) {
         return alarmService.subscribe(user.getUsername());
     }
 }

@@ -9,6 +9,6 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @EnableJpaRepositories(basePackages =  "partner42.modulecommon.repository")
 @EntityScan(basePackages = "partner42.modulecommon.domain")
 @Configuration
-public class JPAConfig {
+public class JPAScanConfig {
 
 }

@@ -45,7 +45,7 @@ public class RedisConfig {
     String replicaHost;
 
     @Value("${spring.redis.replica.port}")
-    int replicaPort;
+    Integer replicaPort;
 
     @Value("${redis.expire.default}")
     private long defaultExpireSecond;
@@ -79,8 +79,6 @@ public class RedisConfig {
 
     /**
      * Redis readReplica를 추가하기 위한 설정
-     * 현재 프로젝트에서는 조회 시 항상 최신 데이터를 얻어오는 것이 중요해서 primary한대만 두고 사용하지만,
-     * aws elasticache는 readReplica의 endPoint가 따로 있기 때문에 설정해준다.
      * @return
      */
     @Bean
@@ -158,7 +156,6 @@ public class RedisConfig {
 //     * serializeValuesWith - 캐시 Value를 직렬화-역직렬화 하는데 사용하는 Pair를 지정한다.
 //     * Value는 다양한 자료구조가 올 수 있기 때문에 GenericJackson2JsonRedisSerializer를 사용한다.
 //     *
-//     * @author jun
 //     * @param redisConnectionFactory Redis와의 연결을 담당한다.
 //     * @return
 //     */
