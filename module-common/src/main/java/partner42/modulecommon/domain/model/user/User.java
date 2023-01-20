@@ -94,9 +94,9 @@ public class User extends BaseEntity {
     @Column(nullable = false,  length = 100)
     private Boolean isOAuth2 = true;
 
-
-
-
+    @Builder.Default
+    @Column(nullable = false,  length = 100)
+    private Boolean isAvailable = true;
 
     /********************************* 비영속 필드 *********************************/
 

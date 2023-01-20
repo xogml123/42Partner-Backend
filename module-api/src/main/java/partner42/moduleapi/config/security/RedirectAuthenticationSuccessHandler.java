@@ -4,6 +4,7 @@ package partner42.moduleapi.config.security;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -14,11 +15,13 @@ import javax.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 import partner42.moduleapi.dto.user.CustomAuthenticationPrincipal;
+import partner42.moduleapi.util.JWTUtil;
 
 @Slf4j
 @Component
@@ -42,33 +45,27 @@ public class RedirectAuthenticationSuccessHandler implements AuthenticationSucce
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
         Authentication authentication) throws IOException, ServletException {
         CustomAuthenticationPrincipal user = (CustomAuthenticationPrincipal) authentication.getPrincipal();
-        String referer =
-            request.getHeader(HttpHeaders.REFERER) == null ? corsFrontend
-                : request.getHeader("Referer");
-        log.info("referer: {}", request.getHeader(HttpHeaders.REFERER));
+        String referer = corsFrontend;
         boolean createFlag = (boolean) (user.getAttributes().get("create_flag"));
         Algorithm algorithm = Algorithm.HMAC256(jwtSecret.getBytes());
-        String accessToken = JWT.create()
-            .withSubject(user.getUsername())
-            .withIssuer(request.getRequestURL().toString())
-            .withExpiresAt(
-                new Date(System.currentTimeMillis() + Integer.parseInt(accessTokenExpire)))
+        String accessToken = JWTUtil.createToken(request.getRequestURL().toString(),
+            user.getUsername(), accessTokenExpire, algorithm, user.getAuthorities().stream()
+                .map(SimpleGrantedAuthority::getAuthority).collect(Collectors.toList()));
 
-            .withClaim("authorities", user.getAuthorities().stream()
-                .map(SimpleGrantedAuthority::getAuthority)
-                .collect(Collectors.toList()))
-            .sign(algorithm);
+        String refreshToken = JWTUtil.createToken(request.getRequestURL().toString(),
+            user.getUsername(), refreshTokenExpire, algorithm);
 
-        String refreshToken = JWT.create()
-            .withSubject(user.getApiId())
-            .withIssuer(request.getRequestURL().toString())
-            .withExpiresAt(
-                new Date(System.currentTimeMillis() + Integer.parseInt(refreshTokenExpire)))
-            .sign(algorithm);
+        ResponseCookie cookie = ResponseCookie.from(JWTUtil.REFRESH_TOKEN, refreshToken)
+            .httpOnly(true)
+            .secure(true)
+            .path("/")      // path
+            .maxAge(Duration.ofDays(15))
+            .sameSite("None")  // sameSite
+            .build();
+        response.setHeader(HttpHeaders.SET_COOKIE, cookie.toString());
         response.sendRedirect(
             referer +
                 "?access_token=" + accessToken +
-                "&refresh_token=" + refreshToken +
                 "&create_flag=" + createFlag +
                 "&userId=" + user.getApiId());
     }

@@ -3,6 +3,10 @@ package partner42.moduleapi.controller.user;
 import io.swagger.annotations.ApiParam;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import java.util.Arrays;
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -18,11 +22,15 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import partner42.moduleapi.dto.LoginResponseDto;
+import partner42.moduleapi.dto.user.AccessTokenResponse;
 import partner42.moduleapi.dto.user.UserDto;
 import partner42.moduleapi.dto.user.UserLoginRequest;
 import partner42.moduleapi.dto.user.UserOnlyIdResponse;
 import partner42.moduleapi.dto.user.UserUpdateRequest;
 import partner42.moduleapi.service.user.UserService;
+import partner42.moduleapi.util.JWTUtil;
+import partner42.modulecommon.exception.ErrorCode;
+import partner42.modulecommon.exception.InvalidInputException;
 
 @Slf4j
 @RestController
@@ -49,6 +57,25 @@ public class UserController {
         return userService.updateEmail(userId, userUpdateRequest, user.getUsername());
     }
 
+    @Operation(summary = "Access_token 만료시 요청해서 재발급", description = "Access_token 만료시 요청해서 재발급")
+    @PostMapping("/token/refresh")
+    public AccessTokenResponse getAccessTokenUsingRefreshToken(HttpServletRequest request,
+        HttpServletResponse response) {
+
+        if (request.getCookies() == null){
+            throw new InvalidInputException(ErrorCode.REFRESH_TOKEN_NOT_IN_COOKIE);
+        }
+        String refreshToken = Arrays.stream(request.getCookies())
+            .filter(cookie -> cookie.getName().equals(JWTUtil.REFRESH_TOKEN))
+            .map(Cookie::getValue)
+            .findFirst().orElseThrow(() ->
+                new InvalidInputException(ErrorCode.REFRESH_TOKEN_NOT_IN_COOKIE));
+        log.debug(refreshToken);
+
+        return userService.validateRefreshTokenAndCreateAccessToken(refreshToken, request.getRequestURL().toString());
+    }
+
+
     @Operation(summary = "admin Form 로그인", description = "username password 각각 자기 인트라 아이디로 하면 됩니다!")
     @PostMapping("/auth/login")
     public LoginResponseDto fakeLogin(@Validated @ModelAttribute UserLoginRequest request) {
@@ -56,5 +83,6 @@ public class UserController {
             "This method shouldn't be called. It's implemented by Spring Security filters.");
 
     }
+
 
 }
