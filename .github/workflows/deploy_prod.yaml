@@ -1,0 +1,61 @@
+name: CI-CD
+
+on:
+  push:
+    branches:
+#      - dev
+      - main
+env:
+  CONTEXT: prod
+  S3_BUCKET_NAME: partner-cicd-s3
+  RESOURCE_PATH: ./module-api/src/main/resources/application.yml
+  CODE_DEPLOY_APPLICATION_NAME: 42partner-CODE-DEPLOY
+  CODE_DEPLOY_DEPLOYMENT_GROUP_NAME: 42partner-CODE-DEPLOY-PROD-GROUP
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      
+      - name: Set up JDK 11
+        uses: actions/setup-java@v1
+        with: 
+          java-version: 11
+
+      - run: mkdir -p ./module-api/src/main/resources
+      - run: touch ${{ env.RESOURCE_PATH }}
+      - run: echo "${{ secrets.APPLICATION_PROD }}" > ${{ env.RESOURCE_PATH }}
+
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./module-api/gradlew
+        shell: bash
+        
+      - name: Build with Gradle
+        run: ./module-api/gradlew build -x test
+        shell: bash
+        
+      - name: Make zip file
+        run: zip -r ./$GITHUB_SHA .
+        shell: bash
+        
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+     
+      - name: Upload to S3
+        run: aws s3 cp --region ${{ secrets.AWS_REGION }} ./$GITHUB_SHA.zip s3://$S3_BUCKET_NAME/$GITHUB_SHA.zip
+        
+      - name: Code Deploy
+        run: |
+          aws deploy create-deployment \
+          --deployment-config-name CodeDeployDefault.AllAtOnce \
+          --application-name ${{ env.CODE_DEPLOY_APPLICATION_NAME }} \
+          --deployment-group-name ${{ env.CODE_DEPLOY_DEPLOYMENT_GROUP_NAME }} \
+          --s3-location bucket=$S3_BUCKET_NAME,bundleType=zip,key=$GITHUB_SHA.zip
