@@ -3,6 +3,7 @@ package partner42.moduleapi.config.security;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.Duration;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -14,6 +15,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
@@ -33,13 +35,14 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import partner42.moduleapi.dto.ErrorResponseDto;
 import partner42.moduleapi.dto.LoginResponseDto;
 import partner42.moduleapi.dto.user.CustomAuthenticationPrincipal;
+import partner42.moduleapi.util.JWTUtil;
 import partner42.modulecommon.domain.model.user.UserRole;
 
 // spring security 필터를 스프링 필터체인에 동록
 @Configuration
 @EnableWebSecurity
-@EnableGlobalMethodSecurity(securedEnabled = true, prePostEnabled = true, proxyTargetClass = true)
 //Secured, PrePost 어노테이션 활성화
+@EnableGlobalMethodSecurity(securedEnabled = true, prePostEnabled = true, proxyTargetClass = true)
 @RequiredArgsConstructor
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private final DefaultOAuth2UserService oAuth2UserService;
@@ -48,6 +51,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private final ObjectMapper objectMapper;
 
     private final CustomAuthorizationFilter customAuthorizationFilter;
+
     private final AuthenticationSuccessHandler authenticationSuccessHandler;
     private final AuthenticationFailureHandler authenticationFailureHandler;
     @Value("${cors.frontend}")
@@ -56,13 +60,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Value("${jwt.access-token-expire}")
     private String accessTokenExpire;
 
+    @Value("${jwt.refresh-token-expire}")
+    private String refreshTokenExpire;
     @Value("${jwt.secret}")
     private String jwtSecret;
-
-//    @Bean
-//    public OAuth2AuthorizedClientService oAuth2AuthorizedClientService(ClientRegistrationRepository clientRegistrationRepository) {
-//        return new JdbcOAuth2AuthorizedClientService(jdbc, clientRegistrationRepository);
-//    }
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
@@ -70,6 +71,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http.cors().configurationSource(corsConfigurationSource());
         http.exceptionHandling().authenticationEntryPoint(authenticationEntryPoint);
         http.addFilterBefore(customAuthorizationFilter, UsernamePasswordAuthenticationFilter.class);
+
         //session생성하지 않음. -> jwt 사용.
         //https://www.baeldung.com/spring-security-session
         http.sessionManagement()
@@ -90,6 +92,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/webjars/**").permitAll()
                 .antMatchers("/v3/api-docs/**").permitAll()
                 .antMatchers("/swagger-ui/**").permitAll()
+                //cors preflight
+                .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 //UserController
                 .antMatchers(HttpMethod.GET, "/api/users/*").authenticated()
                 .antMatchers(HttpMethod.PATCH, "/api/users/*/email").authenticated()
@@ -147,19 +151,23 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     res.setStatus(200);
                     res.setContentType("application/json");
                     res.setCharacterEncoding("utf-8");
-//                        addSameSiteCookieAttribute(res);
                     body.setUserId(user.getApiId());
                     Algorithm algorithm = Algorithm.HMAC256(jwtSecret.getBytes());
-                    String accessToken = JWT.create()
-                        .withSubject(user.getUsername())
-                        .withIssuer(req.getRequestURL().toString())
-                        .withExpiresAt(
-                            new Date(System.currentTimeMillis() + Integer.parseInt(accessTokenExpire)))
-
-                        .withClaim("authorities", user.getAuthorities().stream()
+                    String accessToken = JWTUtil.createToken(req.getRequestURL().toString(),
+                        user.getUsername(), accessTokenExpire, algorithm,
+                        user.getAuthorities().stream()
                             .map(SimpleGrantedAuthority::getAuthority)
-                            .collect(Collectors.toList()))
-                        .sign(algorithm);
+                            .collect(Collectors.toList()));
+                    String refreshToken = JWTUtil.createToken(req.getRequestURL().toString(),
+                        user.getUsername(), refreshTokenExpire, algorithm);
+                    ResponseCookie cookie = ResponseCookie.from(JWTUtil.REFRESH_TOKEN, refreshToken) // key & value
+                        .httpOnly(true)
+                        .secure(true)
+                        .path("/")      // path
+                        .maxAge(Duration.ofDays(15))
+                        .sameSite("None")  // sameSite
+                        .build();
+                    res.setHeader(HttpHeaders.SET_COOKIE, cookie.toString());
                     body.setAccessToken(accessToken);
                     res.getWriter().write(objectMapper.writeValueAsString(body));
                 })
@@ -171,23 +179,25 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     }
 
-//    @Override
-//    public void configure(WebSecurity web) throws Exception {
-//        web.ignoring();
-//    }
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         final CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("https://www.42partner.com", corsFrontend));
-        configuration.setAllowedMethods(List.of("HEAD",
-            "GET", "POST", "PUT", "DELETE", "PATCH"));
+        configuration.setAllowedOrigins(List.of(corsFrontend));
+        configuration.setAllowedMethods(List.of(HttpMethod.HEAD.name(),
+            HttpMethod.GET.name(), HttpMethod.POST.name(), HttpMethod.PUT.name(),
+            HttpMethod.DELETE.name(), HttpMethod.PATCH.name(),
+            HttpMethod.OPTIONS.name()));
+
         // setAllowCredentials(true) is important, otherwise:
         // The value of the 'Access-Control-Allow-Origin' header in the response must not be the wildcard '*' when the request's credentials mode is 'include'.
         configuration.setAllowCredentials(true);
         // setAllowedHeaders is important! Without it, OPTIONS preflight request
         // will fail with 403 Invalid CORS request
-        configuration.setAllowedHeaders(List.of("Authorization", "Cache-Control", "Content-Type", "user-token"));
+        configuration.setAllowedHeaders(
+            List.of(HttpHeaders.AUTHORIZATION, HttpHeaders.CACHE_CONTROL,
+                HttpHeaders.CONTENT_TYPE, HttpHeaders.ACCEPT));
+
         final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
@@ -201,20 +211,5 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 //        security.userDetailsService(new JpaUserDetailService(userRepository)).passwordEncoder(bCryptPasswordEncoder());
 //    }
 
-//    private void addSameSiteCookieAttribute(HttpServletResponse response) {
-//        Collection<String> headers = response.getHeaders(HttpHeaders.SET_COOKIE);
-//        boolean firstHeader = true;
-//        // there can be multiple Set-Cookie attributes
-//        for (String header : headers) {
-//            if (firstHeader) {
-//                response.setHeader(HttpHeaders.SET_COOKIE,
-//                    String.format("%s; %s", header, "SameSite=None"));
-//                firstHeader = false;
-//                continue;
-//            }
-//            response.addHeader(HttpHeaders.SET_COOKIE,
-//                String.format("%s; %s", header, "SameSite=None"));
-//        }
-//    }
 
 }
