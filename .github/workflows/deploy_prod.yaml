@@ -3,7 +3,6 @@ name: CI-CD-PROD
 on:
   push:
     branches:
-#      - dev
       - main
 env:
   CONTEXT: prod
