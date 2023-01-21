@@ -26,11 +26,11 @@ public class HealthCheckController {
      */
     @GetMapping("/")
     public ResponseEntity<String> test() {
-        return ResponseEntity.ok("test8");
+        return ResponseEntity.ok("test0");
     }
 
-    @GetMapping("/health")
-    public Page<Object> test2() {
-        return new PageImpl<>(new ArrayList<>());
-    }
+//    @GetMapping("/health")
+//    public Page<Object> test2() {
+//        return new PageImpl<>(new ArrayList<>());
+//    }
 }

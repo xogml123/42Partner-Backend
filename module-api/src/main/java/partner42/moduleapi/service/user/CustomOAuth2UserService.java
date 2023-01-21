@@ -101,7 +101,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             //회원정보 수정
             user = userOptional.get();
             // 새로 로그인 시 oauth2 기반 데이터로 변경하지않음.
-//            user.updateUserByOAuthIfo(imageUrl);
+//            user.updateUserBHOAuthIfo(imageUrl);
             necessaryAttributes.put("create_flag", false);
         }
         oAuth2User = CustomAuthenticationPrincipal.of(user, necessaryAttributes);

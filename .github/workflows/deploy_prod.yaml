@@ -1,15 +1,15 @@
-name: CI-CD-DEV
+name: CI-CD-PROD
 
 on:
   push:
     branches:
-      - release/1.0.0
+      - main
 env:
-  CONTEXT: dev
+  CONTEXT: prod
   S3_BUCKET_NAME: partner-cicd-s3
   RESOURCE_PATH: ./module-api/src/main/resources/application.yml
   CODE_DEPLOY_APPLICATION_NAME: 42partner-CODE-DEPLOY
-  CODE_DEPLOY_DEPLOYMENT_GROUP_NAME: 42partner-CODE-DEPLOY-GROUP
+  CODE_DEPLOY_DEPLOYMENT_GROUP_NAME: 42partner-CODE-DEPLOY-PROD-GROUP
 
 jobs:
   build:
@@ -24,13 +24,9 @@ jobs:
         with: 
           java-version: 11
 
-#      - name: Set yml file
-#        uses: microsoft/variable-substitution@v1
-#        with:
-#          files: ${{ env.RESOURCE_PATH }}
       - run: mkdir -p ./module-api/src/main/resources
       - run: touch ${{ env.RESOURCE_PATH }}
-      - run: echo "${{ secrets.APPLICATION_DEV }}" > ${{ env.RESOURCE_PATH }}
+      - run: echo "${{ secrets.APPLICATION_PROD }}" > ${{ env.RESOURCE_PATH }}
 
 
       - name: Grant execute permission for gradlew
@@ -39,7 +35,6 @@ jobs:
         
       - name: Build with Gradle
         run: ./module-api/gradlew build -x test
-
         shell: bash
         
       - name: Make zip file
@@ -59,7 +54,7 @@ jobs:
       - name: Code Deploy
         run: |
           aws deploy create-deployment \
-          --deployment-config-name CodeDeployDefault.AllAtOnce \
+          --deployment-config-name CodeDeployDefault.OneAtATime \
           --application-name ${{ env.CODE_DEPLOY_APPLICATION_NAME }} \
           --deployment-group-name ${{ env.CODE_DEPLOY_DEPLOYMENT_GROUP_NAME }} \
           --s3-location bucket=$S3_BUCKET_NAME,bundleType=zip,key=$GITHUB_SHA.zip
