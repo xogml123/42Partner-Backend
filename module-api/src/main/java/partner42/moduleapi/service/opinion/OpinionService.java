@@ -11,6 +11,7 @@ import partner42.moduleapi.dto.opinion.OpinionOnlyIdResponse;
 import partner42.moduleapi.dto.opinion.OpinionResponse;
 import partner42.moduleapi.dto.opinion.OpinionUpdateRequest;
 import partner42.moduleapi.mapper.OpinionMapper;
+import partner42.moduleapi.service.alarm.AlarmService;
 import partner42.modulecommon.domain.model.alarm.Alarm;
 import partner42.modulecommon.domain.model.alarm.AlarmArgs;
 import partner42.modulecommon.domain.model.alarm.AlarmType;
@@ -43,6 +44,8 @@ public class OpinionService {
 
     private final OpinionMapper opinionMapper;
 
+    private final AlarmService alarmService;
+
     @Transactional
     public OpinionOnlyIdResponse createOpinion(OpinionDto request, String username) {
         User user = getUserByUsernameOrException(username);
@@ -57,19 +60,17 @@ public class OpinionService {
         );
         opinionRepository.save(opinion);
 
-        //부모 댓글이 있는 경우
+        //부모 댓글이 있는 경우 알람 생성
         if (request.getLevel() > 1 && request.getParentId() != null) {
             Member parentOpinionAuthor = opinionRepository.findByApiId(parentOpinionId)
                 .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND))
                 .getMemberAuthor();
 
-            alarmRepository.save(Alarm.of(AlarmType.COMMENT_ON_MY_COMMENT, AlarmArgs.builder()
+            alarmService.send(AlarmType.COMMENT_ON_MY_COMMENT, AlarmArgs.builder()
                 .opinionId(parentOpinionId)
                 .articleId(request.getArticleId())
                 .callingMemberId(user.getApiId())
-                .build(), parentOpinionAuthor));
-
-            //sse event 생성.
+                .build(), parentOpinionAuthor);
         }
 
         return opinionMapper.entityToOpinionOnlyIdResponse(opinion);

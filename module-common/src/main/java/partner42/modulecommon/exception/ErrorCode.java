@@ -26,9 +26,11 @@ public enum ErrorCode {
     USER_TOKEN_NOT_AVAILABLE(HttpStatus.UNAUTHORIZED.value(), "AU004", "Access token을 재발급 받을 수 없습니다."),
 
 
-    //    //InfraException
+     //InfraException
       //비동기 이기 때문에 예외 발생 시 에러코드를 리턴하지 않고 로그 정도만 남김
     SLACK_ERROR(HttpStatus.INTERNAL_SERVER_ERROR.value(), "S001", "Slack Error"),
+    SSE_SEND_ERROR(HttpStatus.INTERNAL_SERVER_ERROR.value(), "S002", "SSE Send Error"),
+
 
 
 //    // Member
@@ -39,7 +41,7 @@ public enum ErrorCode {
     NOT_ARTICLE_AUTHOR(HttpStatus.FORBIDDEN.value(), "AR001", "게시글의 작성자가 아닙니다."),
 
     //요청의 처리가 불가능한 경우 -> 방 참여자수가 이미 다 차잇는데 참여를 누르는 경우.
-    NOT_PARTICIPATABLE(HttpStatus.CONFLICT.value(), "AR002", "참여가 불가능한 방입니다."),
+    CANNOT_PARTICIPATE(HttpStatus.CONFLICT.value(), "AR002", "참여가 불가능한 방입니다."),
 
     NOT_CHANGEABLE_PARTICIPANT_NUM_MAX(HttpStatus.CONFLICT.value(), "AR003", "방의 최대 인원을 변경할 수 없습니다."),
     UNMODIFIABLE_ARTICLE(HttpStatus.CONFLICT.value(), "AR004", "수정할 수 없는 게시글입니다."),

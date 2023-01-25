@@ -3,6 +3,7 @@ package partner42.modulecommon.repository.sse;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
@@ -22,9 +23,9 @@ public class SSEInMemoryRepository implements SSERepository {
 
     }
     @Override
-    public SseEmitter get(Object identifier, LocalDateTime now, String eventName) {
+    public Optional<SseEmitter> get(Object identifier, LocalDateTime now, String eventName) {
         String key = makeKey(identifier, now, eventName);
-        return sseEmitterMap.get(key);
+        return Optional.ofNullable(sseEmitterMap.get(key));
     }
     @Override
     public List<SseEmitter> getList(Object identifier, String eventName) {
@@ -32,14 +33,6 @@ public class SSEInMemoryRepository implements SSERepository {
         return sseEmitterMap.keySet().stream()
             .filter(key -> key.startsWith(prefix))
             .map(sseEmitterMap::get)
-            .collect(Collectors.toList());
-    }
-
-    @Override
-    public List<String> getKeyList(Object identifier, String eventName) {
-        String prefix = makeKeyPrefix(identifier, eventName);
-        return sseEmitterMap.keySet().stream()
-            .filter(key -> key.startsWith(prefix))
             .collect(Collectors.toList());
     }
 
