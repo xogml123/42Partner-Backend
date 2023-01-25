@@ -40,7 +40,7 @@ public class AlarmController {
     @GetMapping(value = "/alarm/subscribe", produces = "text/event-stream")
     public SseEmitter alarmSubscribe(
         @ApiParam(hidden = true) @AuthenticationPrincipal UserDetails user,
-        @RequestHeader(value = HttpHeaders.LAST_EVENT_ID, required = false) String lastEventId) {
-        return alarmService.subscribe(user.getUsername());
+        @RequestHeader(value = "Last-Event-ID", required = false) String lastEventId) {
+        return alarmService.subscribe(user.getUsername(), lastEventId);
     }
 }
