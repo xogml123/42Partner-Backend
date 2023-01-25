@@ -12,7 +12,7 @@ import lombok.Getter;
 public class AlarmArgs {
 
     // 알람 발생 시킨 멤버
-    private String callingMemberId;
+    private String callingMemberNickname;
     // 알람 발생 시킨 글id
     private String articleId;
     // 알람 발생 시킨 댓글id

@@ -65,7 +65,7 @@ public class AlarmService {
                     .alarmArgsDto(AlarmArgsDto.builder()
                         .articleId(alarm.getAlarmArgs().getArticleId())
                         .opinionId(alarm.getAlarmArgs().getOpinionId())
-                        .callingMemberId(alarm.getAlarmArgs().getCallingMemberId())
+                        .callingMemberId(alarm.getAlarmArgs().getCallingMemberNickname())
                         .build())
                     .build())
             .collect(Collectors.toList()),

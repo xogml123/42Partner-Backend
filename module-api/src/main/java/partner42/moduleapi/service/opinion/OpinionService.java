@@ -12,7 +12,6 @@ import partner42.moduleapi.dto.opinion.OpinionResponse;
 import partner42.moduleapi.dto.opinion.OpinionUpdateRequest;
 import partner42.moduleapi.mapper.OpinionMapper;
 import partner42.moduleapi.service.alarm.AlarmService;
-import partner42.modulecommon.domain.model.alarm.Alarm;
 import partner42.modulecommon.domain.model.alarm.AlarmArgs;
 import partner42.modulecommon.domain.model.alarm.AlarmType;
 import partner42.modulecommon.domain.model.article.Article;
@@ -25,7 +24,6 @@ import partner42.modulecommon.domain.model.user.UserRole;
 import partner42.modulecommon.exception.ErrorCode;
 import partner42.modulecommon.exception.NoEntityException;
 import partner42.modulecommon.exception.NotAuthorException;
-import partner42.modulecommon.repository.alarm.AlarmRepository;
 import partner42.modulecommon.repository.article.ArticleRepository;
 import partner42.modulecommon.repository.member.MemberRepository;
 import partner42.modulecommon.repository.opinion.OpinionRepository;
@@ -40,7 +38,6 @@ public class OpinionService {
     private final UserRepository userRepository;
     private final MemberRepository memberRepository;
     private final ArticleRepository articleRepository;
-    private final AlarmRepository alarmRepository;
 
     private final OpinionMapper opinionMapper;
 
@@ -69,7 +66,7 @@ public class OpinionService {
             alarmService.send(AlarmType.COMMENT_ON_MY_COMMENT, AlarmArgs.builder()
                 .opinionId(parentOpinionId)
                 .articleId(request.getArticleId())
-                .callingMemberId(user.getApiId())
+                .callingMemberNickname(user.getMember().getNickname())
                 .build(), parentOpinionAuthor);
         }
 

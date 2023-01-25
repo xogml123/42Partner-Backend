@@ -20,6 +20,7 @@ import partner42.moduleapi.dto.matchcondition.MatchConditionDto;
 import partner42.moduleapi.dto.member.MemberDto;
 import partner42.moduleapi.mapper.MatchConditionMapper;
 import partner42.moduleapi.mapper.MemberMapper;
+import partner42.moduleapi.service.alarm.AlarmService;
 import partner42.modulecommon.domain.model.activity.ActivityMatchScore;
 import partner42.modulecommon.domain.model.alarm.Alarm;
 import partner42.modulecommon.domain.model.alarm.AlarmArgs;
@@ -48,7 +49,6 @@ import partner42.modulecommon.exception.ErrorCode;
 import partner42.modulecommon.exception.NoEntityException;
 import partner42.modulecommon.exception.NotAuthorException;
 import partner42.modulecommon.repository.activity.ActivityRepository;
-import partner42.modulecommon.repository.alarm.AlarmRepository;
 import partner42.modulecommon.repository.article.ArticleRepository;
 import partner42.modulecommon.repository.article.ArticleSearch;
 import partner42.modulecommon.repository.articlemember.ArticleMemberRepository;
@@ -80,10 +80,10 @@ public class ArticleService {
 
     private final ActivityRepository activityRepository;
 
-    private final AlarmRepository alarmRepository;
     private final MemberMapper memberMapper;
     private final MatchConditionMapper matchConditionMapper;
 
+    private final AlarmService alarmService;
 
     @Transactional
     public ArticleOnlyIdResponse createArticle(String username, ArticleDto articleRequest) {
@@ -225,16 +225,17 @@ public class ArticleService {
         articleMemberRepository.save(participateMember);
 
         // 알림 생성
-        alarmRepository.save(Alarm.of(AlarmType.PARTICIPATION_ON_MY_POST, AlarmArgs.builder()
+        //sse event 생성.
+
+        alarmService.send(AlarmType.PARTICIPATION_ON_MY_POST, AlarmArgs.builder()
             .opinionId(null)
             .articleId(articleId)
-            .callingMemberId(user.getApiId())
-            .build(), article.getAuthorMember()));
-
-        //sse event 생성.
+            .callingMemberNickname(member.getNickname())
+            .build(), article.getAuthorMember());
 
         return ArticleOnlyIdResponse.of(article.getApiId());
     }
+
     //OptimisticLockException
     @Transactional
     public ArticleOnlyIdResponse participateCancelArticle(String username, String articleId) {
@@ -250,13 +251,14 @@ public class ArticleService {
         articleMemberRepository.delete(participateMember);
 
         // 알림 생성
-        alarmRepository.save(Alarm.of(AlarmType.PARTICIPATION_CANCEL_ON_MY_POST, AlarmArgs.builder()
+        //sse
+
+        alarmService.send(AlarmType.PARTICIPATION_CANCEL_ON_MY_POST, AlarmArgs.builder()
             .opinionId(null)
             .articleId(articleId)
-            .callingMemberId(user.getApiId())
-            .build(), article.getAuthorMember()));
+            .callingMemberNickname(member.getNickname())
+            .build(), article.getAuthorMember());
 
-        //sse
         return ArticleOnlyIdResponse.of(article.getApiId());
     }
 
@@ -304,16 +306,16 @@ public class ArticleService {
             );
 
         // 알림 생성
+        //sse
+        Member authorMember = article.getAuthorMember();
         for (ArticleMember articleMember : article.getArticleMembers()) {
             Member matchedMember = articleMember.getMember();
 
-            alarmRepository.save(Alarm.of(AlarmType.MATCH_CONFIRMED, AlarmArgs.builder()
+            alarmService.send(AlarmType.MATCH_CONFIRMED, AlarmArgs.builder()
                 .opinionId(null)
                 .articleId(articleId)
-                .callingMemberId(getUserByUsernameOrException(username).getApiId())
-                .build(), matchedMember));
-            //sse
-
+                .callingMemberNickname(authorMember.getNickname())
+                .build(), matchedMember);
         }
 
         return EmailDto.<ArticleOnlyIdResponse>builder()
