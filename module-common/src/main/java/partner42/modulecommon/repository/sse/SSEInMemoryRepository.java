@@ -1,6 +1,5 @@
 package partner42.modulecommon.repository.sse;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -12,40 +11,33 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 @Slf4j
 @Component
-public class SSEInMemoryRepository implements SSERepository {
-    private static final String UNDER_SCORE = "_";
+public class SSEInMemoryRepository{
     private final Map<String, SseEmitter> sseEmitterMap = new ConcurrentHashMap<>();
 
-    @Override
-    public void put(Object identifier, LocalDateTime now, String eventName, SseEmitter sseEmitter) {
-        String key = makeKey(identifier, now, eventName);
+    public void put(String key, SseEmitter sseEmitter) {
         sseEmitterMap.put(key, sseEmitter);
-
     }
-    @Override
-    public Optional<SseEmitter> get(Object identifier, LocalDateTime now, String eventName) {
-        String key = makeKey(identifier, now, eventName);
+
+    public Optional<SseEmitter> get(String key) {
         return Optional.ofNullable(sseEmitterMap.get(key));
     }
-    @Override
-    public List<SseEmitter> getList(Object identifier, String eventName) {
-        String prefix = makeKeyPrefix(identifier, eventName);
+
+    public List<SseEmitter> getListByKeyPrefix(String keyPrefix){
         return sseEmitterMap.keySet().stream()
-            .filter(key -> key.startsWith(prefix))
+            .filter(key -> key.startsWith(keyPrefix))
             .map(sseEmitterMap::get)
             .collect(Collectors.toList());
     }
 
-    @Override
-    public void remove(Object identifier, LocalDateTime now, String eventName) {
-        String key = makeKey(identifier, now, eventName);
+    public List<String> getKeyListByKeyPrefix(String keyPrefix){
+        return sseEmitterMap.keySet().stream()
+            .filter(key -> key.startsWith(keyPrefix))
+            .collect(Collectors.toList());
+    }
+
+    public void remove(String key) {
         sseEmitterMap.remove(key);
     }
 
-    private String makeKey(Object identifier, LocalDateTime now, String eventName) {
-        return makeKeyPrefix(identifier, eventName) + UNDER_SCORE + now;
-    }
-    private String makeKeyPrefix(Object identifier, String eventName){
-        return identifier + UNDER_SCORE + eventName;
-    }
+
 }

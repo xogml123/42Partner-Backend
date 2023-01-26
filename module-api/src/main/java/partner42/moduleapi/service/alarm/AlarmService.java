@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,13 +23,15 @@ import partner42.moduleapi.dto.alarm.AlarmDto;
 import partner42.modulecommon.domain.model.alarm.Alarm;
 import partner42.modulecommon.domain.model.alarm.AlarmArgs;
 import partner42.modulecommon.domain.model.alarm.AlarmType;
+import partner42.modulecommon.domain.model.alarm.SseEventName;
 import partner42.modulecommon.domain.model.member.Member;
 import partner42.modulecommon.domain.model.user.User;
 import partner42.modulecommon.exception.ErrorCode;
 import partner42.modulecommon.exception.NoEntityException;
 import partner42.modulecommon.exception.SseException;
 import partner42.modulecommon.repository.alarm.AlarmRepository;
-import partner42.modulecommon.repository.sse.SSERepository;
+import partner42.modulecommon.repository.sse.SSEInMemoryRepository;
+import partner42.modulecommon.repository.sse.SseRepositoryKeyRule;
 import partner42.modulecommon.repository.user.UserRepository;
 import partner42.modulecommon.utils.CustomTimeUtils;
 
@@ -43,10 +46,40 @@ public class AlarmService implements MessageListener {
     private static final String CONNECTED = "CONNECTED";
     private final AlarmRepository alarmRepository;
     private final UserRepository userRepository;
-    private final SSERepository sseRepository;
+    private final SSEInMemoryRepository sseRepository;
 
     private final RedisMessageListenerContainer container;
 
+    private final RedisTemplate<String, String> redisTemplate;
+
+
+    /**
+     * 여러 서버에서 SSE를 구현하기 위한 Redis Pub/Sub
+     * CommandLineRunner에서 subscribe해두었던 topic에 publish가 일어나면 이 메서드가 호출된다.
+     */
+    @Override
+    public void onMessage(Message message, byte[] pattern) {
+        String[] strings = message.toString().split(UNDER_SCORE);
+        Long userId = Long.parseLong(strings[0]);
+        SseEventName eventName = SseEventName.getEnumFromValue(strings[1]);
+        String keyPrefix = new SseRepositoryKeyRule(userId, eventName, null).toKeyUserAndEventInfo();
+
+        LocalDateTime now = CustomTimeUtils.nowWithoutNano();
+
+        sseRepository.getKeyListByKeyPrefix(keyPrefix).forEach(key -> {
+            SseEmitter emitter = sseRepository.get(key).get();
+            try {
+                emitter.send(SseEmitter.event()
+                    .id(getEventId(userId, now, eventName))
+                    .name(eventName.getValue())
+                    .data(eventName.getValue()));
+            } catch (IOException e) {
+                sseRepository.remove(key);
+                log.error("SSE send error", e);
+                throw new SseException(ErrorCode.SSE_SEND_ERROR);
+            }
+        });
+    }
     @Transactional
     public Slice<AlarmDto> sendAlarmSliceAndIsReadToTrue(Pageable pageable, String username) {
         Member member = getUserByUsernameOrException(username).getMember();
@@ -73,74 +106,50 @@ public class AlarmService implements MessageListener {
     public void send(AlarmType type, AlarmArgs args, Member member, SseEventName eventName) {
         Alarm alarm = Alarm.of(type, args, member);
         alarmRepository.save(alarm);
-        User user = member.getUser();
-        LocalDateTime now = CustomTimeUtils.nowWithoutNano();
-        sseRepository.getList(user, eventName.getName()).forEach(it -> {
-                try {
-                    it.send(SseEmitter.event()
-                        .id(getEventId(user, now, eventName))
-                        .name(eventName.getName())
-                        .data(eventName.getName()));
-                } catch (IOException exception) {
-                    sseRepository.remove(user, now, eventName.getName());
-                    log.info("SSE Exception: {}", exception.getMessage());
-                    throw new SseException(ErrorCode.SSE_SEND_ERROR);
-                }
-            }
-        );
+
+        Long userId = member.getUser().getId();
+        redisTemplate.convertAndSend(eventName.getValue(), userId + UNDER_SCORE + eventName.getValue());
+
     }
 
     public SseEmitter subscribe(String username, String lastEventId) {
-        User user = getUserByUsernameOrException(username);
+        Long userId  = getUserByUsernameOrException(username).getId();
         LocalDateTime now = CustomTimeUtils.nowWithoutNano();
         SseEmitter sse = new SseEmitter(Long.parseLong(sseTimeout));
+
+        String key = new SseRepositoryKeyRule(userId, SseEventName.ALARM_LIST, now).toCompleteKeyWhichSpecifyOnlyOneValue();
+
         sse.onCompletion(() -> {
             log.info("onCompletion callback");
             //만료 시 Repository에서 삭제 되어야함.
 
-            sseRepository.remove(user, now, SseEventName.ALARM_LIST.getName());
+            sseRepository.remove(key);
         });
         sse.onTimeout(() -> {
             log.info("onTimeout callback");
             sse.complete();
         });
-        sseRepository.put(user, now, SseEventName.ALARM_LIST.getName(), sse);
+
+        sseRepository.put(key, sse);
         try {
             sse.send(SseEmitter.event()
                 .name(CONNECTED)
-                .id(getEventId(user, now, SseEventName.ALARM_LIST))
+                .id(getEventId(userId, now, SseEventName.ALARM_LIST))
                 .data("subscribe"));
         } catch (IOException exception) {
-            sseRepository.remove(user, now, SseEventName.ALARM_LIST.getName());
+            sseRepository.remove(key);
             log.info("SSE Exception: {}", exception.getMessage());
             throw new SseException(ErrorCode.SSE_SEND_ERROR);
         }
 
-        // 중간에 연결이 끊겨서 다시 연결할 때, lastEventId를 통해 기존의 받지못한 이벤트를 받을 수 있도록 함.
-        // 현재 로직상에서는 어처피 한번의 알림이나 새로고침을 받으면 알림 list를 paging해서 가져오기 때문에 불 필요하고 효율을 떨어뜨릴 수 있음.
-//        if (lastEventId != null) {
-//            LocalDateTime lastEventTime = LocalDateTime.parse(lastEventId.split("_")[2]);
-//            sseRepository.getKeyList(user, SseEventName.ALARM_LIST.getName()LARM_LIST.getName()).stream()
-//                .filter(key ->
-//                    LocalDateTime.parse(key.split("_")[2]).isAfter(lastEventTime)
-//                )
-//                .forEach(key -> {
-//                    SseEmitter sseEmitter = sseRepository.get(user, now, SseEventName.ALARM_LIST.getName()LARM_LIST.getName());
-//                    try {
-//                        sseEmitter.send(SseEmitter.event()
-//                            .name(SseEventName.ALARM_LIST.getName()LARM_LIST.getName())
-//                            .id(key)
-//                            .data("alarmList"));
-//                    } catch (IOException e) {
-//                        throw new SseException(ErrorCode.SSE_SEND_ERROR);
-//                    }
-//                });
-//        }
+        // 중간에 연결이 끊겨서 다시 연결할 때, lastEventId를 통해 기존의 받지못한 이벤트를 받을 수 있도록 할 수 있음.
+        // 현재 로직상에서는 어처피 한번의 알림이나 새로고침을 받으면 알림 list를 paging해서 가져오기 때문에
+        // 수신 못한 응답을 다시 보내는게 불 필요하고 효율을 떨어뜨릴 수 있음.
         return sse;
     }
 
-    private String getEventId(User user, LocalDateTime now, SseEventName eventName) {
-        return user.getId() + UNDER_SCORE + eventName.getName() + UNDER_SCORE + now;
+    private String getEventId(Long userId, LocalDateTime now, SseEventName eventName) {
+        return userId + UNDER_SCORE + eventName.getValue() + UNDER_SCORE + now;
     }
 
 
@@ -150,8 +159,6 @@ public class AlarmService implements MessageListener {
                 ErrorCode.ENTITY_NOT_FOUND));
     }
 
-    @Override
-    public void onMessage(Message message, byte[] pattern) {
 
-    }
+
 }
