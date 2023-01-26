@@ -9,34 +9,22 @@ import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.lettuce.core.ClientOptions;
 import io.lettuce.core.SocketOptions;
-import java.sql.SQLException;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
-import javax.persistence.EntityManagerFactory;
-import javax.sql.DataSource;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.redis.cache.RedisCacheConfiguration;
-import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.RedisStaticMasterReplicaConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
-import org.springframework.jdbc.datasource.DataSourceTransactionManager;
-import org.springframework.orm.jpa.JpaTransactionManager;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-@RequiredArgsConstructor
 @Configuration
-@EnableTransactionManagement
-public class RedisConfig {
+public class LettuceConnectionConfig {
 
 
     @Value("${spring.redis.host}")
@@ -61,8 +49,8 @@ public class RedisConfig {
     @Value("${redis.expire.default}")
     private long defaultExpireSecond;
 
-    private final EntityManagerFactory entityManagerFactory;
-    private final DataSource dataSource;
+//    private final EntityManagerFactory entityManagerFactory;
+//    private final DataSource dataSource;
 
     /*
      * Class <=> Json간 변환을 담당한다.
@@ -168,6 +156,14 @@ public class RedisConfig {
 
         return redisTemplate;
     }
+
+    @Bean
+    public RedisMessageListenerContainer redisMessageListenerContainer() {
+        final RedisMessageListenerContainer container = new RedisMessageListenerContainer();
+        container.setConnectionFactory(redisConnectionFactory(redisStaticMasterReplicaConfiguration()));
+        return container;
+    }
+
 //
 //    /**
 //     * Redis Cache를 사용하기 위한 cache manager 등록.<br>

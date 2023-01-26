@@ -1,6 +1,8 @@
 package partner42.moduleapi.service.alarm;
 
 
+import org.springframework.data.redis.connection.Message;
+import org.springframework.data.redis.connection.MessageListener;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -11,6 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
+import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -33,15 +36,16 @@ import partner42.modulecommon.utils.CustomTimeUtils;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 @Service
-public class AlarmService {
+public class AlarmService implements MessageListener {
     @Value("${sse.timeout}")
     private String sseTimeout;
     private static final String UNDER_SCORE = "_";
-    private static final String SSE_EVENT_ALARM_LIST = "alarmList";
     private static final String CONNECTED = "CONNECTED";
     private final AlarmRepository alarmRepository;
     private final UserRepository userRepository;
     private final SSERepository sseRepository;
+
+    private final RedisMessageListenerContainer container;
 
     @Transactional
     public Slice<AlarmDto> sendAlarmSliceAndIsReadToTrue(Pageable pageable, String username) {
@@ -66,18 +70,19 @@ public class AlarmService {
             alarmSlices.getPageable(), alarmSlices.hasNext());
     }
 
-    public void send(AlarmType type, AlarmArgs args, Member member) {
+    public void send(AlarmType type, AlarmArgs args, Member member, SseEventName eventName) {
         Alarm alarm = Alarm.of(type, args, member);
         alarmRepository.save(alarm);
+        User user = member.getUser();
         LocalDateTime now = CustomTimeUtils.nowWithoutNano();
-        sseRepository.getList(member.getUser(), SSE_EVENT_ALARM_LIST).forEach(it -> {
+        sseRepository.getList(user, eventName.getName()).forEach(it -> {
                 try {
                     it.send(SseEmitter.event()
-                        .id(getEventId(member.getUser(), now))
-                        .name(SSE_EVENT_ALARM_LIST)
-                        .data(SSE_EVENT_ALARM_LIST));
+                        .id(getEventId(user, now, eventName))
+                        .name(eventName.getName())
+                        .data(eventName.getName()));
                 } catch (IOException exception) {
-                    sseRepository.remove(member.getUser(), now, SSE_EVENT_ALARM_LIST);
+                    sseRepository.remove(user, now, eventName.getName());
                     log.info("SSE Exception: {}", exception.getMessage());
                     throw new SseException(ErrorCode.SSE_SEND_ERROR);
                 }
@@ -92,20 +97,21 @@ public class AlarmService {
         sse.onCompletion(() -> {
             log.info("onCompletion callback");
             //만료 시 Repository에서 삭제 되어야함.
-            sseRepository.remove(user, now, SSE_EVENT_ALARM_LIST);
+
+            sseRepository.remove(user, now, SseEventName.ALARM_LIST.getName());
         });
         sse.onTimeout(() -> {
             log.info("onTimeout callback");
             sse.complete();
         });
-        sseRepository.put(user, now, SSE_EVENT_ALARM_LIST, sse);
+        sseRepository.put(user, now, SseEventName.ALARM_LIST.getName(), sse);
         try {
             sse.send(SseEmitter.event()
                 .name(CONNECTED)
-                .id(getEventId(user, now))
+                .id(getEventId(user, now, SseEventName.ALARM_LIST))
                 .data("subscribe"));
         } catch (IOException exception) {
-            sseRepository.remove(user, now, SSE_EVENT_ALARM_LIST);
+            sseRepository.remove(user, now, SseEventName.ALARM_LIST.getName());
             log.info("SSE Exception: {}", exception.getMessage());
             throw new SseException(ErrorCode.SSE_SEND_ERROR);
         }
@@ -114,15 +120,15 @@ public class AlarmService {
         // 현재 로직상에서는 어처피 한번의 알림이나 새로고침을 받으면 알림 list를 paging해서 가져오기 때문에 불 필요하고 효율을 떨어뜨릴 수 있음.
 //        if (lastEventId != null) {
 //            LocalDateTime lastEventTime = LocalDateTime.parse(lastEventId.split("_")[2]);
-//            sseRepository.getKeyList(user, SSE_EVENT_ALARM_LIST).stream()
+//            sseRepository.getKeyList(user, SseEventName.ALARM_LIST.getName()LARM_LIST.getName()).stream()
 //                .filter(key ->
 //                    LocalDateTime.parse(key.split("_")[2]).isAfter(lastEventTime)
 //                )
 //                .forEach(key -> {
-//                    SseEmitter sseEmitter = sseRepository.get(user, now, SSE_EVENT_ALARM_LIST);
+//                    SseEmitter sseEmitter = sseRepository.get(user, now, SseEventName.ALARM_LIST.getName()LARM_LIST.getName());
 //                    try {
 //                        sseEmitter.send(SseEmitter.event()
-//                            .name(SSE_EVENT_ALARM_LIST)
+//                            .name(SseEventName.ALARM_LIST.getName()LARM_LIST.getName())
 //                            .id(key)
 //                            .data("alarmList"));
 //                    } catch (IOException e) {
@@ -133,8 +139,8 @@ public class AlarmService {
         return sse;
     }
 
-    private String getEventId(User user, LocalDateTime now) {
-        return user.getId() + UNDER_SCORE + SSE_EVENT_ALARM_LIST + UNDER_SCORE + now;
+    private String getEventId(User user, LocalDateTime now, SseEventName eventName) {
+        return user.getId() + UNDER_SCORE + eventName.getName() + UNDER_SCORE + now;
     }
 
 
@@ -142,5 +148,10 @@ public class AlarmService {
         return userRepository.findByUsername(username)
             .orElseThrow(() -> new NoEntityException(
                 ErrorCode.ENTITY_NOT_FOUND));
+    }
+
+    @Override
+    public void onMessage(Message message, byte[] pattern) {
+
     }
 }
