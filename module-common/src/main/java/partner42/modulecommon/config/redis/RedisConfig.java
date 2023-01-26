@@ -1,12 +1,17 @@
 package partner42.modulecommon.config.redis;
 
 
+import static io.lettuce.core.ReadFrom.REPLICA_PREFERRED;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import io.lettuce.core.ClientOptions;
+import io.lettuce.core.SocketOptions;
 import java.sql.SQLException;
 import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +23,7 @@ import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.RedisStaticMasterReplicaConfiguration;
+import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
@@ -31,21 +37,26 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @Configuration
 @EnableTransactionManagement
 public class RedisConfig {
+
+
     @Value("${spring.redis.host}")
-    private String masterHost;
+    String masterHost;
+
+    @Value("${redis.replica.host}")
+    String redisReplica;
+
+    @Value("${redis.replica.port}")
+    int redisReplicaPort;
 
     @Value("${spring.redis.port}")
-    private int masterPort;
-
+    int port;
 
     @Value("${spring.redis.password}")
-    private String redisPwd;
+    String password;
 
-    @Value("${spring.redis.replica.host}")
-    String replicaHost;
 
-    @Value("${spring.redis.replica.port}")
-    Integer replicaPort;
+    @Value("${spring.redis.ssl}")
+    boolean useSSL;
 
     @Value("${redis.expire.default}")
     private long defaultExpireSecond;
@@ -84,9 +95,9 @@ public class RedisConfig {
     @Bean
     public RedisStaticMasterReplicaConfiguration redisStaticMasterReplicaConfiguration() {
         RedisStaticMasterReplicaConfiguration redisStaticMasterReplicaConfiguration =
-            new RedisStaticMasterReplicaConfiguration(masterHost, masterPort);
-        redisStaticMasterReplicaConfiguration.addNode(replicaHost, replicaPort);
-        redisStaticMasterReplicaConfiguration.setPassword(redisPwd);
+            new RedisStaticMasterReplicaConfiguration(masterHost, port);
+        redisStaticMasterReplicaConfiguration.addNode(redisReplica, redisReplicaPort);
+        redisStaticMasterReplicaConfiguration.setPassword(password);
         return redisStaticMasterReplicaConfiguration;
     }
 
@@ -102,16 +113,29 @@ public class RedisConfig {
      *
      * Jedis와 Lettuce의 성능 비교  https://jojoldu.tistory.com/418
      */
+
     @Bean
-    public RedisConnectionFactory redisConnectionFactory() {
-        RedisStandaloneConfiguration redisStandaloneConfiguration = new RedisStandaloneConfiguration();
-        redisStandaloneConfiguration.setPort(masterPort);
-        redisStandaloneConfiguration.setHostName(masterHost);
-        redisStandaloneConfiguration.setPassword(redisPwd);
-        LettuceConnectionFactory lettuceConnectionFactory =
-            new LettuceConnectionFactory(redisStandaloneConfiguration);
-        return lettuceConnectionFactory;
+    public RedisConnectionFactory redisConnectionFactory(
+        final RedisStaticMasterReplicaConfiguration redisStaticMasterReplicaConfiguration) {
+        final SocketOptions socketOptions =
+            SocketOptions.builder().connectTimeout(Duration.of(10, ChronoUnit.MINUTES)).build();
+
+        final var clientOptions =
+            ClientOptions.builder().socketOptions(socketOptions).autoReconnect(true).build();
+
+        var clientConfig =
+            LettuceClientConfiguration.builder()
+                .clientOptions(clientOptions)
+                .readFrom(REPLICA_PREFERRED);
+        if (useSSL) {
+            // aws elasticcache uses in-transit encryption therefore no need for providing certificates
+            clientConfig = clientConfig.useSsl().disablePeerVerification().and();
+        }
+
+        return new LettuceConnectionFactory(
+            redisStaticMasterReplicaConfiguration, clientConfig.build());
     }
+
 
 //    @Bean // 만약 PlatformTransactionManager 등록이 안되어 있다면 해야함, 되어있다면 할 필요 없음
 //    public PlatformTransactionManager transactionManager() throws SQLException {
@@ -128,7 +152,7 @@ public class RedisConfig {
             new GenericJackson2JsonRedisSerializer(objectMapper);
 
         RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
-        redisTemplate.setConnectionFactory(redisConnectionFactory());
+        redisTemplate.setConnectionFactory(redisConnectionFactory(redisStaticMasterReplicaConfiguration()));
         // json 형식으로 데이터를 받을 때
         // 값이 깨지지 않도록 직렬화한다.
         // 저장할 클래스가 여러개일 경우 범용 JacksonSerializer인 GenericJackson2JsonRedisSerializer를 이용한다
