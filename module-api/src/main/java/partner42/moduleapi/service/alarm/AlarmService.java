@@ -34,19 +34,13 @@ import partner42.modulecommon.utils.CustomTimeUtils;
 @Transactional(readOnly = true)
 @Service
 public class AlarmService {
-
     @Value("${sse.timeout}")
     private String sseTimeout;
     private static final String UNDER_SCORE = "_";
-
     private static final String SSE_EVENT_ALARM_LIST = "alarmList";
     private static final String CONNECTED = "CONNECTED";
-
-
-
     private final AlarmRepository alarmRepository;
     private final UserRepository userRepository;
-
     private final SSERepository sseRepository;
 
     @Transactional
