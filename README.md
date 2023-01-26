@@ -39,7 +39,7 @@
 
 ![EC2내부](https://user-images.githubusercontent.com/47822403/210048126-ffae2fd4-1cc1-400b-ad29-6eb256ff5c47.png)
 
-![CICD](https://user-images.githubusercontent.com/47822403/210933284-bbe05bbf-9d13-4d3f-b221-70982c667bec.png)
+![CICD](https://user-images.githubusercontent.com/47822403/214513414-c01c6d11-7254-4160-854c-ee3503c17fed.png)
 
 
 
