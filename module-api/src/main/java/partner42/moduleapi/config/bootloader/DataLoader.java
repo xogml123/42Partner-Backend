@@ -9,9 +9,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.data.redis.listener.ChannelTopic;
+import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import partner42.moduleapi.service.alarm.AlarmService;
+import partner42.modulecommon.domain.model.alarm.SseEventName;
 import partner42.modulecommon.domain.model.match.ConditionCategory;
 import partner42.modulecommon.domain.model.matchcondition.MatchCondition;
 import partner42.modulecommon.domain.model.matchcondition.Place;
@@ -49,6 +53,9 @@ public class DataLoader implements CommandLineRunner {
     private final MemberRepository memberRepository;
 
     private final BCryptPasswordEncoder passwordEncoder;
+
+    private final RedisMessageListenerContainer container;
+    private final AlarmService alarmService;
 
     @Value("${spring.jpa.hibernate.data-loader}")
     private String dataLoader;
@@ -258,6 +265,9 @@ public class DataLoader implements CommandLineRunner {
             Authority.of(s));
     }
 
+    private void publishRedisPubSub(String topic){
+        container.addMessageListener(alarmService, new ChannelTopic(topic));
+    }
 
     @Transactional
     @Override
@@ -267,5 +277,6 @@ public class DataLoader implements CommandLineRunner {
             createMatchCondition();
             createDefaultUsers();
         }
+        publishRedisPubSub(SseEventName.ALARM_LIST.name());
     }
 }

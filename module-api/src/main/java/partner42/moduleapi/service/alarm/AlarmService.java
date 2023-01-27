@@ -40,6 +40,7 @@ import partner42.modulecommon.utils.CustomTimeUtils;
 @Transactional(readOnly = true)
 @Service
 public class AlarmService implements MessageListener {
+
     @Value("${sse.timeout}")
     private String sseTimeout;
     private static final String UNDER_SCORE = "_";
@@ -48,21 +49,21 @@ public class AlarmService implements MessageListener {
     private final UserRepository userRepository;
     private final SSEInMemoryRepository sseRepository;
 
-    private final RedisMessageListenerContainer container;
 
     private final RedisTemplate<String, String> redisTemplate;
 
 
     /**
-     * 여러 서버에서 SSE를 구현하기 위한 Redis Pub/Sub
-     * CommandLineRunner에서 subscribe해두었던 topic에 publish가 일어나면 이 메서드가 호출된다.
+     * 여러 서버에서 SSE를 구현하기 위한 Redis Pub/Sub CommandLineRunner에서 subscribe해두었던 topic에 publish가 일어나면 이
+     * 메서드가 호출된다.
      */
     @Override
     public void onMessage(Message message, byte[] pattern) {
         String[] strings = message.toString().split(UNDER_SCORE);
         Long userId = Long.parseLong(strings[0]);
         SseEventName eventName = SseEventName.getEnumFromValue(strings[1]);
-        String keyPrefix = new SseRepositoryKeyRule(userId, eventName, null).toKeyUserAndEventInfo();
+        String keyPrefix = new SseRepositoryKeyRule(userId, eventName,
+            null).toKeyUserAndEventInfo();
 
         LocalDateTime now = CustomTimeUtils.nowWithoutNano();
 
@@ -80,6 +81,7 @@ public class AlarmService implements MessageListener {
             }
         });
     }
+
     @Transactional
     public Slice<AlarmDto> sendAlarmSliceAndIsReadToTrue(Pageable pageable, String username) {
         Member member = getUserByUsernameOrException(username).getMember();
@@ -108,16 +110,18 @@ public class AlarmService implements MessageListener {
         alarmRepository.save(alarm);
 
         Long userId = member.getUser().getId();
-        redisTemplate.convertAndSend(eventName.getValue(), userId + UNDER_SCORE + eventName.getValue());
+        redisTemplate.convertAndSend(eventName.getValue(),
+            userId + UNDER_SCORE + eventName.getValue());
 
     }
 
     public SseEmitter subscribe(String username, String lastEventId) {
-        Long userId  = getUserByUsernameOrException(username).getId();
+        Long userId = getUserByUsernameOrException(username).getId();
         LocalDateTime now = CustomTimeUtils.nowWithoutNano();
         SseEmitter sse = new SseEmitter(Long.parseLong(sseTimeout));
 
-        String key = new SseRepositoryKeyRule(userId, SseEventName.ALARM_LIST, now).toCompleteKeyWhichSpecifyOnlyOneValue();
+        String key = new SseRepositoryKeyRule(userId, SseEventName.ALARM_LIST,
+            now).toCompleteKeyWhichSpecifyOnlyOneValue();
 
         sse.onCompletion(() -> {
             log.info("onCompletion callback");
@@ -158,7 +162,6 @@ public class AlarmService implements MessageListener {
             .orElseThrow(() -> new NoEntityException(
                 ErrorCode.ENTITY_NOT_FOUND));
     }
-
 
 
 }
