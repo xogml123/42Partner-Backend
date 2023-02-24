@@ -12,11 +12,13 @@ import partner42.moduleapi.dto.opinion.OpinionResponse;
 import partner42.moduleapi.dto.opinion.OpinionUpdateRequest;
 import partner42.moduleapi.mapper.OpinionMapper;
 import partner42.moduleapi.service.alarm.AlarmService;
+import partner42.modulecommon.config.kafka.AlarmEvent;
 import partner42.modulecommon.domain.model.alarm.AlarmArgs;
 import partner42.modulecommon.domain.model.alarm.AlarmType;
 import partner42.modulecommon.domain.model.article.Article;
 import partner42.modulecommon.domain.model.member.Member;
 import partner42.modulecommon.domain.model.opinion.Opinion;
+import partner42.modulecommon.domain.model.sse.SseEventName;
 import partner42.modulecommon.domain.model.user.Role;
 import partner42.modulecommon.domain.model.user.RoleEnum;
 import partner42.modulecommon.domain.model.user.User;
@@ -24,6 +26,7 @@ import partner42.modulecommon.domain.model.user.UserRole;
 import partner42.modulecommon.exception.ErrorCode;
 import partner42.modulecommon.exception.NoEntityException;
 import partner42.modulecommon.exception.NotAuthorException;
+import partner42.modulecommon.producer.AlarmProducer;
 import partner42.modulecommon.repository.article.ArticleRepository;
 import partner42.modulecommon.repository.member.MemberRepository;
 import partner42.modulecommon.repository.opinion.OpinionRepository;
@@ -42,6 +45,7 @@ public class OpinionService {
     private final OpinionMapper opinionMapper;
 
     private final AlarmService alarmService;
+    private final AlarmProducer alarmProducer;
 
     @Transactional
     public OpinionOnlyIdResponse createOpinion(OpinionDto request, String username) {
@@ -62,12 +66,11 @@ public class OpinionService {
             Member parentOpinionAuthor = opinionRepository.findByApiId(parentOpinionId)
                 .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND))
                 .getMemberAuthor();
-
-            alarmService.send(AlarmType.COMMENT_ON_MY_COMMENT, AlarmArgs.builder()
+            alarmProducer.send(new AlarmEvent(AlarmType.COMMENT_ON_MY_COMMENT, AlarmArgs.builder()
                 .opinionId(parentOpinionId)
                 .articleId(request.getArticleId())
                 .callingMemberNickname(user.getMember().getNickname())
-                .build(), parentOpinionAuthor);
+                .build(), parentOpinionAuthor.getUser().getId(), SseEventName.ALARM_LIST));
         }
 
         return opinionMapper.entityToOpinionOnlyIdResponse(opinion);

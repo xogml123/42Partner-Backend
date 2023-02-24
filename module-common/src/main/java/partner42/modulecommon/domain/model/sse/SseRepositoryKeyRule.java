@@ -1,9 +1,9 @@
-package partner42.modulecommon.repository.sse;
+package partner42.modulecommon.domain.model.sse;
 
 import java.time.LocalDateTime;
 import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
-import partner42.modulecommon.domain.model.alarm.SseEventName;
+import partner42.modulecommon.domain.model.sse.SseEventName;
 
 @RequiredArgsConstructor
 @EqualsAndHashCode

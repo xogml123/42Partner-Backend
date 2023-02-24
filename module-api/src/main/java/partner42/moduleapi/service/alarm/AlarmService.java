@@ -1,6 +1,7 @@
 package partner42.moduleapi.service.alarm;
 
 
+import javax.persistence.EntityNotFoundException;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
 import java.io.IOException;
@@ -14,16 +15,16 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import partner42.moduleapi.dto.alarm.AlarmArgsDto;
 import partner42.moduleapi.dto.alarm.AlarmDto;
+import partner42.modulecommon.config.kafka.AlarmEvent;
 import partner42.modulecommon.domain.model.alarm.Alarm;
 import partner42.modulecommon.domain.model.alarm.AlarmArgs;
 import partner42.modulecommon.domain.model.alarm.AlarmType;
-import partner42.modulecommon.domain.model.alarm.SseEventName;
+import partner42.modulecommon.domain.model.sse.SseEventName;
 import partner42.modulecommon.domain.model.member.Member;
 import partner42.modulecommon.domain.model.user.User;
 import partner42.modulecommon.exception.ErrorCode;
@@ -31,7 +32,7 @@ import partner42.modulecommon.exception.NoEntityException;
 import partner42.modulecommon.exception.SseException;
 import partner42.modulecommon.repository.alarm.AlarmRepository;
 import partner42.modulecommon.repository.sse.SSEInMemoryRepository;
-import partner42.modulecommon.repository.sse.SseRepositoryKeyRule;
+import partner42.modulecommon.domain.model.sse.SseRepositoryKeyRule;
 import partner42.modulecommon.repository.user.UserRepository;
 import partner42.modulecommon.utils.CustomTimeUtils;
 
@@ -105,13 +106,13 @@ public class AlarmService implements MessageListener {
             alarmSlices.getPageable(), alarmSlices.hasNext());
     }
 
-    public void send(AlarmType type, AlarmArgs args, Member member, SseEventName eventName) {
-        Alarm alarm = Alarm.of(type, args, member);
+    public void send(Long userId, AlarmType alarmType, AlarmArgs alarmArgs, SseEventName sseEventName) {
+        User user = userRepository.findById(userId).orElseThrow(() ->
+            new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
+        Alarm alarm = Alarm.of(alarmType, alarmArgs, user.getMember());
         alarmRepository.save(alarm);
-
-        Long userId = member.getUser().getId();
-        redisTemplate.convertAndSend(eventName.getValue(),
-            userId + UNDER_SCORE + eventName.getValue());
+        redisTemplate.convertAndSend(sseEventName.getValue(),
+            userId + UNDER_SCORE + sseEventName.getValue());
 
     }
 

@@ -78,6 +78,9 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-cache'
     implementation 'org.ehcache:ehcache:3.8.1'
 
+    //kafka
+    implementation 'org.springframework.kafka:spring-kafka'
+
 }
 
 

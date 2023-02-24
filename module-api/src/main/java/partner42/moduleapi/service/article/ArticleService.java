@@ -21,10 +21,12 @@ import partner42.moduleapi.dto.member.MemberDto;
 import partner42.moduleapi.mapper.MatchConditionMapper;
 import partner42.moduleapi.mapper.MemberMapper;
 import partner42.moduleapi.service.alarm.AlarmService;
+import partner42.modulecommon.config.kafka.AlarmEvent;
 import partner42.modulecommon.domain.model.activity.ActivityMatchScore;
 import partner42.modulecommon.domain.model.alarm.Alarm;
 import partner42.modulecommon.domain.model.alarm.AlarmArgs;
 import partner42.modulecommon.domain.model.alarm.AlarmType;
+import partner42.modulecommon.domain.model.sse.SseEventName;
 import partner42.modulecommon.domain.model.user.Role;
 import partner42.modulecommon.domain.model.user.UserRole;
 import partner42.modulecommon.domain.model.activity.Activity;
@@ -48,6 +50,7 @@ import partner42.modulecommon.domain.model.user.User;
 import partner42.modulecommon.exception.ErrorCode;
 import partner42.modulecommon.exception.NoEntityException;
 import partner42.modulecommon.exception.NotAuthorException;
+import partner42.modulecommon.producer.AlarmProducer;
 import partner42.modulecommon.repository.activity.ActivityRepository;
 import partner42.modulecommon.repository.article.ArticleRepository;
 import partner42.modulecommon.repository.article.ArticleSearch;
@@ -85,6 +88,7 @@ public class ArticleService {
 
     private final AlarmService alarmService;
 
+    private final AlarmProducer alarmProducer;
     @Transactional
     public ArticleOnlyIdResponse createArticle(String username, ArticleDto articleRequest) {
         Member member = getUserByUsernameOrException(username).getMember();
@@ -227,11 +231,11 @@ public class ArticleService {
         // 알림 생성
         //sse event 생성.
 
-        alarmService.send(AlarmType.PARTICIPATION_ON_MY_POST, AlarmArgs.builder()
+        alarmProducer.send(new AlarmEvent(AlarmType.PARTICIPATION_ON_MY_POST, AlarmArgs.builder()
             .opinionId(null)
             .articleId(articleId)
             .callingMemberNickname(member.getNickname())
-            .build(), article.getAuthorMember());
+            .build(), article.getAuthorMember().getUser().getId(), SseEventName.ALARM_LIST));
 
         return ArticleOnlyIdResponse.of(article.getApiId());
     }
@@ -252,12 +256,11 @@ public class ArticleService {
 
         // 알림 생성
         //sse
-
-        alarmService.send(AlarmType.PARTICIPATION_CANCEL_ON_MY_POST, AlarmArgs.builder()
+        alarmProducer.send(new AlarmEvent(AlarmType.PARTICIPATION_CANCEL_ON_MY_POST, AlarmArgs.builder()
             .opinionId(null)
             .articleId(articleId)
             .callingMemberNickname(member.getNickname())
-            .build(), article.getAuthorMember());
+            .build(), article.getAuthorMember().getUser().getId(), SseEventName.ALARM_LIST));
 
         return ArticleOnlyIdResponse.of(article.getApiId());
     }
@@ -310,12 +313,11 @@ public class ArticleService {
         Member authorMember = article.getAuthorMember();
         for (ArticleMember articleMember : article.getArticleMembers()) {
             Member matchedMember = articleMember.getMember();
-
-            alarmService.send(AlarmType.MATCH_CONFIRMED, AlarmArgs.builder()
+            alarmProducer.send(new AlarmEvent(AlarmType.MATCH_CONFIRMED, AlarmArgs.builder()
                 .opinionId(null)
                 .articleId(articleId)
                 .callingMemberNickname(authorMember.getNickname())
-                .build(), matchedMember);
+                .build(), matchedMember.getUser().getId(), SseEventName.ALARM_LIST));
         }
 
         return EmailDto.<ArticleOnlyIdResponse>builder()

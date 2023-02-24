@@ -1,4 +1,4 @@
-package partner42.modulecommon.domain.model.alarm;
+package partner42.modulecommon.domain.model.sse;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
