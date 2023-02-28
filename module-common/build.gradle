@@ -39,11 +39,10 @@ dependencies {
 
     //jpa
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    runtimeOnly 'com.mysql:mysql-connector-j'
+    runtimeOnly 'mysql:mysql-connector-java'
     //jpa mysql 에서 json column사용 가능 라이브러리
     implementation("com.vladmihalcea:hibernate-types-52:2.16.2")
 
-//    implementation 'com.h2database:h2'
     //json변환 util
     implementation 'org.json:json:20220924'
     //redis

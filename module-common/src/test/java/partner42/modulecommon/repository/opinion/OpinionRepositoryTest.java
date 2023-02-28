@@ -14,7 +14,7 @@ import partner42.modulecommon.domain.model.opinion.Opinion;
 import partner42.modulecommon.repository.article.ArticleRepository;
 
 @SpringBootTest
-//custom db를 사용하기 위해 필요 없으면 embeded h2db사용하려고 함.
+//custom db를 사용하기 위해 필요, 없으면 embeded h2db사용하려고 함.
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 class OpinionRepositoryTest {
 

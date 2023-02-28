@@ -13,6 +13,7 @@ import org.springframework.kafka.core.ConsumerFactory;
 import java.util.HashMap;
 import java.util.Map;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.kafka.support.serializer.JsonSerializer;
 
 @EnableKafka
@@ -23,7 +24,7 @@ public class KafkaConsumerConfig {
 
     @Value("${kafka.consumer.autoOffsetResetConfig}")
     private String autoOffsetResetConfig;
-    @Value("${kafka.consumer.group-id}")
+    @Value("${kafka.consumer.alarm.group-id}")
     private String groupId;
 
     @Bean
@@ -32,7 +33,7 @@ public class KafkaConsumerConfig {
         props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonSerializer.class);
+        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, autoOffsetResetConfig);
         return new DefaultKafkaConsumerFactory<>(props);
     }

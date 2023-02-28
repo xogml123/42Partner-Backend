@@ -17,9 +17,9 @@ public class KafkaTopicConfig {
 
     @Value("${kafka.topic.alarm.name}")
     private String topicName;
-    @Value("${kafka.topic.numPartitions}")
+    @Value("${kafka.topic.alarm.numPartitions}")
     private String numPartitions;
-    @Value("${kafka.topic.replicationFactor}")
+    @Value("${kafka.topic.alarm.replicationFactor}")
     private String replicationFactor;
 
     @Bean

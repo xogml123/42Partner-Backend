@@ -23,7 +23,7 @@ public class AlarmConsumer {
      * @param alarmEvent
      * @param ack
      */
-    @KafkaListener(topics = "${spring.kafka.topic.notification}", groupId = "${kafka.consumer.alarm.group.id}",
+    @KafkaListener(topics = "${kafka.topic.alarm.name}", groupId = "${kafka.consumer.alarm.group-id}",
         properties = {AUTO_OFFSET_RESET_CONFIG + ":earliest"})
     public void consumeNotification(AlarmEvent alarmEvent, Acknowledgment ack) {
         log.info("Consume the event {}", alarmEvent);
