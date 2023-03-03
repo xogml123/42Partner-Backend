@@ -39,12 +39,13 @@ class ArticleRepositoryCustomImplTest {
     ArticleRepository articleRepository;
 
 
-    @BeforeEach
-    void setUp() {
-
-
-    }
+//    @BeforeEach
+//    void setUp() {
+//
+//
+//    }
     @Test
+//    @Rollback(false)
     void givenFiveArticle_whenEachOneArticleSearchConditionExistOrAllEmpty_thenSizeIsEqualsTo() {
         //given
         Article articleFirstCreated = Article.of(LocalDate.now().plusDays(1L), "title", "content", false,
