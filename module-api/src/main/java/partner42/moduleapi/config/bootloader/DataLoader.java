@@ -9,9 +9,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.data.redis.listener.ChannelTopic;
+import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import partner42.moduleapi.service.alarm.AlarmService;
+import partner42.modulecommon.domain.model.sse.SseEventName;
 import partner42.modulecommon.domain.model.match.ConditionCategory;
 import partner42.modulecommon.domain.model.matchcondition.MatchCondition;
 import partner42.modulecommon.domain.model.matchcondition.Place;
@@ -50,6 +54,9 @@ public class DataLoader implements CommandLineRunner {
 
     private final BCryptPasswordEncoder passwordEncoder;
 
+    private final RedisMessageListenerContainer container;
+    private final AlarmService alarmService;
+
     @Value("${spring.jpa.hibernate.data-loader}")
     private String dataLoader;
     @Transactional
@@ -68,24 +75,21 @@ public class DataLoader implements CommandLineRunner {
         Authority readUser = saveNewAuthority("user.read");
         Authority deleteUser = saveNewAuthority("user.delete");
 
-        System.out.println("--------------------------------------------------------");
         Authority createOpinion = saveNewAuthority("opinion.create");
         Authority updateOpinion = saveNewAuthority("opinion.update");
         Authority readOpinion = saveNewAuthority("opinion.read");
         Authority deleteOpinion = saveNewAuthority("opinion.delete");
-        System.out.println("--------------------------------------------------------");
+
 
         Authority createArticle = saveNewAuthority("article.create");
         Authority updateArticle = saveNewAuthority("article.update");
         Authority readArticle = saveNewAuthority("article.read");
         Authority deleteArticle = saveNewAuthority("article.delete");
-        System.out.println("--------------------------------------------------------");
 
         Authority createMatch = saveNewAuthority("match.create");
         Authority updateMatch = saveNewAuthority("match.update");
         Authority readMatch = saveNewAuthority("match.read");
         Authority deleteMatch = saveNewAuthority("match.delete");
-        System.out.println("--------------------------------------------------------");
 
         Authority createActivity = saveNewAuthority("activity.create");
         Authority updateActivity = saveNewAuthority("activity.update");
@@ -97,7 +101,10 @@ public class DataLoader implements CommandLineRunner {
         Authority readRandomMatch = saveNewAuthority("random-match.read");
         Authority deleteRandomMatch = saveNewAuthority("random-match.delete");
 
-
+        Authority createAlarm = saveNewAuthority("alarm.create");
+        Authority updateAlarm = saveNewAuthority("alarm.update");
+        Authority readAlarm = saveNewAuthority("alarm.read");
+        Authority deleteAlarm = saveNewAuthority("alarm.delete");
 
         //Role 생성
         Role adminRole = saveNewRole(RoleEnum.ROLE_ADMIN);
@@ -112,7 +119,8 @@ public class DataLoader implements CommandLineRunner {
             createArticle, updateArticle, readArticle, deleteArticle,
             createMatch, updateMatch, readMatch, deleteMatch,
             createActivity, updateActivity, readActivity, deleteActivity,
-            createRandomMatch, updateRandomMatch, readRandomMatch, deleteRandomMatch);
+            createRandomMatch, updateRandomMatch, readRandomMatch, deleteRandomMatch,
+            createAlarm, updateAlarm, readAlarm, deleteAlarm);
 
 
         userRole.getAuthorities().clear();
@@ -121,7 +129,8 @@ public class DataLoader implements CommandLineRunner {
             createArticle, updateArticle, readArticle, deleteArticle,
             createMatch, updateMatch, readMatch, deleteMatch,
             createActivity, updateActivity, readActivity, deleteActivity,
-            createRandomMatch, updateRandomMatch, readRandomMatch, deleteRandomMatch);
+            createRandomMatch, updateRandomMatch, readRandomMatch, deleteRandomMatch,
+            createAlarm, updateAlarm, readAlarm, deleteAlarm);
 
         roleRepository.saveAll(Arrays.asList(adminRole, userRole));
 
@@ -256,6 +265,9 @@ public class DataLoader implements CommandLineRunner {
             Authority.of(s));
     }
 
+    private void publishRedisPubSub(String topic){
+        container.addMessageListener(alarmService, new ChannelTopic(topic));
+    }
 
     @Transactional
     @Override
@@ -265,5 +277,6 @@ public class DataLoader implements CommandLineRunner {
             createMatchCondition();
             createDefaultUsers();
         }
+        publishRedisPubSub(SseEventName.ALARM_LIST.name());
     }
 }

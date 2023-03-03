@@ -1,0 +1,32 @@
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns="http://www.ehcache.org/v3"
+  xmlns:jsr107="http://www.ehcache.org/v3/jsr107"
+  xsi:schemaLocation="
+            http://www.ehcache.org/v3 http://www.ehcache.org/schema/ehcache-core-3.0.xsd
+            http://www.ehcache.org/v3/jsr107 http://www.ehcache.org/schema/ehcache-107-ext-3.0.xsd">
+  <!-- config : XML 구성의 루트 요소이다. -->
+
+  <cache alias="sseEmitterStorage"> <!-- cache 요소는 CachceManager에 의해 작성되고 관리될 Cache 인스턴스를 나타낸다. Cache<k,v> 형태로 인스턴스가 생성된다. alias에는 캐시의 이름을 지정한다. -->
+    <key-type>java.lang.String</key-type> <!-- key-type 요소는 Cache 인스턴스에 저장될 캐시의 키의 FQCN을 지정한다. 즉, 키의 타입을 명시해주면 된다. 기본 값은 java.lang.Object 이다. -->
+    <value-type>org.springframework.web.servlet.mvc.method.annotation.SseEmitter</value-type> <!-- value-type 요소는 Cache 인스턴스에 저장된 값의 FQCN을 지정한다. 기본 값은 java.lang.Object 이다. -->
+    <expiry> <!-- expiry는 캐시 만료기간에 대해 설정하는 요소이다. -->
+      <ttl unit="seconds">600</ttl> <!-- ttl에는 캐시 만료 시간을 지정하며 unit에는 단위를 지정한다. 해당 요소는 30초 뒤 캐시가 만료되는 것으로 지정되어 있다. -->
+      <!-- unit은 days, hours, minutes, seconds, millis, micros, nanos 를 세팅할 수 있다. -->
+    </expiry>
+
+    <listeners> <!-- listeners는 Cache의 리스너를 등록하는 요소이다. -->
+      <listener>
+        <class>com.example.ehcache.demo.config.CacheEventLogger</class> <!-- 캐싱처리에 대한 리스너가 등록된 클래스의 FQCN을 등록한다. -->
+        <event-firing-mode>ASYNCHRONOUS</event-firing-mode>
+        <event-ordering-mode>UNORDERED</event-ordering-mode>
+        <events-to-fire-on>CREATED</events-to-fire-on>
+        <events-to-fire-on>EXPIRED</events-to-fire-on>
+      </listener>
+    </listeners>
+
+    <resources> <!-- resources는 캐시 데이터의 저장 공간과 용량을 지정한다. 만약 힙 메모리만 사용한다면 <heap> 요소만으로 대체할 수 있다.  -->
+      <heap unit="entries">2</heap> <!-- heap은 JVM 힙 메모리에 캐시를 저장하도록 세팅하는 요소이다. -->
+      <offheap unit="MB">10</offheap> <!-- offheap은 JVM 힙 메모리 외부의 메모리에 캐시를 저장하도록 세팅하는 요소이다. -->
+    </resources>
+  </cache>
+</config>

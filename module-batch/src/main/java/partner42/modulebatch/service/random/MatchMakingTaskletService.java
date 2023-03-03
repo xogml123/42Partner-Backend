@@ -142,7 +142,7 @@ public class MatchMakingTaskletService {
                                     .filter(mrm -> mrm.getMember().equals(member))
                                     .forEach(RandomMatch::expire);
                             });
-                        //
+
                         matchedRandomMatches.clear();
                         //매칭 맺어진 멤버의 email추가.
                         matchedMembersEmailList.add(getMatchedParticipantsEmails(

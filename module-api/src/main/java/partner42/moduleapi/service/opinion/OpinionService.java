@@ -11,8 +11,14 @@ import partner42.moduleapi.dto.opinion.OpinionOnlyIdResponse;
 import partner42.moduleapi.dto.opinion.OpinionResponse;
 import partner42.moduleapi.dto.opinion.OpinionUpdateRequest;
 import partner42.moduleapi.mapper.OpinionMapper;
+import partner42.moduleapi.service.alarm.AlarmService;
+import partner42.modulecommon.config.kafka.AlarmEvent;
+import partner42.modulecommon.domain.model.alarm.AlarmArgs;
+import partner42.modulecommon.domain.model.alarm.AlarmType;
 import partner42.modulecommon.domain.model.article.Article;
+import partner42.modulecommon.domain.model.member.Member;
 import partner42.modulecommon.domain.model.opinion.Opinion;
+import partner42.modulecommon.domain.model.sse.SseEventName;
 import partner42.modulecommon.domain.model.user.Role;
 import partner42.modulecommon.domain.model.user.RoleEnum;
 import partner42.modulecommon.domain.model.user.User;
@@ -20,6 +26,7 @@ import partner42.modulecommon.domain.model.user.UserRole;
 import partner42.modulecommon.exception.ErrorCode;
 import partner42.modulecommon.exception.NoEntityException;
 import partner42.modulecommon.exception.NotAuthorException;
+import partner42.modulecommon.producer.AlarmProducer;
 import partner42.modulecommon.repository.article.ArticleRepository;
 import partner42.modulecommon.repository.member.MemberRepository;
 import partner42.modulecommon.repository.opinion.OpinionRepository;
@@ -37,24 +44,42 @@ public class OpinionService {
 
     private final OpinionMapper opinionMapper;
 
+    private final AlarmService alarmService;
+    private final AlarmProducer alarmProducer;
+
     @Transactional
     public OpinionOnlyIdResponse createOpinion(OpinionDto request, String username) {
+        User user = getUserByUsernameOrException(username);
         Article article = articleRepository.findByApiIdAndIsDeletedIsFalse(request.getArticleId())
             .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
+        String parentOpinionId = request.getParentId();
         Opinion opinion = Opinion.of(request.getContent(),
-            userRepository.findByUsername(username)
-                .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND))
-                .getMember(),
+            user.getMember(),
             article,
-            request.getParentId(),
+            parentOpinionId,
             request.getLevel()
         );
         opinionRepository.save(opinion);
+
+        //부모 댓글이 있는 경우 알람 생성
+        if (request.getLevel() > 1 && request.getParentId() != null) {
+            Member parentOpinionAuthor = opinionRepository.findByApiId(parentOpinionId)
+                .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND))
+                .getMemberAuthor();
+            alarmProducer.send(new AlarmEvent(AlarmType.COMMENT_ON_MY_COMMENT, AlarmArgs.builder()
+                .opinionId(parentOpinionId)
+                .articleId(request.getArticleId())
+                .callingMemberNickname(user.getMember().getNickname())
+                .build(), parentOpinionAuthor.getUser().getId(), SseEventName.ALARM_LIST));
+        }
+
         return opinionMapper.entityToOpinionOnlyIdResponse(opinion);
     }
 
+
     @Transactional
-    public OpinionOnlyIdResponse updateOpinion(OpinionUpdateRequest request, String opinionId, String username) {
+    public OpinionOnlyIdResponse updateOpinion(OpinionUpdateRequest request, String opinionId,
+        String username) {
         verifyAuthorOfOpinion(username, opinionId);
 
         Opinion opinion = opinionRepository.findByApiId(opinionId)
@@ -64,9 +89,9 @@ public class OpinionService {
     }
 
 
-
     public ListResponse<OpinionResponse> findAllOpinionsInArticle(String articleId) {
-        List<OpinionResponse> opinionResponses = opinionRepository.findAllByArticleApiIdAndIsDeletedIsFalse(articleId).stream()
+        List<OpinionResponse> opinionResponses = opinionRepository.findAllByArticleApiIdAndIsDeletedIsFalse(
+                articleId).stream()
             .map(opinionMapper::entityToOpinionResponse)
             .collect(Collectors.toList());
 
@@ -102,8 +127,7 @@ public class OpinionService {
     }
 
     private void verifyAuthorOfOpinion(String username, String opinionId) {
-        User user = userRepository.findByUsername(username)
-            .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
+        User user = getUserByUsernameOrException(username);
         Opinion opinion = opinionRepository.findByApiId(opinionId)
             .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
         if (!user.getUserRoles().stream()
@@ -111,8 +135,13 @@ public class OpinionService {
             .map(Role::getValue)
             .collect(Collectors.toSet())
             .contains(RoleEnum.ROLE_ADMIN) &&
-            !opinion.getMemberAuthor().equals(user.getMember())){
+            !opinion.getMemberAuthor().equals(user.getMember())) {
             throw new NotAuthorException(ErrorCode.NOT_OPINION_AUTHOR);
         }
+    }
+
+    private User getUserByUsernameOrException(String username) {
+        return userRepository.findByUsername(username)
+            .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
     }
 }

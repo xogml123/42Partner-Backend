@@ -69,3 +69,5 @@ application*.*
 
 ### build-send.sh ###
 build-send.sh
+
+.DS_Store

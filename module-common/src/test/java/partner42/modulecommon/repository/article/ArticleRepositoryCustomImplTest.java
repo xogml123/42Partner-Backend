@@ -19,6 +19,8 @@ import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.domain.Sort.Order;
+import org.springframework.test.annotation.Rollback;
+import org.springframework.transaction.annotation.Transactional;
 import partner42.modulecommon.domain.model.article.Article;
 import partner42.modulecommon.domain.model.article.ArticleMember;
 import partner42.modulecommon.domain.model.match.ContentCategory;
@@ -79,6 +81,7 @@ class ArticleRepositoryCustomImplTest {
             ArticleMember.of(memberRepository.findByNickname("takim").get(), true, articleStudy));
     }
     @Test
+    @Rollback(false)
     @DisplayName("findSliceByCondition")
     void findSliceByCondition() {
         //given

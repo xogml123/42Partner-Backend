@@ -19,15 +19,6 @@ public class ActivityRepositoryCustomImpl implements ActivityRepositoryCustom {
 
     private final JPAQueryFactory queryFactory;
 
-//    @PersistenceContext
-//    private EntityManager em;
-//    private JPAQueryFactory queryFactory;
-//
-//    @Autowired
-//    public ActivityRepositoryCustomImpl() {
-//        this.queryFactory = new JPAQueryFactory(em);
-//    }
-
     @Override
     public Integer findSumScoreByMemberIdAndArticleSearch(Long memberId,
         ActivitySearch activitySearch) {

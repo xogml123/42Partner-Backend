@@ -1,9 +1,7 @@
 package partner42.moduleapi.service.article;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -11,12 +9,8 @@ import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionSynchronizationUtils;
 import partner42.moduleapi.dto.EmailDto;
 import partner42.moduleapi.dto.article.ArticleDto;
 import partner42.moduleapi.dto.article.ArticleOnlyIdResponse;
@@ -26,11 +20,15 @@ import partner42.moduleapi.dto.matchcondition.MatchConditionDto;
 import partner42.moduleapi.dto.member.MemberDto;
 import partner42.moduleapi.mapper.MatchConditionMapper;
 import partner42.moduleapi.mapper.MemberMapper;
+import partner42.moduleapi.service.alarm.AlarmService;
+import partner42.modulecommon.config.kafka.AlarmEvent;
 import partner42.modulecommon.domain.model.activity.ActivityMatchScore;
-import partner42.modulecommon.utils.slack.SlackBotService;
+import partner42.modulecommon.domain.model.alarm.Alarm;
+import partner42.modulecommon.domain.model.alarm.AlarmArgs;
+import partner42.modulecommon.domain.model.alarm.AlarmType;
+import partner42.modulecommon.domain.model.sse.SseEventName;
 import partner42.modulecommon.domain.model.user.Role;
 import partner42.modulecommon.domain.model.user.UserRole;
-import partner42.modulecommon.utils.slack.SlackBotApi;
 import partner42.modulecommon.domain.model.activity.Activity;
 import partner42.modulecommon.domain.model.activity.ActivityType;
 import partner42.modulecommon.domain.model.article.Article;
@@ -52,6 +50,7 @@ import partner42.modulecommon.domain.model.user.User;
 import partner42.modulecommon.exception.ErrorCode;
 import partner42.modulecommon.exception.NoEntityException;
 import partner42.modulecommon.exception.NotAuthorException;
+import partner42.modulecommon.producer.AlarmProducer;
 import partner42.modulecommon.repository.activity.ActivityRepository;
 import partner42.modulecommon.repository.article.ArticleRepository;
 import partner42.modulecommon.repository.article.ArticleSearch;
@@ -84,17 +83,15 @@ public class ArticleService {
 
     private final ActivityRepository activityRepository;
 
-
-
     private final MemberMapper memberMapper;
     private final MatchConditionMapper matchConditionMapper;
 
+    private final AlarmService alarmService;
 
+    private final AlarmProducer alarmProducer;
     @Transactional
-    public ArticleOnlyIdResponse createArticle(String usename, ArticleDto articleRequest) {
-        Member member = userRepository.findByUsername(usename)
-            .orElseThrow(() -> new NoEntityException(
-                ErrorCode.ENTITY_NOT_FOUND)).getMember();
+    public ArticleOnlyIdResponse createArticle(String username, ArticleDto articleRequest) {
+        Member member = getUserByUsernameOrException(username).getMember();
         Article article = articleRepository.save(
             Article.of(articleRequest.getDate(),
                 articleRequest.getTitle(),
@@ -110,6 +107,12 @@ public class ArticleService {
             articleRequest, article);
         articleMatchConditionRepository.saveAll(articleMatchConditionList);
         return ArticleOnlyIdResponse.of(article.getApiId());
+    }
+
+    private User getUserByUsernameOrException(String username) {
+        return userRepository.findByUsername(username)
+            .orElseThrow(() -> new NoEntityException(
+                ErrorCode.ENTITY_NOT_FOUND));
     }
 
     //OptimisticLockException
@@ -163,8 +166,7 @@ public class ArticleService {
 
     public ArticleReadOneResponse readOneArticle(String username, String articleId) {
         Member member =
-            username == null ? null : userRepository.findByUsername(username).orElseThrow(
-                () -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND)).getMember();
+            username == null ? null : getUserByUsernameOrException(username).getMember();
         Article article = articleRepository.findDistinctFetchArticleMatchConditionsByApiIdAndIsDeletedIsFalse(
                 articleId)
             .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
@@ -219,15 +221,25 @@ public class ArticleService {
         Article article = articleRepository.findDistinctFetchArticleMembersByApiId(
                 articleId)
             .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
-
-        Member member = userRepository.findByUsername(username)
-            .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND)).getMember();
+        User user = getUserByUsernameOrException(username);
+        Member member = user.getMember();
 
         ArticleMember participateMember = article.participateMember(member);
 
         articleMemberRepository.save(participateMember);
+
+        // 알림 생성
+        //sse event 생성.
+
+        alarmProducer.send(new AlarmEvent(AlarmType.PARTICIPATION_ON_MY_POST, AlarmArgs.builder()
+            .opinionId(null)
+            .articleId(articleId)
+            .callingMemberNickname(member.getNickname())
+            .build(), article.getAuthorMember().getUser().getId(), SseEventName.ALARM_LIST));
+
         return ArticleOnlyIdResponse.of(article.getApiId());
     }
+
     //OptimisticLockException
     @Transactional
     public ArticleOnlyIdResponse participateCancelArticle(String username, String articleId) {
@@ -236,12 +248,20 @@ public class ArticleService {
                 articleId)
             .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
 
-        Member member = userRepository.findByUsername(username)
-            .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND))
-            .getMember();
+        User user = getUserByUsernameOrException(username);
+        Member member = user.getMember();
 
         ArticleMember participateMember = article.participateCancelMember(member);
         articleMemberRepository.delete(participateMember);
+
+        // 알림 생성
+        //sse
+        alarmProducer.send(new AlarmEvent(AlarmType.PARTICIPATION_CANCEL_ON_MY_POST, AlarmArgs.builder()
+            .opinionId(null)
+            .articleId(articleId)
+            .callingMemberNickname(member.getNickname())
+            .build(), article.getAuthorMember().getUser().getId(), SseEventName.ALARM_LIST));
+
         return ArticleOnlyIdResponse.of(article.getApiId());
     }
 
@@ -288,6 +308,18 @@ public class ArticleService {
                 }
             );
 
+        // 알림 생성
+        //sse
+        Member authorMember = article.getAuthorMember();
+        for (ArticleMember articleMember : article.getArticleMembers()) {
+            Member matchedMember = articleMember.getMember();
+            alarmProducer.send(new AlarmEvent(AlarmType.MATCH_CONFIRMED, AlarmArgs.builder()
+                .opinionId(null)
+                .articleId(articleId)
+                .callingMemberNickname(authorMember.getNickname())
+                .build(), matchedMember.getUser().getId(), SseEventName.ALARM_LIST));
+        }
+
         return EmailDto.<ArticleOnlyIdResponse>builder()
             .emails(article.getArticleMembers().stream()
                 .map(am -> am.getMember().getUser().getEmail())
@@ -296,6 +328,20 @@ public class ArticleService {
             .build();
     }
 
+    private void verifyAuthorOfArticle(String username, String articleId) {
+
+        User user = getUserByUsernameOrException(username);
+        Article article = articleRepository.findByApiId(articleId)
+            .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
+        if (!user.getUserRoles().stream()
+            .map(UserRole::getRole)
+            .map(Role::getValue)
+            .collect(Collectors.toSet())
+            .contains(RoleEnum.ROLE_ADMIN) &&
+            !article.getAuthorMember().equals(user.getMember())) {
+            throw new NotAuthorException(ErrorCode.NOT_ARTICLE_AUTHOR);
+        }
+    }
 
     private List<String> allMatchConditionToStringList(ArticleDto articleRequest) {
         List<String> matchConditionStrings = new ArrayList<>();
@@ -346,19 +392,5 @@ public class ArticleService {
             .collect(Collectors.toList());
     }
 
-    private void verifyAuthorOfArticle(String username, String articleId) {
 
-        User user = userRepository.findByUsername(username)
-            .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
-        Article article = articleRepository.findByApiId(articleId)
-            .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
-        if (!user.getUserRoles().stream()
-            .map(UserRole::getRole)
-            .map(Role::getValue)
-            .collect(Collectors.toSet())
-            .contains(RoleEnum.ROLE_ADMIN) &&
-            !article.getAuthorMember().equals(user.getMember())) {
-            throw new NotAuthorException(ErrorCode.NOT_ARTICLE_AUTHOR);
-        }
-    }
 }

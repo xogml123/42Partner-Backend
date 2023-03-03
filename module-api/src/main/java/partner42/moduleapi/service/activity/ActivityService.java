@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import partner42.moduleapi.dto.activity.ActivityScoreResponse;
 import partner42.modulecommon.domain.model.member.Member;
+import partner42.modulecommon.domain.model.user.User;
 import partner42.modulecommon.exception.ErrorCode;
 import partner42.modulecommon.exception.NoEntityException;
 import partner42.modulecommon.repository.activity.ActivityRepository;
@@ -23,13 +24,17 @@ public class ActivityService {
 
     public ActivityScoreResponse readMyActivityScoreSum(String username,
         ActivitySearch activitySearch) {
-        Member member = userRepository.findByUsername(username).orElseThrow(() ->
-                new NoEntityException(ErrorCode.ENTITY_NOT_FOUND))
+        Member member = getUserByUsernameOrException(username)
             .getMember();
         Integer scoreSum = activityRepository.findSumScoreByMemberIdAndArticleSearch(
             member.getId(),
             activitySearch);
         return ActivityScoreResponse.of(
             scoreSum == null ? 0: scoreSum) ;
+    }
+
+    private User getUserByUsernameOrException(String username) {
+        return userRepository.findByUsername(username).orElseThrow(() ->
+            new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
     }
 }

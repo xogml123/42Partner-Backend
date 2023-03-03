@@ -1,6 +1,8 @@
 package partner42.modulecommon.domain.model.member;
 
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -9,6 +11,7 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
@@ -18,6 +21,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import partner42.modulecommon.domain.model.BaseEntity;
+import partner42.modulecommon.domain.model.alarm.Alarm;
 import partner42.modulecommon.domain.model.tryjudge.MatchTryAvailabilityJudge;
 import partner42.modulecommon.domain.model.user.User;
 
@@ -78,6 +82,13 @@ public class Member extends BaseEntity {
 
     @OneToOne(fetch = FetchType.LAZY, mappedBy = "member")
     private User user;
+
+    /**
+     * 내가 알림을 받아야하는 경우의 알림 목록.
+     */
+    @Builder.Default
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "calledMember")
+    private List<Alarm> alarms = new ArrayList<>();
     /********************************* 연관관계 편의 메서드 *********************************/
 
     /********************************* 생성 메서드 *********************************/
@@ -96,8 +107,5 @@ public class Member extends BaseEntity {
     public void setMatchTryAvailabilityJudge(MatchTryAvailabilityJudge matchTryAvailabilityJudge) {
         this.matchTryAvailabilityJudge = matchTryAvailabilityJudge;
     }
-
-    /********************************* DTO *********************************/
-
 
 }
