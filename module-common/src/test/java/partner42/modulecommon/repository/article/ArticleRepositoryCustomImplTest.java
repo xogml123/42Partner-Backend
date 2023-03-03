@@ -15,6 +15,7 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
@@ -33,89 +34,70 @@ import partner42.modulecommon.utils.CreateTestDataUtils;
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 class ArticleRepositoryCustomImplTest {
 
-    @Autowired
-    UserRepository userRepository;
-    @Autowired
-    CreateTestDataUtils createTestDataUtils;
+
     @Autowired
     ArticleRepository articleRepository;
 
-    @Autowired
-    MemberRepository memberRepository;
-
-    @Autowired
-    ArticleMemberRepository articleMemberRepository;
-
-    @PersistenceContext
-    private EntityManager entityManager;
 
     @BeforeEach
     void setUp() {
-        createTestDataUtils.signUpUsers();
-        Article article1 = Article.of(LocalDate.now().plusDays(1L), "title", "content", false,
-            3, ContentCategory.MEAL);
-        articleRepository.save(article1);
 
-        articleMemberRepository.save(
-            ArticleMember.of(memberRepository.findByNickname("takim").get(), true, article1));
+
+    }
+    @Test
+    void givenFiveArticle_whenEachOneArticleSearchConditionExistOrAllEmpty_thenSizeIsEqualsTo() {
+        //given
+        Article articleFirstCreated = Article.of(LocalDate.now().plusDays(1L), "title", "content", false,
+            3, ContentCategory.MEAL);
+        articleRepository.save(articleFirstCreated);
+
+        Article articleIsCompleteTrue = Article.of(LocalDate.now().plusDays(1L), "title", "content", false,
+            3, ContentCategory.MEAL);
+        articleRepository.save(articleIsCompleteTrue);
+        articleIsCompleteTrue.complete();
+
+        Article articleDeleted = Article.of(LocalDate.now().plusDays(1L), "title", "content", false,
+            3, ContentCategory.MEAL);
+        articleRepository.save(articleDeleted);
+        articleDeleted.recoverableDelete();
 
         Article articleAnonymity = Article.of(LocalDate.now().plusDays(1L), "title", "content", true,
             3, ContentCategory.MEAL);
         articleRepository.save(articleAnonymity);
 
-        articleMemberRepository.save(
-            ArticleMember.of(memberRepository.findByNickname("takim").get(), true, articleAnonymity));
-
-        Article articleMatched = Article.of(LocalDate.now().plusDays(1L), "title", "content", false,
-            3, ContentCategory.MEAL);
-        articleRepository.save(articleMatched);
-        articleMatched.complete();
-
-        articleMemberRepository.save(
-            ArticleMember.of(memberRepository.findByNickname("takim").get(), true, articleMatched));
 
         Article articleStudy = Article.of(LocalDate.now().plusDays(1L), "title", "content", false,
             3, ContentCategory.STUDY);
         articleRepository.save(articleStudy);
-        articleMemberRepository.save(
-            ArticleMember.of(memberRepository.findByNickname("takim").get(), true, articleStudy));
-    }
-    @Test
-    @Rollback(false)
-    @DisplayName("findSliceByCondition")
-    void findSliceByCondition() {
-        //given
 
         //when
-        //anonymity=true인 경우
-        ArticleSearch articleSearch = null;
-        articleSearch = new ArticleSearch();
-        articleSearch.setAnonymity(true);
-        Slice<Article> articleSliceAnonymity = articleRepository.findSliceByCondition(
-            PageRequest.of(0, 10, Sort.by(List.of(new Order(
-                Direction.DESC, "createdAt")))), articleSearch);
-        //isComplete=true인 경우
-        articleSearch = new ArticleSearch();
-        articleSearch.setIsComplete(true);
-        Slice<Article> articleSliceComplete = articleRepository.findSliceByCondition(
-            PageRequest.of(0, 10, Sort.by(List.of(new Order(
-                Direction.DESC, "createdAt")))), articleSearch);
-        //contentCategory=STUDY인 경우
-        articleSearch = new ArticleSearch();
-        articleSearch.setContentCategory(ContentCategory.STUDY);
-        Slice<Article> articleSliceStudy = articleRepository.findSliceByCondition(
-            PageRequest.of(0, 10, Sort.by(List.of(new Order(
-                Direction.DESC, "createdAt")))), articleSearch);
+        Pageable pageable = new PageRequest(0, 10, new Sort())
 
-        articleSearch = new ArticleSearch();
-        Slice<Article> articleSlice= articleRepository.findSliceByCondition(
-            PageRequest.of(0, 10, Sort.by(List.of(new Order(
-                Direction.DESC, "createdAt")))), articleSearch);
+        ArticleSearch articleSearchNoProperty = new ArticleSearch();
+        Slice<Article> articleSliceNoProperty = articleRepository.findSliceByCondition(
+            null, articleSearchNoProperty);
+
+        ArticleSearch articleSearchAnonymityTrue = new ArticleSearch();
+        articleSearchAnonymityTrue.setAnonymity(true);
+        Slice<Article> articleSliceAnonymityTrue = articleRepository.findSliceByCondition(
+            null, articleSearchAnonymityTrue);
+
+
+        ArticleSearch articleSearchIsCompleteTrue = new ArticleSearch();
+        articleSearchIsCompleteTrue.setIsComplete(true);
+        Slice<Article> articleSliceIsCompleteTrue = articleRepository.findSliceByCondition(
+            null, articleSearchIsCompleteTrue);
+
+        ArticleSearch articleSearchContentCategoryMeal = new ArticleSearch();
+        articleSearchContentCategoryMeal.setContentCategory(ContentCategory.MEAL);
+        Slice<Article> articleSliceContentCategoryMeal = articleRepository.findSliceByCondition(
+            null, articleSearchContentCategoryMeal);
 
         //then
-        assertThat(articleSlice.getContent().size()).isEqualTo(4);
-        assertThat(articleSliceAnonymity.getContent().size()).isEqualTo(1);
-        assertThat(articleSliceComplete.getContent().size()).isEqualTo(1);
-        assertThat(articleSliceStudy.getContent().size()).isEqualTo(1);
+        assertThat(articleSliceNoProperty.getSize()).isEqualTo(4);
+        assertThat(articleSliceAnonymityTrue.getSize()).isEqualTo(1);
+        assertThat(articleSliceIsCompleteTrue.getSize()).isEqualTo(1);
+        assertThat(articleSliceContentCategoryMeal.getSize()).isEqualTo(3);
+
     }
 }
