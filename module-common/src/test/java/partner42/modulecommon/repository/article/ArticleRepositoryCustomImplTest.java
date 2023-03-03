@@ -39,39 +39,37 @@ class ArticleRepositoryCustomImplTest {
     ArticleRepository articleRepository;
 
 
-//    @BeforeEach
-//    void setUp() {
-//
-//
-//    }
-    @Test
-//    @Rollback(false)
-    void givenFiveArticle_whenEachOneArticleSearchConditionExistOrAllEmpty_thenSizeIsEqualsTo() {
-        //given
-        Article articleFirstCreated = Article.of(LocalDate.now().plusDays(1L), "title", "content", false,
+    @BeforeEach
+    void setUp() {
+        Article articleFirstCreated = Article.of(LocalDate.now().plusDays(1L), "articleFirstCreated", "content", false,
             3, ContentCategory.MEAL);
         articleRepository.save(articleFirstCreated);
 
-        Article articleIsCompleteTrue = Article.of(LocalDate.now().plusDays(1L), "title", "content", false,
+        Article articleIsCompleteTrue = Article.of(LocalDate.now().plusDays(1L), "articleIsCompleteTrue", "content", false,
             3, ContentCategory.MEAL);
         articleIsCompleteTrue.complete();
         articleRepository.save(articleIsCompleteTrue);
 
 
-        Article articleDeleted = Article.of(LocalDate.now().plusDays(1L), "title", "content", false,
+        Article articleDeleted = Article.of(LocalDate.now().plusDays(1L), "articleDeleted", "content", false,
             3, ContentCategory.MEAL);
         articleDeleted.recoverableDelete();
         articleRepository.save(articleDeleted);
 
 
-        Article articleAnonymity = Article.of(LocalDate.now().plusDays(1L), "title", "content", true,
+        Article articleAnonymity = Article.of(LocalDate.now().plusDays(1L), "articleAnonymity", "content", true,
             3, ContentCategory.MEAL);
         articleRepository.save(articleAnonymity);
 
 
-        Article articleStudy = Article.of(LocalDate.now().plusDays(1L), "title", "content", false,
+        Article articleStudy = Article.of(LocalDate.now().plusDays(1L), "articleStudy", "content", false,
             3, ContentCategory.STUDY);
         articleRepository.save(articleStudy);
+
+    }
+    @Test
+    void givenFiveArticle_whenEachOneArticleSearchConditionExistOrAllEmpty_thenSizeIsEqualsTo() {
+        //given
 
         //when
         Pageable pageable = PageRequest.of(0, 10, Sort.by(List.of(new Order(
@@ -104,4 +102,27 @@ class ArticleRepositoryCustomImplTest {
         assertThat(articleSliceContentCategoryMeal.getContent().size()).isEqualTo(3);
 
     }
+
+    @Test
+    void givenFiveArticle_whenSortByCreatedAtASC_thenEachOneTitleIsEqualTo() {
+        //given
+
+
+        //when
+        Pageable pageableSortByCreatedAtAsc = PageRequest.of(0, 10, Sort.by(List.of(new Order(
+            Direction.ASC, "createdAt"))));
+
+        ArticleSearch articleSearchNoProperty = new ArticleSearch();
+        List<Article> articleListSortByCreatedAtAsc = articleRepository.findSliceByCondition(
+            pageableSortByCreatedAtAsc, articleSearchNoProperty).getContent();
+
+
+        //then
+        assertThat(articleListSortByCreatedAtAsc.get(0).getTitle()).isEqualTo("articleFirstCreated");
+        assertThat(articleListSortByCreatedAtAsc.get(1).getTitle()).isEqualTo("articleIsCompleteTrue");
+        assertThat(articleListSortByCreatedAtAsc.get(2).getTitle()).isEqualTo("articleAnonymity");
+        assertThat(articleListSortByCreatedAtAsc.get(3).getTitle()).isEqualTo("articleStudy");
+
+    }
+
 }
