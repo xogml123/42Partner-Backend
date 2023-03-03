@@ -53,13 +53,15 @@ class ArticleRepositoryCustomImplTest {
 
         Article articleIsCompleteTrue = Article.of(LocalDate.now().plusDays(1L), "title", "content", false,
             3, ContentCategory.MEAL);
-        articleRepository.save(articleIsCompleteTrue);
         articleIsCompleteTrue.complete();
+        articleRepository.save(articleIsCompleteTrue);
+
 
         Article articleDeleted = Article.of(LocalDate.now().plusDays(1L), "title", "content", false,
             3, ContentCategory.MEAL);
-        articleRepository.save(articleDeleted);
         articleDeleted.recoverableDelete();
+        articleRepository.save(articleDeleted);
+
 
         Article articleAnonymity = Article.of(LocalDate.now().plusDays(1L), "title", "content", true,
             3, ContentCategory.MEAL);
@@ -71,33 +73,34 @@ class ArticleRepositoryCustomImplTest {
         articleRepository.save(articleStudy);
 
         //when
-        Pageable pageable = new PageRequest(0, 10, new Sort())
+        Pageable pageable = PageRequest.of(0, 10, Sort.by(List.of(new Order(
+            Direction.ASC, "createdAt"))));
 
         ArticleSearch articleSearchNoProperty = new ArticleSearch();
         Slice<Article> articleSliceNoProperty = articleRepository.findSliceByCondition(
-            null, articleSearchNoProperty);
+            pageable, articleSearchNoProperty);
 
         ArticleSearch articleSearchAnonymityTrue = new ArticleSearch();
         articleSearchAnonymityTrue.setAnonymity(true);
         Slice<Article> articleSliceAnonymityTrue = articleRepository.findSliceByCondition(
-            null, articleSearchAnonymityTrue);
+            pageable, articleSearchAnonymityTrue);
 
 
         ArticleSearch articleSearchIsCompleteTrue = new ArticleSearch();
         articleSearchIsCompleteTrue.setIsComplete(true);
         Slice<Article> articleSliceIsCompleteTrue = articleRepository.findSliceByCondition(
-            null, articleSearchIsCompleteTrue);
+            pageable, articleSearchIsCompleteTrue);
 
         ArticleSearch articleSearchContentCategoryMeal = new ArticleSearch();
         articleSearchContentCategoryMeal.setContentCategory(ContentCategory.MEAL);
         Slice<Article> articleSliceContentCategoryMeal = articleRepository.findSliceByCondition(
-            null, articleSearchContentCategoryMeal);
+            pageable, articleSearchContentCategoryMeal);
 
         //then
-        assertThat(articleSliceNoProperty.getSize()).isEqualTo(4);
-        assertThat(articleSliceAnonymityTrue.getSize()).isEqualTo(1);
-        assertThat(articleSliceIsCompleteTrue.getSize()).isEqualTo(1);
-        assertThat(articleSliceContentCategoryMeal.getSize()).isEqualTo(3);
+        assertThat(articleSliceNoProperty.getContent().size()).isEqualTo(4);
+        assertThat(articleSliceAnonymityTrue.getContent().size()).isEqualTo(1);
+        assertThat(articleSliceIsCompleteTrue.getContent().size()).isEqualTo(1);
+        assertThat(articleSliceContentCategoryMeal.getContent().size()).isEqualTo(3);
 
     }
 }
