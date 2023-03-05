@@ -16,6 +16,4 @@ public interface ArticleRepository extends JpaRepository<Article, Long> , Articl
     Optional<Article> findEntityGraphArticleMembersByApiIdAndIsDeletedIsFalse(String articleId);
 
     Optional<Article> findByApiIdAndIsDeletedIsFalse(String articleId);
-
-
 }

@@ -42,9 +42,8 @@ public class ArticleRepositoryCustomImpl implements ArticleRepositoryCustom {
 
     @Override
     public Slice<Article> findSliceByCondition(Pageable pageable, ArticleSearch condition) {
-        JPAQuery<Article> query = queryFactory.select(article).distinct()
+        JPAQuery<Article> query = queryFactory.select(article)
             .from(article)
-            .join(article.articleMembers, articleMember).fetchJoin()
             .where(
                 isDeletedIsFalse(),
                 isComplete(condition.getIsComplete()),

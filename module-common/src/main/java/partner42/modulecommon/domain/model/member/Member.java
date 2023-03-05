@@ -77,8 +77,8 @@ public class Member extends BaseEntity {
     /********************************* 연관관계 매핑 *********************************/
 
     //FetchType.LAZY가 실질적으로 적용안됨 항상 EAGER로 적용
-    @OneToOne(fetch = FetchType.LAZY, mappedBy = "member", cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
-    private MatchTryAvailabilityJudge matchTryAvailabilityJudge;
+//    @OneToOne(fetch = FetchType.LAZY, mappedBy = "member", cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
+//    private MatchTryAvailabilityJudge matchTryAvailabilityJudge;
 
     @OneToOne(fetch = FetchType.LAZY, mappedBy = "member")
     private User user;

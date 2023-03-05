@@ -90,7 +90,7 @@ public class OpinionService {
 
 
     public ListResponse<OpinionResponse> findAllOpinionsInArticle(String articleId) {
-        List<OpinionResponse> opinionResponses = opinionRepository.findAllByArticleApiIdAndIsDeletedIsFalse(
+        List<OpinionResponse> opinionResponses = opinionRepository.findAllEntityGraphArticleAndMemberAuthorByArticleApiIdAndIsDeletedIsFalse(
                 articleId).stream()
             .map(opinionMapper::entityToOpinionResponse)
             .collect(Collectors.toList());
@@ -106,7 +106,7 @@ public class OpinionService {
         verifyAuthorOfOpinion(username, opinionId);
         Opinion opinion = opinionRepository.findByApiId(opinionId)
             .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
-        opinion.delete();
+        opinion.recoverableDelete();
         return opinionMapper.entityToOpinionOnlyIdResponse(opinion);
     }
 
