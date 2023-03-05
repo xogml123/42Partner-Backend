@@ -7,7 +7,6 @@ import java.time.LocalDate;
 import java.util.Optional;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,10 +51,10 @@ class ArticleRepositoryTest {
         article3.recoverableDelete();
 
         //when
-        Optional<Article> optionalArticle2 = articleRepository.findDistinctFetchArticleMatchConditionsByApiIdAndIsDeletedIsFalse(
+        Optional<Article> optionalArticle2 = articleRepository.findEntityGraphArticleMatchConditionsByApiIdAndIsDeletedIsFalse(
             article2.getApiId());
 
-        Optional<Article> optionalArticle3 = articleRepository.findDistinctFetchArticleMatchConditionsByApiIdAndIsDeletedIsFalse(
+        Optional<Article> optionalArticle3 = articleRepository.findEntityGraphArticleMatchConditionsByApiIdAndIsDeletedIsFalse(
             article3.getApiId());
 
         //then

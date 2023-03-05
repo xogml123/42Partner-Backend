@@ -23,7 +23,6 @@ import partner42.moduleapi.mapper.MemberMapper;
 import partner42.moduleapi.service.alarm.AlarmService;
 import partner42.modulecommon.config.kafka.AlarmEvent;
 import partner42.modulecommon.domain.model.activity.ActivityMatchScore;
-import partner42.modulecommon.domain.model.alarm.Alarm;
 import partner42.modulecommon.domain.model.alarm.AlarmArgs;
 import partner42.modulecommon.domain.model.alarm.AlarmType;
 import partner42.modulecommon.domain.model.sse.SseEventName;
@@ -129,7 +128,7 @@ public class ArticleService {
     public ArticleOnlyIdResponse changeIsDelete(String username, String articleId) {
 
         verifyAuthorOfArticle(username, articleId);
-        Article article = articleRepository.findByApiId(articleId)
+        Article article = articleRepository.findByApiIdAndIsDeletedIsFalse(articleId)
             .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
 
         article.recoverableDelete();
@@ -143,7 +142,7 @@ public class ArticleService {
 
         verifyAuthorOfArticle(username, articleId);
 
-        Article article = articleRepository.findDistinctFetchArticleMembersByApiId(
+        Article article = articleRepository.findEntityGraphArticleMembersByApiIdAndIsDeletedIsFalse(
                 articleId)
             .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
 
@@ -167,7 +166,7 @@ public class ArticleService {
     public ArticleReadOneResponse readOneArticle(String username, String articleId) {
         Member member =
             username == null ? null : getUserByUsernameOrException(username).getMember();
-        Article article = articleRepository.findDistinctFetchArticleMatchConditionsByApiIdAndIsDeletedIsFalse(
+        Article article = articleRepository.findEntityGraphArticleMatchConditionsByApiIdAndIsDeletedIsFalse(
                 articleId)
             .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
 
@@ -218,7 +217,7 @@ public class ArticleService {
     //이미 참여중인 경우 방지.
     @Transactional
     public ArticleOnlyIdResponse participateArticle(String username, String articleId) {
-        Article article = articleRepository.findDistinctFetchArticleMembersByApiId(
+        Article article = articleRepository.findEntityGraphArticleMembersByApiIdAndIsDeletedIsFalse(
                 articleId)
             .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
         User user = getUserByUsernameOrException(username);
@@ -244,7 +243,7 @@ public class ArticleService {
     @Transactional
     public ArticleOnlyIdResponse participateCancelArticle(String username, String articleId) {
 
-        Article article = articleRepository.findDistinctFetchArticleMembersByApiId(
+        Article article = articleRepository.findEntityGraphArticleMembersByApiIdAndIsDeletedIsFalse(
                 articleId)
             .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
 
@@ -271,7 +270,7 @@ public class ArticleService {
         //글 작성자아닌 경우
         verifyAuthorOfArticle(username, articleId);
 
-        Article article = articleRepository.findDistinctFetchArticleMembersByApiId(
+        Article article = articleRepository.findEntityGraphArticleMembersByApiIdAndIsDeletedIsFalse(
                 articleId)
             .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
 
@@ -331,7 +330,7 @@ public class ArticleService {
     private void verifyAuthorOfArticle(String username, String articleId) {
 
         User user = getUserByUsernameOrException(username);
-        Article article = articleRepository.findByApiId(articleId)
+        Article article = articleRepository.findByApiIdAndIsDeletedIsFalse(articleId)
             .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
         if (!user.getUserRoles().stream()
             .map(UserRole::getRole)
