@@ -56,7 +56,6 @@ class ArticleRepositoryCustomImplTest {
         articleDeleted.recoverableDelete();
         articleRepository.save(articleDeleted);
 
-
         Article articleAnonymity = Article.of(LocalDate.now().plusDays(1L), "articleAnonymity", "content", true,
             3, ContentCategory.MEAL);
         articleRepository.save(articleAnonymity);
@@ -68,61 +67,56 @@ class ArticleRepositoryCustomImplTest {
 
     }
     @Test
-    void givenFiveArticle_whenEachOneArticleSearchConditionExistOrAllEmpty_thenSizeIsEqualsTo() {
+    void findSliceByCondition_givenArticleWithDifferentArticleSearchProperty_whenOnlyOneArticleSearchConditionExistOrAllEmpty_thenSizeIsEqualsTo() {
         //given
-
-        //when
         Pageable pageable = PageRequest.of(0, 10, Sort.by(List.of(new Order(
             Direction.ASC, "createdAt"))));
 
         ArticleSearch articleSearchNoProperty = new ArticleSearch();
-        Slice<Article> articleSliceNoProperty = articleRepository.findSliceByCondition(
-            pageable, articleSearchNoProperty);
 
         ArticleSearch articleSearchAnonymityTrue = new ArticleSearch();
         articleSearchAnonymityTrue.setAnonymity(true);
-        Slice<Article> articleSliceAnonymityTrue = articleRepository.findSliceByCondition(
-            pageable, articleSearchAnonymityTrue);
 
 
         ArticleSearch articleSearchIsCompleteTrue = new ArticleSearch();
         articleSearchIsCompleteTrue.setIsComplete(true);
-        Slice<Article> articleSliceIsCompleteTrue = articleRepository.findSliceByCondition(
-            pageable, articleSearchIsCompleteTrue);
 
         ArticleSearch articleSearchContentCategoryMeal = new ArticleSearch();
         articleSearchContentCategoryMeal.setContentCategory(ContentCategory.MEAL);
+        //when
+
+        Slice<Article> articleSliceNoProperty = articleRepository.findSliceByCondition(
+            pageable, articleSearchNoProperty);
+        Slice<Article> articleSliceAnonymityTrue = articleRepository.findSliceByCondition(
+            pageable, articleSearchAnonymityTrue);
+        Slice<Article> articleSliceIsCompleteTrue = articleRepository.findSliceByCondition(
+            pageable, articleSearchIsCompleteTrue);
         Slice<Article> articleSliceContentCategoryMeal = articleRepository.findSliceByCondition(
             pageable, articleSearchContentCategoryMeal);
-
         //then
-        assertThat(articleSliceNoProperty.getContent().size()).isEqualTo(4);
-        assertThat(articleSliceAnonymityTrue.getContent().size()).isEqualTo(1);
-        assertThat(articleSliceIsCompleteTrue.getContent().size()).isEqualTo(1);
-        assertThat(articleSliceContentCategoryMeal.getContent().size()).isEqualTo(3);
+        assertThat(articleSliceNoProperty.getContent()).hasSize(4);
+        assertThat(articleSliceAnonymityTrue.getContent()).hasSize(1);
+        assertThat(articleSliceIsCompleteTrue.getContent()).hasSize(1);
+        assertThat(articleSliceContentCategoryMeal.getContent()).hasSize(3);
 
     }
 
     @Test
-    void givenFiveArticle_whenSortByCreatedAtASC_thenEachOneTitleIsEqualTo() {
+    void findSliceByCondition_givenArticleWithDifferentCreatedAt_whenSortByCreatedAtASC_thenExactlyExpectedOrder() {
         //given
-
-
-        //when
-        Pageable pageableSortByCreatedAtAsc = PageRequest.of(0, 10, Sort.by(List.of(new Order(
-            Direction.ASC, "createdAt"))));
-
+        Sort sort = Sort.by(List.of(new Order(
+            Direction.ASC, "createdAt")));
+        Pageable pageableSortByCreatedAtAsc = PageRequest.of(0, 10, sort);
         ArticleSearch articleSearchNoProperty = new ArticleSearch();
+        //when
+
         List<Article> articleListSortByCreatedAtAsc = articleRepository.findSliceByCondition(
             pageableSortByCreatedAtAsc, articleSearchNoProperty).getContent();
 
-
         //then
-        assertThat(articleListSortByCreatedAtAsc.get(0).getTitle()).isEqualTo("articleFirstCreated");
-        assertThat(articleListSortByCreatedAtAsc.get(1).getTitle()).isEqualTo("articleIsCompleteTrue");
-        assertThat(articleListSortByCreatedAtAsc.get(2).getTitle()).isEqualTo("articleAnonymity");
-        assertThat(articleListSortByCreatedAtAsc.get(3).getTitle()).isEqualTo("articleStudy");
-
+        assertThat(articleListSortByCreatedAtAsc)
+            .extracting(Article::getTitle)
+            .containsExactly("articleFirstCreated", "articleIsCompleteTrue", "articleAnonymity", "articleStudy");
     }
 
 }

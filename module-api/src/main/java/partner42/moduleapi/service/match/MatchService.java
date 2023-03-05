@@ -3,7 +3,6 @@ package partner42.moduleapi.service.match;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
@@ -14,13 +13,11 @@ import org.springframework.transaction.annotation.Transactional;
 import partner42.moduleapi.dto.match.MatchDto;
 import partner42.moduleapi.dto.match.MatchReviewRequest;
 import partner42.moduleapi.dto.matchcondition.MatchConditionDto;
-import partner42.moduleapi.dto.member.MemberDto;
 import partner42.moduleapi.dto.member.MemberReviewDto;
 import partner42.moduleapi.mapper.MemberMapper;
 import partner42.modulecommon.domain.model.activity.Activity;
 import partner42.modulecommon.domain.model.activity.ActivityMatchScore;
 import partner42.modulecommon.domain.model.activity.ActivityType;
-import partner42.modulecommon.domain.model.article.Article;
 import partner42.modulecommon.domain.model.match.Match;
 import partner42.modulecommon.domain.model.match.MatchMember;
 import partner42.modulecommon.domain.model.matchcondition.MatchCondition;
@@ -36,7 +33,6 @@ import partner42.modulecommon.domain.model.user.UserRole;
 import partner42.modulecommon.exception.BusinessException;
 import partner42.modulecommon.exception.ErrorCode;
 import partner42.modulecommon.exception.NoEntityException;
-import partner42.modulecommon.exception.NotAuthorException;
 import partner42.modulecommon.repository.activity.ActivityRepository;
 import partner42.modulecommon.repository.match.MatchRepository;
 import partner42.modulecommon.repository.match.MatchSearch;
@@ -60,7 +56,7 @@ public class MatchService {
         Pageable pageable) {
         Member member = getUserByUsernameOrException(username)
             .getMember();
-        Slice<Match> matchSlices = matchRepository.findAllFetchJoinMatchMemberId(
+        Slice<Match> matchSlices = matchRepository.findAllMatchFetchJoinByMemberIdAndByMatchSearch(
             member.getId(), matchSearch, pageable);
         List<MatchDto> content = matchSlices
             .getContent()

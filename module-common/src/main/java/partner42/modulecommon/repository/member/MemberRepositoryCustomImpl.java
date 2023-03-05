@@ -15,14 +15,6 @@ public class MemberRepositoryCustomImpl implements MemberRepositoryCustom {
 
     private final JPAQueryFactory queryFactory;
 
-//    @PersistenceContext
-//    private EntityManager em;
-//    private JPAQueryFactory queryFactory;
-//
-//    @Autowired
-//    public MemberRepositoryCustomImpl() {
-//        this.queryFactory = new JPAQueryFactory(em);
-//    }
 
     @Override
     public Member findByUserId(Long userId){

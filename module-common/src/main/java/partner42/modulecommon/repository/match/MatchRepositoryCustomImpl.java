@@ -31,18 +31,8 @@ public class MatchRepositoryCustomImpl implements MatchRepositoryCustom{
 
     private final JPAQueryFactory queryFactory;
 
-//    @PersistenceContext
-//    private EntityManager em;
-//    private JPAQueryFactory queryFactory;
-//
-//    @Autowired
-//    public MatchRepositoryCustomImpl() {
-//        this.queryFactory = new JPAQueryFactory(em);
-//    }
-
-
     @Override
-    public Slice<Match> findAllFetchJoinMatchMemberId(Long memberId, MatchSearch matchSearch, Pageable pageable){
+    public Slice<Match> findAllMatchFetchJoinByMemberIdAndByMatchSearch(Long memberId, MatchSearch matchSearch, Pageable pageable){
         JPAQuery<Match> query = queryFactory.select(match).distinct()
             .from(match)
             .join(match.matchMembers, matchMember).fetchJoin()
