@@ -15,6 +15,7 @@ import partner42.modulecommon.domain.model.match.ContentCategory;
 import partner42.modulecommon.domain.model.member.Member;
 import partner42.modulecommon.domain.model.opinion.Opinion;
 import partner42.modulecommon.repository.article.ArticleRepository;
+import partner42.modulecommon.repository.member.MemberRepository;
 
 @DataJpaTest
 //custom db를 사용하기 위해 필요, 없으면 embeded h2db사용하려고 함.
@@ -25,6 +26,8 @@ class OpinionRepositoryTest {
     private OpinionRepository opinionRepository;
     @Autowired
     private ArticleRepository articleRepository;
+    @Autowired
+    private MemberRepository memberRepository;
 
     @BeforeEach
     void setUp() {
@@ -37,17 +40,20 @@ class OpinionRepositoryTest {
         Article article1 = Article.of(LocalDate.now(), "article1", "", false, 3, ContentCategory.MEAL);
         Article article2 = Article.of(LocalDate.now(), "article2", "", false, 3, ContentCategory.MEAL);
 
-        Member.of("author", )
-        Opinion opinion1 = Opinion.of("content", null, article1, "a", 0);
-        Opinion opinion2 = Opinion.of("content", null, article1, "a", 0);
-        Opinion opinion3 = Opinion.of("content", null, article1, "a", 0);
-        Opinion opinion4 = Opinion.of("content", null, article2, "a", 0);
-        Opinion opinionDeleted = Opinion.of("content", null, article2, "a", 0);
+        articleRepository.saveAll(List.of(article1, article2));
+
+        Member author = Member.of("author");
+        memberRepository.save(author);
+
+        Opinion opinion1 = Opinion.of("content", author, article1, "a", 0);
+        Opinion opinion2 = Opinion.of("content", author, article1, "a", 0);
+        Opinion opinion3 = Opinion.of("content", author, article1, "a", 0);
+        Opinion opinion4 = Opinion.of("content", author, article2, "a", 0);
+        Opinion opinionDeleted = Opinion.of("content", author, article2, "a", 0);
         opinionDeleted.recoverableDelete();
+        opinionRepository.saveAll(List.of(opinion1, opinion2, opinion3, opinionDeleted, opinion4));
 
         String falseArticleApiId = "FalseApiId";
-        articleRepository.saveAll(List.of(article1, article2));
-        opinionRepository.saveAll(List.of(opinion1, opinion2, opinion3, opinionDeleted, opinion4));
         //when
 
         List<Opinion> opinionList1 = opinionRepository.findAllEntityGraphArticleAndMemberAuthorByArticleApiIdAndIsDeletedIsFalse(

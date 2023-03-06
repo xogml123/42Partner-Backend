@@ -233,8 +233,7 @@ public class DataLoader implements CommandLineRunner {
             String password = login;
             String encodedPassword = passwordEncoder.encode(login);
 
-            MatchTryAvailabilityJudge matchTryAvailabilityJudge = MatchTryAvailabilityJudge.of();
-            Member member = Member.of(login, matchTryAvailabilityJudge);
+            Member member = Member.of(login);
             memberRepository.save(member);
 
             Role role = roleRepository.findByValue(RoleEnum.ROLE_ADMIN).orElseThrow(() ->

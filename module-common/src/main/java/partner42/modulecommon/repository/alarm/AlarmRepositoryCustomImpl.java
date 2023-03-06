@@ -32,10 +32,10 @@ public class AlarmRepositoryCustomImpl implements AlarmRepositoryCustom {
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public Slice<Alarm> findSliceByCondition(Pageable pageable, Long memberId) {
+    public Slice<Alarm> findAlarmSliceByMemberId(Pageable pageable, Long memberId) {
         JPAQuery<Alarm> query = queryFactory.select(alarm)
             .from(alarm)
-            .join(alarm.calledMember, member).fetchJoin()
+            .join(alarm.calledMember, member)
             .where(
                 isMemberId(memberId)
             );

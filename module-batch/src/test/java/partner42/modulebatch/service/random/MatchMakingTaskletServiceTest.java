@@ -43,7 +43,7 @@ class MatchMakingTaskletServiceTest {
         //then
         MatchSearch matchSearch = new MatchSearch();
         assertThat(
-            matchRepository.findAllMatchFetchJoinByMemberIdAndByMatchSearch(takim.getId(), matchSearch, PageRequest.of(0, 3) ).getSize())
+            matchRepository.findAllMatchByMemberIdAndByMatchSearch(takim.getId(), matchSearch, PageRequest.of(0, 3) ).getSize())
             .isEqualTo(1);
 
 

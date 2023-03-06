@@ -6,5 +6,5 @@ import org.springframework.data.domain.Slice;
 
 public interface MatchRepositoryCustom {
 
-    Slice<Match> findAllMatchFetchJoinByMemberIdAndByMatchSearch(Long memberId, MatchSearch matchSearch, Pageable pageable);
+    Slice<Match> findAllMatchByMemberIdAndByMatchSearch(Long memberId, MatchSearch matchSearch, Pageable pageable);
 }

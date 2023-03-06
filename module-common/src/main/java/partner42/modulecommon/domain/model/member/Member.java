@@ -22,7 +22,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import partner42.modulecommon.domain.model.BaseEntity;
 import partner42.modulecommon.domain.model.alarm.Alarm;
-import partner42.modulecommon.domain.model.tryjudge.MatchTryAvailabilityJudge;
 import partner42.modulecommon.domain.model.user.User;
 
 
@@ -76,7 +75,7 @@ public class Member extends BaseEntity {
 
     /********************************* 연관관계 매핑 *********************************/
 
-    //FetchType.LAZY가 실질적으로 적용안됨 항상 EAGER로 적용
+//    FetchType.LAZY가 실질적으로 적용안됨 항상 EAGER로 적용
 //    @OneToOne(fetch = FetchType.LAZY, mappedBy = "member", cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
 //    private MatchTryAvailabilityJudge matchTryAvailabilityJudge;
 
@@ -92,20 +91,16 @@ public class Member extends BaseEntity {
     /********************************* 연관관계 편의 메서드 *********************************/
 
     /********************************* 생성 메서드 *********************************/
-    public static Member of(String nickname, MatchTryAvailabilityJudge matchTryAvailabilityJudge) {
+    public static Member of(String nickname) {
         Member member = Member.builder()
             .nickname(nickname)
             .build();
-        matchTryAvailabilityJudge.setMember(member);
         return member;
     }
 
     /********************************* 비니지스 로직 *********************************/
     public void changeNickname(String nickname) {
         this.nickname = nickname;
-    }
-    public void setMatchTryAvailabilityJudge(MatchTryAvailabilityJudge matchTryAvailabilityJudge) {
-        this.matchTryAvailabilityJudge = matchTryAvailabilityJudge;
     }
 
 }

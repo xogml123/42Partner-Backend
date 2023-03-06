@@ -3,6 +3,7 @@ package partner42.modulecommon.repository.match;
 
 import static partner42.modulecommon.domain.model.match.QMatch.match;
 import static partner42.modulecommon.domain.model.match.QMatchMember.matchMember;
+import static partner42.modulecommon.domain.model.member.QMember.member;
 
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
@@ -32,10 +33,11 @@ public class MatchRepositoryCustomImpl implements MatchRepositoryCustom{
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public Slice<Match> findAllMatchFetchJoinByMemberIdAndByMatchSearch(Long memberId, MatchSearch matchSearch, Pageable pageable){
-        JPAQuery<Match> query = queryFactory.select(match).distinct()
+    public Slice<Match> findAllMatchByMemberIdAndByMatchSearch(Long memberId, MatchSearch matchSearch, Pageable pageable){
+        JPAQuery<Match> query = queryFactory.select(match)
             .from(match)
-            .join(match.matchMembers, matchMember).fetchJoin()
+//            .join(match.matchMembers, matchMember)
+//            .join(matchMember.member, member)
             .where(
                 isMemberIn(memberId),
                 isContentCategory(matchSearch.getContentCategory()),
@@ -65,7 +67,7 @@ public class MatchRepositoryCustomImpl implements MatchRepositoryCustom{
     }
 
     private BooleanExpression isMemberIn(Long memberId) {
-        return memberId == null ? null : matchMember.member.id.eq(memberId);
+        return memberId == null ? null : member.id.eq(memberId);
     }
 
     private BooleanExpression isContentCategory(ContentCategory contentCategory) {

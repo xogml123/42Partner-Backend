@@ -29,11 +29,9 @@
 //public class MatchTryAvailabilityJudge extends BaseEntity {
 //    //********************************* static final 상수 필드 *********************************/
 //
-//    /**
-//     * email 뒤에 붙는 문자열
-//     */
-//    private static final Integer MEAL_MAX = 1;
-//    private static final Integer STUDY_MAX = 1;
+//
+//    private static final Integer DEFAULT_MEAL_MAX = 2;
+//    private static final Integer DEFAULT_STUDY_MAX = 2;
 //
 //
 //
@@ -89,8 +87,10 @@
 //
 //
 //    /********************************* 생성 메서드 *********************************/
-//    public static MatchTryAvailabilityJudge of() {
-//        return MatchTryAvailabilityJudge.builder().build();
+//    public static MatchTryAvailabilityJudge of(Member member) {
+//        MatchTryAvailabilityJudge matchTryAvailabilityJudge = MatchTryAvailabilityJudge.builder()
+//            .build();
+//        matchTryAvailabilityJudge.
 //    }
 //
 //

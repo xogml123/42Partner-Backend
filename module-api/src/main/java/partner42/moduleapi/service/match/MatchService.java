@@ -56,7 +56,7 @@ public class MatchService {
         Pageable pageable) {
         Member member = getUserByUsernameOrException(username)
             .getMember();
-        Slice<Match> matchSlices = matchRepository.findAllMatchFetchJoinByMemberIdAndByMatchSearch(
+        Slice<Match> matchSlices = matchRepository.findAllMatchByMemberIdAndByMatchSearch(
             member.getId(), matchSearch, pageable);
         List<MatchDto> content = matchSlices
             .getContent()
