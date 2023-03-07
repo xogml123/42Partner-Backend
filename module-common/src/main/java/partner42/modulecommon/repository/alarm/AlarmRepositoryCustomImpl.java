@@ -32,7 +32,7 @@ public class AlarmRepositoryCustomImpl implements AlarmRepositoryCustom {
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public Slice<Alarm> findAlarmSliceByMemberId(Pageable pageable, Long memberId) {
+    public Slice<Alarm> findSliceByMemberId(Pageable pageable, Long memberId) {
         JPAQuery<Alarm> query = queryFactory.select(alarm)
             .from(alarm)
             .join(alarm.calledMember, member)
@@ -58,7 +58,7 @@ public class AlarmRepositoryCustomImpl implements AlarmRepositoryCustom {
     }
 
     private BooleanExpression isMemberId(Long memberId) {
-        return memberId == null? null: alarm.calledMember.id.eq(memberId);
+        return member.id.eq(memberId);
     }
 
 }

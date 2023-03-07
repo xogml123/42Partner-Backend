@@ -7,6 +7,6 @@ import partner42.modulecommon.domain.model.alarm.Alarm;
 public interface AlarmRepositoryCustom {
 
 
-    Slice<Alarm> findAlarmSliceByMemberId(Pageable pageable, Long memberId);
+    Slice<Alarm> findSliceByMemberId(Pageable pageable, Long memberId);
 }
 

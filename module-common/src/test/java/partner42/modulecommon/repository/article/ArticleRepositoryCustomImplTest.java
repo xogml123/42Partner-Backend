@@ -67,7 +67,7 @@ class ArticleRepositoryCustomImplTest {
 
     }
     @Test
-    void findSliceByCondition_givenArticleWithDifferentArticleSearchProperty_whenOnlyOneArticleSearchConditionExistOrAllEmpty_thenSizeIsEqualsTo() {
+    void findSliceByCondition_givenArticleWithDifferentArticleSearchProperty_whenArticleSearchDiverse_thenFilterByArticleSearch() {
         //given
         Pageable pageable = PageRequest.of(0, 10, Sort.by(List.of(new Order(
             Direction.ASC, "createdAt"))));
@@ -117,6 +117,33 @@ class ArticleRepositoryCustomImplTest {
         assertThat(articleListSortByCreatedAtAsc)
             .extracting(Article::getTitle)
             .containsExactly("articleFirstCreated", "articleIsCompleteTrue", "articleAnonymity", "articleStudy");
+    }
+
+    @Test
+    void findSliceByCondition_givenArticles_whenPageSizeNearEntireSize_thenNextFlag() {
+        //given
+        Sort sort = Sort.by(List.of(new Order(
+            Direction.ASC, "createdAt")));
+        Pageable pageLower = PageRequest.of(0, 3, sort);
+        Pageable pageEqual = PageRequest.of(0, 4, sort);
+        Pageable pageHigher = PageRequest.of(0, 5, sort);
+
+        ArticleSearch articleSearchNoProperty = new ArticleSearch();
+        //when
+
+        Slice<Article> articleSliceWithLowerPageSize = articleRepository.findSliceByCondition(
+            pageLower, articleSearchNoProperty);
+
+        Slice<Article> articleSliceWithEqualPageSize = articleRepository.findSliceByCondition(
+            pageEqual, articleSearchNoProperty);
+
+        Slice<Article> articleSliceWithHigherPageSize = articleRepository.findSliceByCondition(
+            pageHigher, articleSearchNoProperty);
+
+        //then
+        assertThat(articleSliceWithLowerPageSize.hasNext()).isTrue();
+        assertThat(articleSliceWithEqualPageSize.hasNext()).isFalse();
+        assertThat(articleSliceWithHigherPageSize.hasNext()).isFalse();
     }
 
 }

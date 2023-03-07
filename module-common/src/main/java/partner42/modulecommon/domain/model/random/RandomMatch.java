@@ -123,10 +123,6 @@ public abstract class RandomMatch extends BaseEntity implements Serializable {
     @Column(nullable = false, updatable = false)
     protected Place place;
 
-    //인덱스
-//    @Column(nullable = false, updatable = false)
-//    protected LocalDateTime createdAt;
-
     @Column(nullable = false)
     protected Boolean isExpired = false;
 

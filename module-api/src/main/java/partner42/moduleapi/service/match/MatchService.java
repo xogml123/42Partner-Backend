@@ -68,7 +68,7 @@ public class MatchService {
                     )
                     .collect(Collectors.toList());
 
-                return MatchDto.of(match, MatchConditionDto.of(
+                return MatchDto.of(match, match.getReviewAvailableTime(), MatchConditionDto.of(
                         Place.extractPlaceFromMatchCondition(matchConditions),
                         TimeOfEating.extractTimeOfEatingFromMatchCondition(matchConditions),
                         WayOfEating.extractWayOfEatingFromMatchCondition(matchConditions),
@@ -114,7 +114,7 @@ public class MatchService {
                 matchConditionMatch.getMatchCondition()
             )
             .collect(Collectors.toList());
-        return MatchDto.of(match, MatchConditionDto.of(
+        return MatchDto.of(match, match.getReviewAvailableTime(), MatchConditionDto.of(
                 Place.extractPlaceFromMatchCondition(matchConditions),
                 TimeOfEating.extractTimeOfEatingFromMatchCondition(matchConditions),
                 WayOfEating.extractWayOfEatingFromMatchCondition(matchConditions),

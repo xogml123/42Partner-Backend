@@ -36,8 +36,8 @@ public class MatchRepositoryCustomImpl implements MatchRepositoryCustom{
     public Slice<Match> findAllMatchByMemberIdAndByMatchSearch(Long memberId, MatchSearch matchSearch, Pageable pageable){
         JPAQuery<Match> query = queryFactory.select(match)
             .from(match)
-//            .join(match.matchMembers, matchMember)
-//            .join(matchMember.member, member)
+            .join(match.matchMembers, matchMember)
+            .join(matchMember.member, member)
             .where(
                 isMemberIn(memberId),
                 isContentCategory(matchSearch.getContentCategory()),
@@ -67,7 +67,10 @@ public class MatchRepositoryCustomImpl implements MatchRepositoryCustom{
     }
 
     private BooleanExpression isMemberIn(Long memberId) {
-        return memberId == null ? null : member.id.eq(memberId);
+        if (memberId == null){
+            throw new IllegalArgumentException("memberId is null");
+        }
+        return member.id.eq(memberId);
     }
 
     private BooleanExpression isContentCategory(ContentCategory contentCategory) {

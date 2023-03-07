@@ -84,7 +84,7 @@ public class AlarmService implements MessageListener {
     @Transactional
     public Slice<AlarmDto> sendAlarmSliceAndIsReadToTrue(Pageable pageable, String username) {
         Member member = getUserByUsernameOrException(username).getMember();
-        Slice<Alarm> alarmSlices = alarmRepository.findAlarmSliceByMemberId(pageable, member.getId());
+        Slice<Alarm> alarmSlices = alarmRepository.findSliceByMemberId(pageable, member.getId());
         List<Alarm> alarms = alarmSlices.getContent();
 
         //update 쿼리 여러번 나가는지 확인 해봐야함.
