@@ -24,13 +24,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "ARTICLE_MEMBER")
 @Entity
 public class ArticleMember extends BaseEntity {
-
     //********************************* static final 상수 필드 *********************************/
-
-    /**
-     * email 뒤에 붙는 문자열
-     */
-
 
     /********************************* PK 필드 *********************************/
 

@@ -42,15 +42,8 @@ import partner42.modulecommon.exception.UnmodifiableArticleException;
     @UniqueConstraint(name = "API_ID_UNIQUE", columnNames = {"apiId"}),
 })
 @Entity
-public class Article extends BaseEntity {
-
-//    @Autowired
-//    private
+public class Article extends BaseEntity
     //********************************* static final 상수 필드 *********************************/
-
-    /**
-     * email 뒤에 붙는 문자열
-     */
 
     /********************************* PK 필드 *********************************/
 
