@@ -68,7 +68,7 @@ public class MatchService {
                     )
                     .collect(Collectors.toList());
 
-                return MatchDto.of(match, match.getReviewAvailableTime(), MatchConditionDto.of(
+                return MatchDto.of(match, MatchConditionDto.of(
                         Place.extractPlaceFromMatchCondition(matchConditions),
                         TimeOfEating.extractTimeOfEatingFromMatchCondition(matchConditions),
                         WayOfEating.extractWayOfEatingFromMatchCondition(matchConditions),
@@ -114,7 +114,7 @@ public class MatchService {
                 matchConditionMatch.getMatchCondition()
             )
             .collect(Collectors.toList());
-        return MatchDto.of(match, match.getReviewAvailableTime(), MatchConditionDto.of(
+        return MatchDto.of(match, MatchConditionDto.of(
                 Place.extractPlaceFromMatchCondition(matchConditions),
                 TimeOfEating.extractTimeOfEatingFromMatchCondition(matchConditions),
                 WayOfEating.extractWayOfEatingFromMatchCondition(matchConditions),
@@ -160,9 +160,9 @@ public class MatchService {
             .orElseThrow(() ->
                 new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
         activityRepository.save(
-            Activity.of(memberReviewAuthor, ActivityMatchScore.MATCH_REVIEW.getScore(),
+            Activity.of(memberReviewAuthor,
                 match.getContentCategory(),
-                ActivityType.MATCH));
+                ActivityMatchScore.MATCH_REVIEW));
         /**
          * 리뷰에 따라 점수 추가
          */
@@ -171,8 +171,8 @@ public class MatchService {
                 Member member = memberRepository.findByNickname(memberReviewDto.getNickname())
                     .orElseThrow(() ->
                         new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
-                return Activity.of(member, memberReviewDto.getActivityMatchScore().getScore(),
-                    match.getContentCategory(), ActivityType.MATCH);
+                return Activity.of(member, match.getContentCategory(),
+                    memberReviewDto.getActivityMatchScore());
             })
             .collect(Collectors.toList());
         activityRepository.saveAll(activities);

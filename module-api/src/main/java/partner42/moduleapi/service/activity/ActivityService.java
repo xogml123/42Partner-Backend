@@ -26,7 +26,7 @@ public class ActivityService {
         ActivitySearch activitySearch) {
         Member member = getUserByUsernameOrException(username)
             .getMember();
-        Integer scoreSum = activityRepository.findSumScoreByMemberIdAndArticleSearch(
+        Integer scoreSum = activityRepository.findActivityMatchScoreByMemberIdAndArticleSearch(
             member.getId(),
             activitySearch);
         return ActivityScoreResponse.of(

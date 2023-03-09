@@ -42,7 +42,7 @@ import partner42.modulecommon.exception.UnmodifiableArticleException;
     @UniqueConstraint(name = "API_ID_UNIQUE", columnNames = {"apiId"}),
 })
 @Entity
-public class Article extends BaseEntity
+public class Article extends BaseEntity{
     //********************************* static final 상수 필드 *********************************/
 
     /********************************* PK 필드 *********************************/

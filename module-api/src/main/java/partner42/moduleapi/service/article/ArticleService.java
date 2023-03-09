@@ -88,6 +88,7 @@ public class ArticleService {
     private final AlarmService alarmService;
 
     private final AlarmProducer alarmProducer;
+
     @Transactional
     public ArticleOnlyIdResponse createArticle(String username, ArticleDto articleRequest) {
         Member member = getUserByUsernameOrException(username).getMember();
@@ -255,11 +256,12 @@ public class ArticleService {
 
         // 알림 생성
         //sse
-        alarmProducer.send(new AlarmEvent(AlarmType.PARTICIPATION_CANCEL_ON_MY_POST, AlarmArgs.builder()
-            .opinionId(null)
-            .articleId(articleId)
-            .callingMemberNickname(member.getNickname())
-            .build(), article.getAuthorMember().getUser().getId(), SseEventName.ALARM_LIST));
+        alarmProducer.send(
+            new AlarmEvent(AlarmType.PARTICIPATION_CANCEL_ON_MY_POST, AlarmArgs.builder()
+                .opinionId(null)
+                .articleId(articleId)
+                .callingMemberNickname(member.getNickname())
+                .build(), article.getAuthorMember().getUser().getId(), SseEventName.ALARM_LIST));
 
         return ArticleOnlyIdResponse.of(article.getApiId());
     }
@@ -288,22 +290,17 @@ public class ArticleService {
             .map(am ->
                 MatchMember.of(match, am.getMember(), am.getIsAuthor()))
             .collect(Collectors.toList()));
-        //활동 점수 부여
 
+        //활동 점수 부여
         article.getArticleMembers()
             .forEach(am -> {
-                    if (am.getIsAuthor()) {
-                        activityRepository.save(
-                            Activity.of(am.getMember(),
-                                ActivityMatchScore.ARTICLE_MATCH_AUTHOR.getScore(),
-                                article.getContentCategory(),
-                                ActivityType.ARTICLE));
-                    } else {
-                        activityRepository.save(
-                            Activity.of(am.getMember(),
-                                ActivityMatchScore.MATCH_PARTICIPANT.getScore(),
-                                article.getContentCategory(), ActivityType.MATCH));
-                    }
+                ActivityMatchScore activityMatchScore =
+                    am.getIsAuthor() ? ActivityMatchScore.ARTICLE_MATCH_AUTHOR
+                        : ActivityMatchScore.MATCH_PARTICIPANT;
+                activityRepository.save(
+                    Activity.of(am.getMember(),
+                        article.getContentCategory(),
+                        activityMatchScore));
                 }
             );
 
