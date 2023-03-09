@@ -10,12 +10,10 @@ import partner42.modulecommon.domain.model.match.ContentCategory;
 @Setter
 public class ActivitySearch {
 
-    @Value("${date.opening}")
-    private LocalDateTime openingDate;
 
     private ContentCategory contentCategory;
 
-    private LocalDateTime startTime = openingDate;
+    private LocalDateTime startTime;
 
     private LocalDateTime endTime = LocalDateTime.now();
 }
