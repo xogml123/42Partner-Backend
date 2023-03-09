@@ -30,7 +30,7 @@ class ActivityRepositoryCustomImplTest {
     ActivityRepository activityRepository;
 
     @Test
-    void findActivityMatchScoreByMemberIdAndArticleSearch_givenActivitiesByActivitySearch_whenActivitySearchDifferent_thenContainsOnly() {
+    void findActivityMatchScoreByMemberIdAndArticleSearch_givenActivitiesByActivitySearch_whenActivitySearchAndMemberIdDifferent_thenContainsOnly() {
         //given
         Member a = Member.of("a");
         Member b = Member.of("b");
@@ -65,7 +65,37 @@ class ActivityRepositoryCustomImplTest {
 
         assertThat(activityMatchScoreByStudy).containsOnly(MATCH_REVIEW_1);
         assertThat(activityMatchScoreByStudyAndB).containsOnly(MATCH_REVIEW_2);
-
-
     }
+
+
+    @Test
+    void findActivityMatchScoreByMemberIdAndArticleSearch_givenActivities_whenActivitySearchStartTime_thenContainsOnly() {
+        //given
+        Member a = Member.of("a");
+        Member b = Member.of("b");
+        memberRepository.saveAll(List.of(a, b));
+        Activity activity1 = Activity.of(a, ContentCategory.MEAL, ARTICLE_MATCH_AUTHOR);
+        Activity activity2 = Activity.of(a, ContentCategory.MEAL, MATCH_PARTICIPANT);
+        Activity activity3 = Activity.of(a, ContentCategory.MEAL, MATCH_ABSENT);
+        Activity activity4 = Activity.of(a, ContentCategory.STUDY, MATCH_REVIEW_1);
+
+        Activity activity5 = Activity.of(b, ContentCategory.STUDY, MATCH_REVIEW_2);
+
+        activityRepository.saveAll(List.of(activity1, activity2, activity3, activity4, activity5));
+        //when
+        ActivitySearch activitySearchStartTimeBeforeEndTime = new ActivitySearch();
+        activitySearchStartTimeBeforeEndTime.setStartTime(LocalDateTime.now().minusDays(1));
+        List<ActivityMatchScore> activityMatchFindByStartTimeBeforeEndtime = activityRepository.findActivityMatchScoreByMemberIdAndArticleSearch(
+            a.getId(), activitySearchStartTimeBeforeEndTime);
+
+        ActivitySearch activitySearchStartTimeAfterEndTime = new ActivitySearch();
+        activitySearchStartTimeAfterEndTime.setStartTime(LocalDateTime.now().plusDays(1));
+        List<ActivityMatchScore> activityMatchFindByStartTimeAfterEndtime = activityRepository.findActivityMatchScoreByMemberIdAndArticleSearch(
+            a.getId(), activitySearchStartTimeAfterEndTime);
+
+        //then
+        assertThat(activityMatchFindByStartTimeBeforeEndtime).hasSize(4);
+        assertThat(activityMatchFindByStartTimeAfterEndtime).isEmpty();
+    }
+
 }
