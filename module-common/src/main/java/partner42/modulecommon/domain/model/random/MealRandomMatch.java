@@ -48,41 +48,6 @@ public class MealRandomMatch extends RandomMatch {
         return contentCategory.name() + " " + place.name() + " " + wayOfEating.name() + " " + this.getMember().getNickname();
     }
 
-//    @Override
-//    public String toStringKey() {
-//        return toKey() +
-//            toValue();
-//    }
-//
-//    @Override
-//    public String toKey() {
-//        return
-//            StringUtils.rightPad(contentCategory.name(),
-//                RandomMatch.STRING_CONDITION_MAX_LENGTH,
-//                RandomMatch.CONDITION_PAD_CHAR) +
-//                StringUtils.rightPad(place.name(), RandomMatch.STRING_CONDITION_MAX_LENGTH,
-//                    RandomMatch.CONDITION_PAD_CHAR) +
-//                StringUtils.rightPad(wayOfEating.name(), RandomMatch.STRING_CONDITION_MAX_LENGTH,
-//                    RandomMatch.CONDITION_PAD_CHAR);
-//    }
-//
-//
-//    @Override
-//    public String toNumberKey() {
-//        return StringUtils.rightPad(Integer.toString(place.ordinal()),
-//            RandomMatch.INTEGER_CONDITION_MAX_LENGTH, RandomMatch.CONDITION_PAD_CHAR) +
-//            StringUtils.rightPad(Integer.toString(wayOfEating.ordinal()),
-//                RandomMatch.INTEGER_CONDITION_MAX_LENGTH, RandomMatch.CONDITION_PAD_CHAR) +
-//            toValue();
-//    }
-//
-//    @Override
-//    public String toAsciiKey() {
-//        return Character.toString(place.ordinal()) +
-//            Character.toString(wayOfEating.ordinal()) +
-//            toValue();
-//    }
-
     /********************************* Comparator *********************************/
 
     public static class MatchConditionComparator implements Comparator<MealRandomMatch> {

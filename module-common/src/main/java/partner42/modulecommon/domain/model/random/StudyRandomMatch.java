@@ -45,44 +45,6 @@ public class StudyRandomMatch extends RandomMatch {
         }
         return false;
     }
-//
-//    @Override
-//    public String toStringKey() {
-//        return StringUtils.rightPad(place.name(), RandomMatch.STRING_CONDITION_MAX_LENGTH,
-//            RandomMatch.CONDITION_PAD_CHAR) +
-//            StringUtils.rightPad(typeOfStudy.name(), RandomMatch.STRING_CONDITION_MAX_LENGTH,
-//                RandomMatch.CONDITION_PAD_CHAR) +
-//            toValue();
-//    }
-//
-//    @Override
-//    public String toKey() {
-//        return
-//            StringUtils.rightPad(contentCategory.name(),
-//                RandomMatch.STRING_CONDITION_MAX_LENGTH,
-//                RandomMatch.CONDITION_PAD_CHAR) +
-//                StringUtils.rightPad(place.name(), RandomMatch.STRING_CONDITION_MAX_LENGTH,
-//                    RandomMatch.CONDITION_PAD_CHAR) +
-//                StringUtils.rightPad(typeOfStudy.name(), RandomMatch.STRING_CONDITION_MAX_LENGTH,
-//                    RandomMatch.CONDITION_PAD_CHAR);
-//    }
-//
-//
-//    @Override
-//    public String toNumberKey() {
-//        return StringUtils.rightPad(Integer.toString(place.ordinal()),
-//            RandomMatch.INTEGER_CONDITION_MAX_LENGTH, RandomMatch.CONDITION_PAD_CHAR) +
-//            StringUtils.rightPad(Integer.toString(typeOfStudy.ordinal()),
-//                RandomMatch.INTEGER_CONDITION_MAX_LENGTH, RandomMatch.CONDITION_PAD_CHAR) +
-//            toValue();
-//    }
-//
-//    @Override
-//    public String toAsciiKey() {
-//        return Character.toString(place.ordinal()) +
-//            Character.toString(typeOfStudy.ordinal()) +
-//            toValue();
-//    }
 
     public static class MatchConditionComparator implements Comparator<StudyRandomMatch> {
         @Override

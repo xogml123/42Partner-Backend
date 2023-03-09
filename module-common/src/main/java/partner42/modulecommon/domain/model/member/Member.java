@@ -65,12 +65,6 @@ public class Member extends BaseEntity {
 
     @Column(unique = true, nullable = false, length = 30)
     private String nickname;
-
-
-
-
-
-
     /********************************* 비영속 필드 *********************************/
 
     /********************************* 연관관계 매핑 *********************************/

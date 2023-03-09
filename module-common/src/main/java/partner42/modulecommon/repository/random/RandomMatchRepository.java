@@ -75,33 +75,6 @@ public interface RandomMatchRepository extends JpaRepository<RandomMatch, Long> 
         @Param(value = "before") LocalDateTime before,
         @Param(value  = "isExpired") boolean isExpired);
 
-//    @Query("select rm from MealRandomMatch rm "
-//        + "where rm.createdAt > :before "
-//        + "and rm.isExpired = :isExpired")
-//    List<MealRandomMatch> findMealByCreatedAtBeforeAndIsExpired(
-//        @Param(value = "before") LocalDateTime before,
-//        @Param(value  = "isExpired") boolean isExpired);
-//
-//    @Query("select rm from StudyRandomMatch rm "
-//        + "where rm.createdAt > :before "
-//        + "and rm.isExpired = :isExpired")
-//    List<StudyRandomMatch> findStudyByCreatedAtBeforeAndIsExpired(
-//        @Param(value = "before") LocalDateTime before,
-//        @Param(value  = "isExpired") boolean isExpired);
-
-//    @Query("select rm from MealRandomMatch rm "
-//        + "where rm.createdAt > :before "
-//        + "and rm.isExpired = :isExpired")
-//    MealRandomMatch findMealByCreatedAtBeforeAndIsExpired(
-//        @Param(value = "before") LocalDateTime before,
-//        @Param(value  = "isExpired") boolean isExpired);
-//
-//    @Query("select rm from StudyRandomMatch rm "
-//        + "where rm.createdAt > :before "
-//        + "and rm.isExpired = :isExpired")
-//    StudyRandomMatch findStudyByCreatedAtBeforeAndIsExpired(
-//        @Param(value = "before") LocalDateTime before,
-//        @Param(value  = "isExpired") boolean isExpired);
 
     @Query("select rm from RandomMatch rm "
         + "where rm.createdAt > :before "

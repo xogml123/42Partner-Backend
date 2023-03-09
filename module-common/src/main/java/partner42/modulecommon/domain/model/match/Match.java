@@ -108,7 +108,6 @@ public class Match extends BaseEntity {
     @OneToMany(mappedBy = "match", fetch = FetchType.LAZY)
     private List<RandomMatch> randomMatches = new ArrayList<>();
 
-
     @Builder.Default
     @OneToMany(mappedBy = "match", fetch = FetchType.LAZY)
     private List<MatchMember> matchMembers = new ArrayList<>();
