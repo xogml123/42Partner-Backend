@@ -21,7 +21,7 @@ import partner42.moduleapi.dto.random.RandomMatchExistDto;
 import partner42.moduleapi.dto.matchcondition.MatchConditionRandomMatchDto;
 import partner42.moduleapi.dto.random.RandomMatchCancelRequest;
 import partner42.moduleapi.dto.random.RandomMatchDto;
-import partner42.moduleapi.dto.random.RandomMatchSearch;
+import partner42.moduleapi.dto.random.RandomMatchParam;
 import partner42.moduleapi.service.random.RandomMatchService;
 import partner42.modulecommon.domain.model.match.ContentCategory;
 import partner42.modulecommon.exception.ErrorCode;
@@ -63,7 +63,7 @@ public class RandomMatchController {
     @PreAuthorize("hasAuthority('random-match.read')")
     @Operation(summary = "랜덤 매칭 신청 여부 조회", description = "랜덤 매칭 신청 여부 조회")
     @GetMapping("/random-matches/mine")
-    public RandomMatchExistDto checkRandomMatchExist(RandomMatchSearch randomMatchCancelRequest,
+    public RandomMatchExistDto checkRandomMatchExist(RandomMatchParam randomMatchCancelRequest,
         @ApiParam(hidden = true) @AuthenticationPrincipal UserDetails user) {
         //contentCategory에 따라 필드 검증
         return randomMatchService.checkRandomMatchExist(user.getUsername(), randomMatchCancelRequest);
@@ -71,14 +71,15 @@ public class RandomMatchController {
 
     @Operation(summary = "랜덤 매칭 신청 인원 조회", description = "랜덤 매칭 신청 인원 조회")
     @GetMapping("/random-matches/members/count")
-    public RandomMatchCountResponse countRandomMatchNotExpired(RandomMatchSearch randomMatchCancelRequest) {
+    public RandomMatchCountResponse countRandomMatchNotExpired(
+        RandomMatchParam randomMatchCancelRequest) {
         return randomMatchService.countRandomMatchNotExpired(randomMatchCancelRequest);
     }
 
     @PreAuthorize("hasAuthority('random-match.read')")
     @Operation(summary = "랜덤 매칭 신청 조건 조회", description = "랜덤 매칭 신청 조건 조회")
     @GetMapping("/random-matches/condition/mine")
-    public RandomMatchDto readRandomMatchCondition(RandomMatchSearch randomMatchCancelRequest,
+    public RandomMatchDto readRandomMatchCondition(RandomMatchParam randomMatchCancelRequest,
         @ApiParam(hidden = true) @AuthenticationPrincipal UserDetails user) {
         //contentCategory에 따라 필드 검증
         return randomMatchService.readRandomMatchCondition(user.getUsername(), randomMatchCancelRequest);

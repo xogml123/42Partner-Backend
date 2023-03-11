@@ -3,44 +3,39 @@ package partner42.modulecommon.domain.model.random;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import javax.persistence.Column;
-import javax.persistence.DiscriminatorColumn;
+import javax.persistence.Embedded;
 import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Index;
-import javax.persistence.Inheritance;
-import javax.persistence.InheritanceType;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
-import javax.persistence.Version;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import partner42.modulecommon.domain.model.BaseEntity;
-import partner42.modulecommon.domain.model.match.ContentCategory;
 import partner42.modulecommon.domain.model.match.Match;
-import partner42.modulecommon.domain.model.matchcondition.Place;
 import partner42.modulecommon.domain.model.member.Member;
 import partner42.modulecommon.exception.ErrorCode;
 import partner42.modulecommon.exception.InvalidInputException;
 
-
-@Getter
+@Builder(access = AccessLevel.PRIVATE)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Getter
 @Entity
-@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@DiscriminatorColumn(name = "dtype")
 @Table(name = "RANDOM_MATCHES"
     , indexes = @Index(name = "idx__created_at", columnList = "createdAt")
 )
-public abstract class RandomMatch extends BaseEntity implements Serializable {
+public class RandomMatch extends BaseEntity implements Serializable {
 
     //
     private static final long serialVersionUID = 1L;
@@ -55,16 +50,11 @@ public abstract class RandomMatch extends BaseEntity implements Serializable {
     @Column(name = "RANDOM_MATCH_ID")
     private Long id;
 
-    @Enumerated(value = EnumType.STRING)
-    @Column(nullable = false, updatable = false)
-    protected ContentCategory contentCategory;
-
-    @Enumerated(value = EnumType.STRING)
-    @Column(nullable = false, updatable = false)
-    protected Place place;
+    @Embedded
+    private RandomMatchCondition randomMatchCondition;
 
     @Column(nullable = false)
-    protected Boolean isExpired = false;
+    private Boolean isExpired = false;
 
     /********************************* 연관관계 매핑 *********************************/
     @OneToOne(fetch = FetchType.LAZY)
@@ -75,18 +65,18 @@ public abstract class RandomMatch extends BaseEntity implements Serializable {
     @JoinColumn(name = "MATCH_ID", updatable = false)
     private Match match;
 
-    protected RandomMatch(ContentCategory contentCategory, Place place,
-        Member member) {
-        this.contentCategory = contentCategory;
-        this.place = place;
-        this.member = member;
+    /********************************* 생성 메서드 *********************************/
+    public static RandomMatch of(RandomMatchCondition randomMatchCondition, Member member) {
+        return RandomMatch.builder()
+            .randomMatchCondition(randomMatchCondition)
+            .member(member)
+            .build();
     }
 
     /********************************* 비지니스 로직 *********************************/
 
-    protected boolean isMatchConditionEquals(RandomMatch randomMatch) {
-        return this.contentCategory == randomMatch.contentCategory &&
-            this.place == randomMatch.place;
+    public boolean isMatchConditionEquals(RandomMatch randomMatch) {
+        return this.randomMatchCondition.equals(randomMatch.getRandomMatchCondition());
     }
     public void expire() {
         verifyExpire();
@@ -106,4 +96,16 @@ public abstract class RandomMatch extends BaseEntity implements Serializable {
 
     /********************************* DTO *********************************/
 
+
+    /********************************* Comparator *********************************/
+    public static class MatchConditionComparator implements Comparator<RandomMatch> {
+        @Override
+        public int compare(RandomMatch o1, RandomMatch o2) {
+            return o1.getRandomMatchCondition().compareTo(o2.getRandomMatchCondition());
+        }
+    }
+    /********************************* 비지니스 로직 *********************************/
+    public static LocalDateTime getValidTime(LocalDateTime now) {
+        return now.minusMinutes(RandomMatch.MAX_WAITING_TIME);
+    }
 }

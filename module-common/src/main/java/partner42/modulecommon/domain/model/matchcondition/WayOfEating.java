@@ -9,7 +9,7 @@ import lombok.RequiredArgsConstructor;
 //20글자 제한.
 @RequiredArgsConstructor
 public enum WayOfEating {
-    DELIVERY("배달"), EATOUT("외식"), TAKEOUT("포장");
+    NONE("없음"), DELIVERY("배달"), EATOUT("외식"), TAKEOUT("포장");
 
     private final String value;
     @JsonCreator
@@ -29,13 +29,13 @@ public enum WayOfEating {
             .collect(Collectors.toList());
     }
 
-    public static List<MatchCondition> wayOfEatingToMatchCondition(List<WayOfEating> wayOfEatings) {
-        return wayOfEatings.stream()
-            .map(wayOfEating -> MatchCondition.of(
-                wayOfEating.name(),
-                ConditionCategory.valueOf(wayOfEating.name())
-
-            ))
-            .collect(Collectors.toList());
-    }
+//    public static List<MatchCondition> wayOfEatingToMatchCondition(List<WayOfEating> wayOfEatings) {
+//        return wayOfEatings.stream()
+//            .map(wayOfEating -> MatchCondition.of(
+//                wayOfEating.name(),
+//                ConditionCategory.valueOf(wayOfEating.name())
+//
+//            ))
+//            .collect(Collectors.toList());
+//    }
 }
