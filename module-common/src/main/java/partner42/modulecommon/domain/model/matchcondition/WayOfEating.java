@@ -9,7 +9,7 @@ import lombok.RequiredArgsConstructor;
 //20글자 제한.
 @RequiredArgsConstructor
 public enum WayOfEating {
-    NONE("없음"), DELIVERY("배달"), EATOUT("외식"), TAKEOUT("포장");
+    DELIVERY("배달"), EATOUT("외식"), TAKEOUT("포장");
 
     private final String value;
     @JsonCreator

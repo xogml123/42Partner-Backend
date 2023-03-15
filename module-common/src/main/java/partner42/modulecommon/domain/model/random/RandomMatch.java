@@ -16,6 +16,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
+import javax.persistence.Version;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -50,6 +51,8 @@ public class RandomMatch extends BaseEntity implements Serializable {
     @Column(name = "RANDOM_MATCH_ID")
     private Long id;
 
+    @Version
+    private Long version;
     @Embedded
     private RandomMatchCondition randomMatchCondition;
 
@@ -61,9 +64,9 @@ public class RandomMatch extends BaseEntity implements Serializable {
     @JoinColumn(name = "MEMBER_ID", nullable = false, updatable = false)
     private Member member;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "MATCH_ID", updatable = false)
-    private Match match;
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "MATCH_ID", updatable = false)
+//    private Match match;
 
     /********************************* 생성 메서드 *********************************/
     public static RandomMatch of(RandomMatchCondition randomMatchCondition, Member member) {
@@ -89,10 +92,10 @@ public class RandomMatch extends BaseEntity implements Serializable {
         }
     }
 
-    public void updateMatch(Match match) {
-        this.match = match;
-        match.getRandomMatches().add(this);
-    }
+//    public void updateMatch(Match match) {
+//        this.match = match;
+//        match.getRandomMatches().add(this);
+//    }
 
     /********************************* DTO *********************************/
 

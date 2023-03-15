@@ -1,5 +1,6 @@
 package partner42.modulecommon.domain.model.random;
 
+import java.util.Comparator;
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
 import javax.persistence.EnumType;
@@ -14,6 +15,7 @@ import partner42.modulecommon.domain.model.match.ContentCategory;
 import partner42.modulecommon.domain.model.matchcondition.Place;
 import partner42.modulecommon.domain.model.matchcondition.TypeOfStudy;
 import partner42.modulecommon.domain.model.matchcondition.WayOfEating;
+import partner42.modulecommon.domain.model.random.RandomMatch.MatchConditionComparator;
 
 /**
  * 객체 생성 시 상태들이 한번에 초기 화 되지 않고 특정 경우에 사용 되는 상태들이
@@ -39,12 +41,12 @@ public class RandomMatchCondition implements Comparable<RandomMatchCondition> {
     @Builder.Default
     @Enumerated(value = EnumType.STRING)
     @Column(updatable = false)
-    private WayOfEating wayOfEating = WayOfEating.NONE;
+    private WayOfEating wayOfEating = null;
 
     @Builder.Default
     @Enumerated(value = EnumType.STRING)
     @Column(updatable = false)
-    private TypeOfStudy typeOfStudy = TypeOfStudy.NONE;
+    private TypeOfStudy typeOfStudy = null;
 
     public static RandomMatchCondition of(ContentCategory contentCategory, Place place, TypeOfStudy typeOfStudy) {
         return RandomMatchCondition.builder()
@@ -65,13 +67,17 @@ public class RandomMatchCondition implements Comparable<RandomMatchCondition> {
     @Override
     public int compareTo(RandomMatchCondition rmc) {
         if (contentCategory != rmc.contentCategory) {
-            return contentCategory.compareTo(rmc.contentCategory);
+            return Comparator.<ContentCategory>nullsFirst(Comparator.naturalOrder())
+                .compare(contentCategory, rmc.getContentCategory());
         } else if (place != rmc.place) {
-            return place.compareTo(rmc.place);
+            return Comparator.<Place>nullsFirst(Comparator.naturalOrder())
+                .compare(place, rmc.getPlace());
         } else if (wayOfEating != rmc.wayOfEating) {
-            return wayOfEating.compareTo(rmc.wayOfEating);
+            return Comparator.<WayOfEating>nullsFirst(Comparator.naturalOrder())
+                .compare(wayOfEating, rmc.getWayOfEating());
         } else if (typeOfStudy != rmc.typeOfStudy) {
-            return typeOfStudy.compareTo(rmc.typeOfStudy);
+            return Comparator.<TypeOfStudy>nullsFirst(Comparator.naturalOrder())
+                .compare(typeOfStudy, rmc.getTypeOfStudy());
         } else {
             return 0;
         }

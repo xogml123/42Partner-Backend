@@ -101,12 +101,12 @@ public class Match extends BaseEntity {
     @JoinColumn(name = "ARTICLE_ID", updatable = false)
     private Article article;
 
-    /**
-     * Random으로 매칭이 맺어지는 경우
-     */
-    @Builder.Default
-    @OneToMany(mappedBy = "match", fetch = FetchType.LAZY)
-    private List<RandomMatch> randomMatches = new ArrayList<>();
+//    /**
+//     * Random으로 매칭이 맺어지는 경우
+//     */
+//    @Builder.Default
+//    @OneToMany(mappedBy = "match", fetch = FetchType.LAZY)
+//    private List<RandomMatch> randomMatches = new ArrayList<>();
 
     @Builder.Default
     @OneToMany(mappedBy = "match", fetch = FetchType.LAZY)

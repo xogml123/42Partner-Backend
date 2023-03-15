@@ -2,7 +2,6 @@ package partner42.moduleapi.service.random;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import java.util.Set;
@@ -12,7 +11,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import partner42.moduleapi.dto.matchcondition.MatchConditionRandomMatchDto;
-import partner42.moduleapi.dto.matchcondition.MatchConditionRandomMatchDto.MatchConditionRandomMatchDtoBuilder;
 import partner42.moduleapi.dto.random.RandomMatchCancelRequest;
 import partner42.moduleapi.dto.random.RandomMatchCountResponse;
 import partner42.moduleapi.dto.random.RandomMatchDto;
@@ -20,6 +18,7 @@ import partner42.moduleapi.dto.random.RandomMatchExistDto;
 import partner42.moduleapi.dto.random.RandomMatchParam;
 import partner42.modulecommon.domain.model.random.RandomMatchCondition;
 import partner42.modulecommon.domain.model.user.User;
+import partner42.modulecommon.repository.random.RandomMatchBulkUpdateDto;
 import partner42.modulecommon.repository.random.RandomMatchSearch;
 import partner42.modulecommon.utils.CustomTimeUtils;
 import partner42.modulecommon.domain.model.match.ContentCategory;
@@ -27,9 +26,7 @@ import partner42.modulecommon.domain.model.matchcondition.Place;
 import partner42.modulecommon.domain.model.matchcondition.TypeOfStudy;
 import partner42.modulecommon.domain.model.matchcondition.WayOfEating;
 import partner42.modulecommon.domain.model.member.Member;
-import partner42.modulecommon.domain.model.random.MealRandomMatch;
 import partner42.modulecommon.domain.model.random.RandomMatch;
-import partner42.modulecommon.domain.model.random.StudyRandomMatch;
 import partner42.modulecommon.exception.ErrorCode;
 import partner42.modulecommon.exception.InvalidInputException;
 import partner42.modulecommon.exception.NoEntityException;
@@ -92,23 +89,27 @@ public class RandomMatchService {
         LocalDateTime now = LocalDateTime.now();
         //생성된 지 RandomMatch.MAX_WAITING_TIME분 이내 + 취소되지 않은 신청 내역 있는지 확인.
         //취소 하는 도중 매칭이 잡힐 경우를 대비하여 for update
-        List<RandomMatch> randomMatches = randomMatchRepository.findForUpdateByCreatedAtAfterAndIsExpiredAndMemberIdAndContentCategory(
+        List<RandomMatch> randomMatches = randomMatchRepository.findByCreatedAtAfterAndIsExpiredAndMemberIdAndContentCategory(
             RandomMatchSearch.builder()
                 .contentCategory(request.getContentCategory())
                 .memberId(memberId)
                 .isExpired(false)
                 .createdAt(RandomMatch.getValidTime(now))
                 .build());
-        // 활성화된 randomMatch가 db에 없으면 취소할 매치가 없는 경우 exception
+        // 활성화된 randomMatch가 db에 없으면 취소할 매치가 없는 경우
         if (randomMatches.isEmpty()) {
             throw new InvalidInputException(ErrorCode.ALREADY_CANCELED_RANDOM_MATCH);
         }
 
         //변경 감지 이용하는 경우 성능 저하
-        randomMatches
-            .forEach(RandomMatch::expire);
-        //bulk update
-//        randomMatchRepository.bulkUpdateIsExpired(true, RandomMatch.getValidTime(now), request.getContentCategory(), memberId);
+//        randomMatches
+//            .forEach(RandomMatch::expire);
+        randomMatchRepository.bulkUpdateOptimisticLockIsExpiredToTrueByIds(randomMatches.stream()
+            .map(rm -> RandomMatchBulkUpdateDto.builder()
+                .id(rm.getId())
+                .version(rm.getVersion())
+                .build())
+            .collect(Collectors.toSet()));
     }
 
     public RandomMatchExistDto checkRandomMatchExist(String username,
@@ -144,21 +145,15 @@ public class RandomMatchService {
             .map(RandomMatch::getRandomMatchCondition)
             .map(RandomMatchCondition::getWayOfEating)
             .collect(Collectors.toSet());
-        if (wayOfEatings.contains(WayOfEating.NONE) && wayOfEatings.size() == 1) {
-            wayOfEatings.clear();
-        }
 
         Set<TypeOfStudy> typeOfStudies = randomMatches.stream()
             .map(RandomMatch::getRandomMatchCondition)
             .map(RandomMatchCondition::getTypeOfStudy)
             .collect(Collectors.toSet());
-        if (typeOfStudies.contains(TypeOfStudy.NONE) && typeOfStudies.size() == 1) {
-            typeOfStudies.clear();
-        }
 
         return RandomMatchDto.builder()
             .contentCategory(randomMatchCancelRequest.getContentCategory())
-            .matchConditionRandomMatchDto( MatchConditionRandomMatchDto.builder()
+            .matchConditionRandomMatchDto(MatchConditionRandomMatchDto.builder()
                 .placeList(new ArrayList<>(randomMatches.stream()
                     .map(RandomMatch::getRandomMatchCondition)
                     .map(RandomMatchCondition::getPlace)
@@ -216,19 +211,15 @@ public class RandomMatchService {
         for (Place place : matchConditionRandomMatchDto.getPlaceList()) {
             if (randomMatchDto.getContentCategory().equals(ContentCategory.STUDY)) {
                 for (TypeOfStudy typeOfStudy : matchConditionRandomMatchDto.getTypeOfStudyList()) {
-                    if (typeOfStudy.equals(TypeOfStudy.NONE)) {
-                        continue;
-                    }
+
                     randomMatches.add(
                         RandomMatch.of(RandomMatchCondition.of(randomMatchDto.getContentCategory(),
                             place, typeOfStudy), member));
                 }
             } else if (randomMatchDto.getContentCategory().equals(ContentCategory.MEAL)) {
                 for (WayOfEating wayOfEating : matchConditionRandomMatchDto.getWayOfEatingList()) {
-                    if (wayOfEating.equals(WayOfEating.NONE)) {
-                        continue;
-                    }
-                        randomMatches.add(
+
+                    randomMatches.add(
                         RandomMatch.of(RandomMatchCondition.of(randomMatchDto.getContentCategory(),
                             place, wayOfEating), member));
                 }

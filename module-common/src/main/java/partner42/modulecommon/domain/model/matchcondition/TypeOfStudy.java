@@ -10,7 +10,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum TypeOfStudy {
 
-    NONE("없음"), INNER_CIRCLE("본 과정"), NOT_INNER_CIRCLE("비본 과정");
+    INNER_CIRCLE("본 과정"), NOT_INNER_CIRCLE("비본 과정");
 
     private final String value;
 
