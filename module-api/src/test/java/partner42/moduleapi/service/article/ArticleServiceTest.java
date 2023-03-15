@@ -1,5 +1,7 @@
 package partner42.moduleapi.service.article;
 
+import static org.assertj.core.api.Assertions.*;
+
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
@@ -84,7 +86,7 @@ class ArticleServiceTest {
         countDownLatch.countDown();
         Thread.sleep(2000);
         //then
-        Assertions.assertThat(
+        assertThat(
             articleRepository.findByApiIdAndIsDeletedIsFalse(articleOnlyIdResponse.getArticleId()).get()
                 .getParticipantNum()).isEqualTo(3);
 

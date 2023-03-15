@@ -213,14 +213,14 @@ public class RandomMatchService {
                 for (TypeOfStudy typeOfStudy : matchConditionRandomMatchDto.getTypeOfStudyList()) {
 
                     randomMatches.add(
-                        RandomMatch.of(RandomMatchCondition.of(randomMatchDto.getContentCategory(),
+                        RandomMatch.of(RandomMatchCondition.of(
                             place, typeOfStudy), member));
                 }
             } else if (randomMatchDto.getContentCategory().equals(ContentCategory.MEAL)) {
                 for (WayOfEating wayOfEating : matchConditionRandomMatchDto.getWayOfEatingList()) {
 
                     randomMatches.add(
-                        RandomMatch.of(RandomMatchCondition.of(randomMatchDto.getContentCategory(),
+                        RandomMatch.of(RandomMatchCondition.of(
                             place, wayOfEating), member));
                 }
             }

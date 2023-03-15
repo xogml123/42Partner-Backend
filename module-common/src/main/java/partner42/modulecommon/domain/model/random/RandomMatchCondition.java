@@ -48,17 +48,17 @@ public class RandomMatchCondition implements Comparable<RandomMatchCondition> {
     @Column(updatable = false)
     private TypeOfStudy typeOfStudy = null;
 
-    public static RandomMatchCondition of(ContentCategory contentCategory, Place place, TypeOfStudy typeOfStudy) {
+    public static RandomMatchCondition of(Place place, TypeOfStudy typeOfStudy) {
         return RandomMatchCondition.builder()
-            .contentCategory(contentCategory)
+            .contentCategory(ContentCategory.STUDY)
             .place(place)
             .typeOfStudy(typeOfStudy)
             .build();
     }
 
-    public static RandomMatchCondition of(ContentCategory contentCategory, Place place, WayOfEating wayOfEating) {
+    public static RandomMatchCondition of(Place place, WayOfEating wayOfEating) {
         return RandomMatchCondition.builder()
-            .contentCategory(contentCategory)
+            .contentCategory(ContentCategory.MEAL)
             .place(place)
             .wayOfEating(wayOfEating)
             .build();

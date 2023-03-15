@@ -32,9 +32,6 @@ class AlarmRepositoryCustomImplTest {
 
     @BeforeEach
     void setUp() {
-
-
-
     }
 
     @AfterEach

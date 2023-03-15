@@ -7,8 +7,6 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.time.LocalDateTime;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -20,7 +18,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import partner42.modulecommon.domain.model.match.ContentCategory;
 import partner42.modulecommon.domain.model.random.RandomMatch;
-import partner42.modulecommon.exception.ErrorCode;
 
 @RequiredArgsConstructor
 @Repository
@@ -45,7 +42,7 @@ public class RandomMatchRepositoryCustomImpl implements RandomMatchRepositoryCus
     @Override
     public List<RandomMatch> findByCreatedAtAfterAndIsExpiredAndMemberIdAndContentCategory(
         RandomMatchSearch randomMatchSearch) {
-        return queryFactory.select(randomMatch).distinct()
+        return queryFactory.select(randomMatch)
             .from(randomMatch)
             .join(randomMatch.member, member).fetchJoin()
             .where(isMemberId(randomMatchSearch.getMemberId()),
@@ -72,7 +69,7 @@ public class RandomMatchRepositoryCustomImpl implements RandomMatchRepositoryCus
         List<Long> idList = randomMatchBulkUpdateDtos.stream().map(RandomMatchBulkUpdateDto::getId)
             .collect(
                 Collectors.toList());
-        List<RandomMatch> randomMatches = findWithPessimisticLockByIdsAndSortedById(
+        List<RandomMatch> randomMatches = findWithPessimisticLockByIds(
             idList);
 
         verifyVersion(randomMatches, randomMatchBulkUpdateDtos);
@@ -80,7 +77,7 @@ public class RandomMatchRepositoryCustomImpl implements RandomMatchRepositoryCus
         queryFactory.update(randomMatch)
             .set(randomMatch.isExpired, true)
             .set(randomMatch.version, randomMatch.version.add(1))
-            .where(isMemberIdIn(idList))
+            .where(isRandomMatchIdsIn(idList))
             .execute();
 
         em.flush();
@@ -103,16 +100,17 @@ public class RandomMatchRepositoryCustomImpl implements RandomMatchRepositoryCus
 
     }
 
-    private List<RandomMatch> findWithPessimisticLockByIdsAndSortedById(List<Long> ids){
+    private List<RandomMatch> findWithPessimisticLockByIds(List<Long> ids){
         return queryFactory.select(randomMatch)
             .from(randomMatch)
-            .where(isMemberIdIn(ids))
+            .join(randomMatch.member, member)
+            .where(isRandomMatchIdsIn(ids))
             .setLockMode(LockModeType.PESSIMISTIC_WRITE)
             .fetch();
     }
 
-    private BooleanExpression isMemberIdIn(Collection<Long> memberIds) {
-        return memberIds == null ? null : member.id.in(memberIds);
+    private BooleanExpression isRandomMatchIdsIn(Collection<Long> randomMatchIds) {
+        return randomMatchIds == null ? null : randomMatch.id.in(randomMatchIds);
     }
 
 

@@ -56,6 +56,7 @@ public class RandomMatch extends BaseEntity implements Serializable {
     @Embedded
     private RandomMatchCondition randomMatchCondition;
 
+    @Builder.Default
     @Column(nullable = false)
     private Boolean isExpired = false;
 
