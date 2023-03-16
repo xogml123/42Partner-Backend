@@ -3,6 +3,7 @@ package partner42.moduleapi.controller.article;
 import io.swagger.annotations.ApiParam;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +29,8 @@ import partner42.moduleapi.dto.article.ArticleOnlyIdResponse;
 import partner42.moduleapi.dto.article.ArticleReadOneResponse;
 import partner42.moduleapi.dto.article.ArticleReadResponse;
 import partner42.moduleapi.service.article.ArticleService;
+import partner42.modulecommon.exception.ErrorCode;
+import partner42.modulecommon.exception.InvalidInputException;
 import partner42.modulecommon.repository.article.ArticleSearch;
 import partner42.modulecommon.utils.slack.SlackBotService;
 
@@ -63,6 +66,9 @@ public class ArticleController {
     public ArticleOnlyIdResponse writeArticle(
         @ApiParam(hidden = true) @AuthenticationPrincipal UserDetails user,
         @Validated @Parameter @RequestBody ArticleDto articleRequest) {
+        if (LocalDate.now().isAfter(articleRequest.getDate())){
+            throw new InvalidInputException(ErrorCode.ARTICLE_DATE_IS_PAST);
+        }
         return articleService.createArticle(user.getUsername(), articleRequest);
     }
 

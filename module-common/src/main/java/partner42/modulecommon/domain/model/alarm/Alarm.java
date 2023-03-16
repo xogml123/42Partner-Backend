@@ -102,18 +102,19 @@ public class Alarm extends BaseEntity {
         return alarm;
     }
 
-    private void setCalledMember(Member calledMember) {
-        this.calledMember = calledMember;
-        calledMember.getAlarms().add(this);
-    }
 
+
+    /********************************* 비니지스 로직 *********************************/
     public void read() {
         if (!this.isRead) {
             this.isRead = true;
         }
     }
+    private void setCalledMember(Member calledMember) {
+        this.calledMember = calledMember;
+        calledMember.getAlarms().add(this);
+    }
 
-    /********************************* 비니지스 로직 *********************************/
 
 
 }

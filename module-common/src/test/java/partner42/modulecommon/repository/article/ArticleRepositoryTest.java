@@ -1,6 +1,7 @@
 package partner42.modulecommon.repository.article;
 
-import static org.junit.jupiter.api.Assertions.*;
+
+import static org.assertj.core.api.Assertions.*;
 
 import java.time.LocalDate;
 import java.util.Optional;
@@ -41,48 +42,27 @@ class ArticleRepositoryTest {
     }
 
     @Test
-    void findDistinctFetchArticleMatchConditionsByApiIdAndIsDeletedIsFalse() {
+    void findDistinctFetchArticleMatchConditionsByApiIdAndIsDeletedIsFalse_givenOneDeletedArticleAndNotDeletedArticle_whenFindByApiId_thenNotDeletedOneApiIdIsEqualToAndDeletedOneIsNotPresent() {
         //given
-        Article article2 = articleRepository.save(Article.of(LocalDate.now(), "title", "content", false,
+        Article article2 = articleRepository.save(Article.of(LocalDate.now(), "article2", "content", false,
             3, ContentCategory.MEAL));
-        Article article3 = articleRepository.save(Article.of(LocalDate.now(), "title", "content", false,
+        Article article3 = articleRepository.save(Article.of(LocalDate.now(), "article3", "content", false,
             3, ContentCategory.MEAL));
         article3.recoverableDelete();
 
         //when
-        Optional<Article> optionalArticle2 = articleRepository.findDistinctFetchArticleMatchConditionsByApiIdAndIsDeletedIsFalse(
+        Optional<Article> optionalArticle2 = articleRepository.findEntityGraphArticleMatchConditionsByApiIdAndIsDeletedIsFalse(
             article2.getApiId());
 
-        Optional<Article> optionalArticle3 = articleRepository.findDistinctFetchArticleMatchConditionsByApiIdAndIsDeletedIsFalse(
+        Optional<Article> optionalArticle3 = articleRepository.findEntityGraphArticleMatchConditionsByApiIdAndIsDeletedIsFalse(
             article3.getApiId());
 
         //then
-        /**
-         *
-         */
-
+        assertThat(optionalArticle2.orElseGet(null))
+            .isNotNull()
+            .extracting(Article::getApiId)
+            .isEqualTo(article2.getApiId());
+        assertThat(optionalArticle3.isPresent()).isFalse();
     }
 
-    @Test
-    void findDistinctFetchArticleMembersByApiIdAndIsDeletedIsFalse() {
-
-        //given
-        Article article2 = articleRepository.save(Article.of(LocalDate.now(), "title", "content", false,
-            3, ContentCategory.MEAL));
-        Article article3 = articleRepository.save(Article.of(LocalDate.now(), "title", "content", false,
-            3, ContentCategory.MEAL));
-        article3.recoverableDelete();
-
-        //when
-        Optional<Article> optionalArticle2 = articleRepository.findDistinctFetchArticleMembersByApiIdAndIsDeletedIsFalse(
-            article2.getApiId());
-
-        Optional<Article> optionalArticle3 = articleRepository.findDistinctFetchArticleMembersByApiIdAndIsDeletedIsFalse(
-            article3.getApiId());
-
-        //then
-        assertEquals(article2, optionalArticle2.orElseGet(() -> null));
-
-        assertFalse(optionalArticle3.isPresent());
-    }
 }

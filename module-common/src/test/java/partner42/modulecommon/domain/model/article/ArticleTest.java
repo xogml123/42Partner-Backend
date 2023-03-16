@@ -10,7 +10,6 @@ import org.junit.jupiter.api.Test;
 import partner42.modulecommon.domain.model.match.ContentCategory;
 import partner42.modulecommon.domain.model.matchcondition.ArticleMatchCondition;
 import partner42.modulecommon.domain.model.member.Member;
-import partner42.modulecommon.domain.model.tryjudge.MatchTryAvailabilityJudge;
 import partner42.modulecommon.exception.ErrorCode;
 import partner42.modulecommon.exception.InvalidInputException;
 
@@ -93,9 +92,9 @@ class ArticleTest {
         Article articleOverParticipantNum = Article.of(localDate, "title", "content", false, 2,
             ContentCategory.MEAL);
 
-        Member takim = Member.of("takim", MatchTryAvailabilityJudge.of());
-        Member sorkim = Member.of("sorkim", MatchTryAvailabilityJudge.of());
-        Member dum = Member.of("dum", MatchTryAvailabilityJudge.of());
+        Member takim = Member.of("takim");
+        Member sorkim = Member.of("sorkim");
+        Member dum = Member.of("dum");
 
         ArticleMember.of(takim, true, article1);
         ArticleMember.of(takim, true, articleDelete);
@@ -148,8 +147,8 @@ class ArticleTest {
             ContentCategory.MEAL);
 
 
-        Member takim = Member.of("takim", MatchTryAvailabilityJudge.of());
-        Member sorkim = Member.of("sorkim", MatchTryAvailabilityJudge.of());
+        Member takim = Member.of("takim");
+        Member sorkim = Member.of("sorkim");
         ArticleMember.of(takim, true, articleUnParticipated);
         ArticleMember.of(takim, true, articleDelete);
         ArticleMember.of(takim, true, articleComplete);

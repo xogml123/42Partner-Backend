@@ -9,6 +9,5 @@ import partner42.modulecommon.domain.model.match.MethodCategory;
 @Setter
 public class MatchSearch {
     private ContentCategory contentCategory;
-
     private MethodCategory methodCategory;
 }

@@ -1,21 +1,19 @@
 package partner42.modulecommon.repository.match;
 
 
+
 import static partner42.modulecommon.domain.model.match.QMatch.match;
 import static partner42.modulecommon.domain.model.match.QMatchMember.matchMember;
+import static partner42.modulecommon.domain.model.member.QMember.member;
 
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
-import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.PathBuilder;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.util.List;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
@@ -31,21 +29,12 @@ public class MatchRepositoryCustomImpl implements MatchRepositoryCustom{
 
     private final JPAQueryFactory queryFactory;
 
-//    @PersistenceContext
-//    private EntityManager em;
-//    private JPAQueryFactory queryFactory;
-//
-//    @Autowired
-//    public MatchRepositoryCustomImpl() {
-//        this.queryFactory = new JPAQueryFactory(em);
-//    }
-
-
     @Override
-    public Slice<Match> findAllFetchJoinMatchMemberId(Long memberId, MatchSearch matchSearch, Pageable pageable){
-        JPAQuery<Match> query = queryFactory.select(match).distinct()
+    public Slice<Match> findAllMatchByMemberIdAndByMatchSearch(Long memberId, MatchSearch matchSearch, Pageable pageable){
+        JPAQuery<Match> query = queryFactory.select(match)
             .from(match)
-            .join(match.matchMembers, matchMember).fetchJoin()
+            .join(match.matchMembers, matchMember)
+            .join(matchMember.member, member)
             .where(
                 isMemberIn(memberId),
                 isContentCategory(matchSearch.getContentCategory()),
@@ -75,7 +64,10 @@ public class MatchRepositoryCustomImpl implements MatchRepositoryCustom{
     }
 
     private BooleanExpression isMemberIn(Long memberId) {
-        return memberId == null ? null : matchMember.member.id.eq(memberId);
+        if (memberId == null){
+            throw new IllegalArgumentException("memberId is null");
+        }
+        return member.id.eq(memberId);
     }
 
     private BooleanExpression isContentCategory(ContentCategory contentCategory) {

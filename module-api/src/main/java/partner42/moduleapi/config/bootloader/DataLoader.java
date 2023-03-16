@@ -23,7 +23,6 @@ import partner42.modulecommon.domain.model.matchcondition.TimeOfEating;
 import partner42.modulecommon.domain.model.matchcondition.TypeOfStudy;
 import partner42.modulecommon.domain.model.matchcondition.WayOfEating;
 import partner42.modulecommon.domain.model.member.Member;
-import partner42.modulecommon.domain.model.tryjudge.MatchTryAvailabilityJudge;
 import partner42.modulecommon.domain.model.user.Authority;
 import partner42.modulecommon.domain.model.user.Role;
 import partner42.modulecommon.domain.model.user.RoleEnum;
@@ -233,8 +232,7 @@ public class DataLoader implements CommandLineRunner {
             String password = login;
             String encodedPassword = passwordEncoder.encode(login);
 
-            MatchTryAvailabilityJudge matchTryAvailabilityJudge = MatchTryAvailabilityJudge.of();
-            Member member = Member.of(login, matchTryAvailabilityJudge);
+            Member member = Member.of(login);
             memberRepository.save(member);
 
             Role role = roleRepository.findByValue(RoleEnum.ROLE_ADMIN).orElseThrow(() ->

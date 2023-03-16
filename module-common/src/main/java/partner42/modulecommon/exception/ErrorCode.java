@@ -52,6 +52,8 @@ public enum ErrorCode {
     EMPTY_ARTICLE(HttpStatus.CONFLICT.value(), "AR009", "작성자를 제외한 참여 인원이 없는 게시글입니다."),
 
     NOT_ALLOW_AUTHOR_MEMBER_DELETE(HttpStatus.CONFLICT.value(), "AR010", "작성자는 참여를 취소할 수 없습니다."),
+
+    ARTICLE_DATE_IS_PAST(HttpStatus.BAD_REQUEST.value(), "AR011", "게시글의 날짜가 과거입니다."),
     //ArticleMember
     NO_AUTHOR(HttpStatus.INTERNAL_SERVER_ERROR.value(), "AR006", "작성자가 없습니다."),
     NOT_PARTICIPATED_MEMBER(HttpStatus.CONFLICT.value(), "AR007", "이 멤버가 참여하지 않은 방입니다."),

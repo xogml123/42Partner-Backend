@@ -15,19 +15,15 @@ import partner42.modulecommon.domain.model.match.MethodCategory;
 import partner42.modulecommon.domain.model.matchcondition.MatchCondition;
 import partner42.modulecommon.domain.model.matchcondition.MatchConditionMatch;
 import partner42.modulecommon.domain.model.member.Member;
-import partner42.modulecommon.domain.model.random.MealRandomMatch;
-import partner42.modulecommon.domain.model.random.MealRandomMatch.MatchConditionComparator;
 import partner42.modulecommon.domain.model.random.RandomMatch;
-import partner42.modulecommon.domain.model.random.StudyRandomMatch;
 import partner42.modulecommon.repository.match.MatchMemberRepository;
 import partner42.modulecommon.repository.match.MatchRepository;
 import partner42.modulecommon.repository.matchcondition.MatchConditionMatchRepository;
 import partner42.modulecommon.repository.matchcondition.MatchConditionRepository;
 import partner42.modulecommon.repository.member.MemberRepository;
+import partner42.modulecommon.repository.random.RandomMatchBulkUpdateDto;
 import partner42.modulecommon.repository.random.RandomMatchRepository;
-import partner42.modulecommon.utils.CustomTimeUtils;
-import partner42.modulecommon.utils.slack.SlackBotApi;
-import partner42.modulecommon.utils.slack.SlackBotService;
+import partner42.modulecommon.repository.random.RandomMatchSearch;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -45,177 +41,77 @@ public class MatchMakingTaskletService {
 
 
     /**
-     * 테스트 케이스
-     * 1. 여러 조건이 들어오는 경우 매칭이 하나의 조건으로 채결되면 다른 신청 무효화 - 안됨
-     * 2. Meal 만 매칭이 가능.
-     * 3. 만료시간 제대로 되는지 확인.
-     * 4. 매칭 조건 다른 것들 섞여서 생성해도 잘 되는지 체크
-     * 5. 같은 조건 먼저 신청한사람이 먼저 매칭되도록
+     * 테스트 케이스 1. 여러 조건이 들어오는 경우 매칭이 하나의 조건으로 채결되면 다른 신청 무효화 - 안됨 2. Meal 만 매칭이 가능. 3. 만료시간 제대로 되는지
+     * 확인. 4. 매칭 조건 다른 것들 섞여서 생성해도 잘 되는지 체크 5. 같은 조건 먼저 신청한사람이 먼저 매칭되도록
+     *
      * @return
      */
+
+
+    @Transactional(readOnly = true)
+    public List<RandomMatch> getValidRandomMatchesSortedByMatchCondition(LocalDateTime now) {
+        List<RandomMatch> randomMatches = randomMatchRepository.findByCreatedAtAfterAndIsExpiredAndMemberIdAndContentCategory(
+            RandomMatchSearch.builder()
+                .createdAt(now.minusMinutes(RandomMatch.MAX_WAITING_TIME))
+                .isExpired(false)
+                .build());
+        randomMatches.sort(new RandomMatch.MatchConditionComparator());
+        return randomMatches;
+    }
+
     @Transactional
-    public List<List<String>> matchMaking() {
-        //배치 시작 시간 기준
-        LocalDateTime now = CustomTimeUtils.nowWithoutNano();
-
-        //1. 랜덤 매칭 테이블에서 매칭 대기중인 데이터를 가져온다.
-        List<MealRandomMatch> mealRandomMatches = randomMatchRepository.findMealPessimisticWriteByCreatedAtBeforeAndIsExpired(
-            now.minusMinutes(
-                RandomMatch.MAX_WAITING_TIME), false);
-
-        List<StudyRandomMatch> studyRandomMatches = randomMatchRepository.findStudyPessimisticWriteByCreatedAtBeforeAndIsExpired(
-            now.minusMinutes(
-                RandomMatch.MAX_WAITING_TIME), false);
-        //2. 랜덤 매칭 테이블에서 매칭을 조건에 따라 분류한다.
-        //2-1. 매칭 조건에 따라 정렬한다.
-        //매칭 조건 그 다음 생성 순서를 기준으로
-        mealRandomMatches.sort(new MatchConditionComparator());
-        studyRandomMatches.sort(new StudyRandomMatch.MatchConditionComparator());
-        log.info("mealRandomMatches : {}", mealRandomMatches.toString());
-        List<List<String>> matchedMembersEmailList = new ArrayList<>();
-        //2-2. 매칭 조건에 따라 매칭을 진행한다.
-        List<RandomMatch> matchedRandomMatches = new ArrayList<>();
-        for (int i = 0; i < mealRandomMatches.size(); i++) {
-            MealRandomMatch mealRandomMatch = mealRandomMatches.get(i);
-            //만료된 매치은 제외
-            if (mealRandomMatch.getIsExpired()) {
-                continue;
-            }
-            if (matchedRandomMatches.isEmpty()) {
-                matchedRandomMatches.add(mealRandomMatch);
-            } else if ( matchedRandomMatches.size() > 0) {
-                RandomMatch randomMatchForCompare = matchedRandomMatches.get(0);
-                if (!mealRandomMatch.isMatchConditionEquals(randomMatchForCompare)) {
-                    matchedRandomMatches.clear();
-                    matchedRandomMatches.add(mealRandomMatch);
-                } else {
-                    matchedRandomMatches.add(mealRandomMatch);
-                    //매칭 조건 맞춰지면 매칭 진행
-                    if (matchedRandomMatches.size() == RandomMatch.MATCH_COUNT) {
-                        Match match = makeMatchInRDB(matchedRandomMatches, now);
-
-                        //RandomMatch 테이블 isExpired = true로 변경
-                        //매칭 된 유저의 모든 신청 조건 무효화
-                        matchedRandomMatches.stream()
-                            .map(RandomMatch::getMember)
-                            .forEach(member -> {
-                                mealRandomMatches.stream()
-                                    .filter(mrm -> mrm.getMember().equals(member))
-                                    .forEach(RandomMatch::expire);
-                            });
-                        //
-                        matchedRandomMatches.clear();
-                        //매칭 맺어진 멤버의 email추가.
-                        matchedMembersEmailList.add(getMatchedParticipantsEmails(
-                            match));
-                    }
-                }
-            }
-        }
-
-        for (int i = 0; i < studyRandomMatches.size(); i++) {
-            StudyRandomMatch studyRandomMatch = studyRandomMatches.get(i);
-            //만료된 매치은 제외
-            if (studyRandomMatch.getIsExpired()) {
-                continue;
-            }
-            if (matchedRandomMatches.isEmpty()) {
-                matchedRandomMatches.add(studyRandomMatch);
-            } else if ( matchedRandomMatches.size() > 0) {
-                RandomMatch randomMatchForCompare = matchedRandomMatches.get(0);
-                if (!studyRandomMatch.isMatchConditionEquals(randomMatchForCompare)) {
-                    matchedRandomMatches.clear();
-                    matchedRandomMatches.add(studyRandomMatch);
-
-                } else {
-                    matchedRandomMatches.add(studyRandomMatch);
-                    //매칭 조건 맞춰지면 매칭 진행
-                    if (matchedRandomMatches.size() == RandomMatch.MATCH_COUNT) {
-                        Match match = makeMatchInRDB(matchedRandomMatches, now);
-
-                        //RandomMatch 테이블 isExpired = true로 변경
-                        //매칭 된 유저의 모든 신청 조건 무효화
-                        matchedRandomMatches.stream()
-                            .map(RandomMatch::getMember)
-                            .forEach(member -> {
-                                studyRandomMatches.stream()
-                                    .filter(mrm -> mrm.getMember().equals(member))
-                                    .forEach(RandomMatch::expire);
-                            });
-
-                        matchedRandomMatches.clear();
-                        //매칭 맺어진 멤버의 email추가.
-                        matchedMembersEmailList.add(getMatchedParticipantsEmails(
-                            match));
-                    }
-                }
-            }
-        }
-        return matchedMembersEmailList;
-    }
-
-    private void expireMatched(List<MealRandomMatch> mealRandomMatches,
-        List<RandomMatch> matchedRandomMatches) {
-
-    }
-
-    private Match makeMatchInRDB(List<RandomMatch> matchedRandomMatches, LocalDateTime now) {
+    public Match makeMatchInRDB(List<RandomMatch> matchedRandomMatches, LocalDateTime now) {
         //RDB에 Match에 저장, MatchMember저장
-        RandomMatch randomMatch = matchedRandomMatches.get(0);
-        Match match = Match.of(MatchStatus.MATCHED, randomMatch.getContentCategory(),
-            MethodCategory.RANDOM, null, RandomMatch.MATCH_COUNT);
-        matchRepository.save(match);
-        for (RandomMatch matchedRandomMatch : matchedRandomMatches) {
-            matchedRandomMatch.updateMatch(match);
-        }
-        //member
-        List<Member> members = matchedRandomMatches.stream()
-            .map(RandomMatch::getMember)
-            .collect(Collectors.toList());
-        createAndSaveMatchMembers(match, members);
+        Match match = createAndSaveMatch(matchedRandomMatches);
+        //RandomMatch에 isExpired = true로 업데이트
+        randomMatchRepository.bulkUpdateOptimisticLockIsExpiredToTrueByIds(
+            matchedRandomMatches.stream()
+                .map(randomMatch -> RandomMatchBulkUpdateDto.builder()
+                    .id(randomMatch.getId())
+                    .version(randomMatch.getVersion())
+                    .build())
+                .collect(Collectors.toSet()));
+        //matchMember
+        createAndSaveMatchMembers(match, matchedRandomMatches);
         //matchCondition
-        List<MatchCondition> matchConditions = createAndSaveMatchCondition(match);
-
-
-
+        createAndSaveMatchCondition(match, matchedRandomMatches);
         return match;
     }
 
-    private void createAndSaveMatchMembers(Match match, List<Member> members) {
-        members
+    private Match createAndSaveMatch(List<RandomMatch> matchedRandomMatches) {
+        Match match = Match.of(MatchStatus.MATCHED,
+            matchedRandomMatches.get(0).getRandomMatchCondition().getContentCategory(),
+            MethodCategory.RANDOM, null, RandomMatch.MATCH_COUNT);
+        matchRepository.save(match);
+        return match;
+    }
+
+    private void createAndSaveMatchMembers(Match match, List<RandomMatch> matchedRandomMatches) {
+        matchedRandomMatches.stream()
+            .map(RandomMatch::getMember)
             .forEach(member -> {
                 matchMemberRepository.save(MatchMember.of(match, member, false));
             });
     }
 
-    private List<String> getMatchedParticipantsEmails(Match match) {
-        return match.getMatchMembers().stream()
-            .map(matchMember -> matchMember.getMember().getUser().getEmail())
-            .collect(Collectors.toList());
-    }
-
-    private List<MatchCondition> createAndSaveMatchCondition(Match match) {
-        RandomMatch randomMatch = match.getRandomMatches().get(0);
+    private List<MatchCondition> createAndSaveMatchCondition(Match match, List<RandomMatch> matchedRandomMatches) {
+        RandomMatch randomMatch = matchedRandomMatches.get(0);
         List<MatchCondition> matchConditions = new ArrayList<>();
-        matchConditions.add(matchConditionRepository.findByValue(randomMatch.getPlace().toString())
+        String errorMessage = "MatchCondition이 존재하지 않습니다. value : ";
+        matchConditions.add(matchConditionRepository.findByValue(randomMatch.getRandomMatchCondition().getPlace().toString())
             .orElseThrow(() ->
                 new IllegalStateException(
-                    "MatchCondition이 존재하지 않습니다. value : " + randomMatch.getPlace().toString())));
-
-        if (randomMatch instanceof MealRandomMatch) {
-            matchConditions.add(matchConditionRepository.findByValue(
-                    ((MealRandomMatch) randomMatch).getWayOfEating().toString())
-                .orElseThrow(() ->
-                    new IllegalStateException("MatchCondition이 존재하지 않습니다. value : "
-                        + ((MealRandomMatch) randomMatch).getWayOfEating().toString())));
-        } else if (randomMatch instanceof StudyRandomMatch) {
-            matchConditions.add(matchConditionRepository.findByValue(
-                    ((StudyRandomMatch) randomMatch).getTypeOfStudy().toString())
-                .orElseThrow(() ->
-                    new IllegalStateException("MatchCondition이 존재하지 않습니다. value : "
-                        + ((StudyRandomMatch) randomMatch).getTypeOfStudy().toString())));
-        }
-
+                    errorMessage + randomMatch.getRandomMatchCondition().getPlace().toString())));
+        matchConditions.add(matchConditionRepository.findByValue(
+                (randomMatch).getRandomMatchCondition().getWayOfEating().toString())
+            .orElseThrow(() ->
+                new IllegalStateException(errorMessage
+                    + (randomMatch).getRandomMatchCondition().getWayOfEating().toString())));
+        matchConditions.add(matchConditionRepository.findByValue(
+                (randomMatch).getRandomMatchCondition().getTypeOfStudy().toString())
+            .orElseThrow(() ->
+                new IllegalStateException(errorMessage
+                    + (randomMatch).getRandomMatchCondition().getTypeOfStudy().toString())));
         matchConditionMatchRepository.saveAll(matchConditions.stream()
             .map((matchCondition) ->
                 MatchConditionMatch.of(match, matchCondition)

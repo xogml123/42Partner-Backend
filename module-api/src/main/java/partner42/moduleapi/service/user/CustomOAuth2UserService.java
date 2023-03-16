@@ -16,7 +16,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import partner42.moduleapi.dto.user.CustomAuthenticationPrincipal;
 import partner42.modulecommon.domain.model.member.Member;
-import partner42.modulecommon.domain.model.tryjudge.MatchTryAvailabilityJudge;
 import partner42.modulecommon.domain.model.user.Role;
 import partner42.modulecommon.domain.model.user.RoleEnum;
 import partner42.modulecommon.domain.model.user.User;
@@ -84,8 +83,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
             String encodedPassword = passwordEncoder.encode(UUID.randomUUID().toString());
 
-            MatchTryAvailabilityJudge matchTryAvailabilityJudge = MatchTryAvailabilityJudge.of();
-            Member member = Member.of(login, matchTryAvailabilityJudge);
+            Member member = Member.of(login);
             memberRepository.save(member);
 
             Role role = roleRepository.findByValue(RoleEnum.ROLE_USER).orElseThrow(() ->

@@ -249,8 +249,7 @@ public class CreateTestDataUtils {
             //회원에 필용한 정보 생성 및 조회
 
 
-            MatchTryAvailabilityJudge matchTryAvailabilityJudge = MatchTryAvailabilityJudge.of();
-            Member member = Member.of(login, matchTryAvailabilityJudge);
+            Member member = Member.of(login);
             memberRepository.save(member);
 
             Role role = roleRepository.findByValue(RoleEnum.ROLE_USER).orElseThrow(() ->

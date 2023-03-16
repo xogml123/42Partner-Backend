@@ -109,7 +109,7 @@ public class Opinion extends BaseEntity {
         this.content = content;
     }
 
-    public void delete() {
+    public void recoverableDelete() {
         this.isDeleted = true;
     }
 

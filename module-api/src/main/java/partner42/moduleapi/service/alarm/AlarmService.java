@@ -1,7 +1,6 @@
 package partner42.moduleapi.service.alarm;
 
 
-import javax.persistence.EntityNotFoundException;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
 import java.io.IOException;
@@ -20,7 +19,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import partner42.moduleapi.dto.alarm.AlarmArgsDto;
 import partner42.moduleapi.dto.alarm.AlarmDto;
-import partner42.modulecommon.config.kafka.AlarmEvent;
 import partner42.modulecommon.domain.model.alarm.Alarm;
 import partner42.modulecommon.domain.model.alarm.AlarmArgs;
 import partner42.modulecommon.domain.model.alarm.AlarmType;
@@ -86,7 +84,7 @@ public class AlarmService implements MessageListener {
     @Transactional
     public Slice<AlarmDto> sendAlarmSliceAndIsReadToTrue(Pageable pageable, String username) {
         Member member = getUserByUsernameOrException(username).getMember();
-        Slice<Alarm> alarmSlices = alarmRepository.findSliceByCondition(pageable, member.getId());
+        Slice<Alarm> alarmSlices = alarmRepository.findSliceByMemberId(pageable, member.getId());
         List<Alarm> alarms = alarmSlices.getContent();
 
         //update 쿼리 여러번 나가는지 확인 해봐야함.
