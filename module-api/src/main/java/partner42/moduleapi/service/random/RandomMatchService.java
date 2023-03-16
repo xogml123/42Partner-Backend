@@ -8,6 +8,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.aspectj.lang.annotation.Before;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import partner42.moduleapi.dto.matchcondition.MatchConditionRandomMatchDto;
@@ -43,9 +44,8 @@ public class RandomMatchService {
     private final UserRepository userRepository;
     private final RandomMatchRepository randomMatchRepository;
 
-
     @Transactional
-    public void createRandomMatch(String username,
+    public List<RandomMatch> createRandomMatch(String username,
         RandomMatchDto randomMatchDto) {
         Member member = getUserByUsernameOrException(username).getMember();
         //"2020-12-01T00:00:00"
@@ -58,7 +58,7 @@ public class RandomMatchService {
             randomMatchDto, member, now);
 
         //랜덤 매칭 신청한 것 DB에 기록.
-        randomMatchRepository.saveAll(randomMatches);
+        return randomMatchRepository.saveAll(randomMatches);
     }
 
     private User getUserByUsernameOrException(String username) {
