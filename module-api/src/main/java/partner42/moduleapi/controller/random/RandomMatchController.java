@@ -78,7 +78,8 @@ public class RandomMatchController {
     @GetMapping("/random-matches/members/count")
     public RandomMatchCountResponse countRandomMatchNotExpired(
         RandomMatchParam randomMatchCancelRequest) {
-        return randomMatchService.countRandomMatchNotExpired(randomMatchCancelRequest);
+        LocalDateTime now = CustomTimeUtils.nowWithoutNano();
+        return randomMatchService.countMemberOfRandomMatchNotExpire(randomMatchCancelRequest, now);
     }
 
     @PreAuthorize("hasAuthority('random-match.read')")

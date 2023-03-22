@@ -143,11 +143,12 @@ public class RandomMatchService {
             .map(RandomMatch::getRandomMatchCondition)
             .map(RandomMatchCondition::getWayOfEating)
             .collect(Collectors.toSet());
-
+        wayOfEatings.remove(null);
         Set<TypeOfStudy> typeOfStudies = randomMatches.stream()
             .map(RandomMatch::getRandomMatchCondition)
             .map(RandomMatchCondition::getTypeOfStudy)
             .collect(Collectors.toSet());
+        typeOfStudies.remove(null);
 
         return RandomMatchDto.builder()
             .contentCategory(randomMatchCancelRequest.getContentCategory())
@@ -162,9 +163,8 @@ public class RandomMatchService {
             .build();
     }
 
-    public RandomMatchCountResponse countRandomMatchNotExpired(
-        RandomMatchParam randomMatchCancelRequest) {
-        LocalDateTime now = LocalDateTime.now();
+    public RandomMatchCountResponse countMemberOfRandomMatchNotExpire(
+        RandomMatchParam randomMatchCancelRequest, LocalDateTime now) {
 
         List<RandomMatch> randomMatches = randomMatchRepository.findByCreatedAtAfterAndIsExpiredAndMemberIdAndContentCategory(
             RandomMatchSearch.builder()
