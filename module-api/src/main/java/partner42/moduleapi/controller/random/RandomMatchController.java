@@ -3,6 +3,7 @@ package partner42.moduleapi.controller.random;
 import io.swagger.annotations.ApiParam;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -26,6 +27,7 @@ import partner42.moduleapi.service.random.RandomMatchService;
 import partner42.modulecommon.domain.model.match.ContentCategory;
 import partner42.modulecommon.exception.ErrorCode;
 import partner42.modulecommon.exception.InvalidInputException;
+import partner42.modulecommon.utils.CustomTimeUtils;
 
 @Slf4j
 @RestController
@@ -43,7 +45,8 @@ public class RandomMatchController {
         @Validated @Parameter @RequestBody RandomMatchDto randomMatchDto) {
         //contentCategory에 따라 필드 검증
         verifyRandomMatchDtoHasEmptyField(randomMatchDto);
-        randomMatchService.createRandomMatch(user.getUsername(), randomMatchDto);
+        LocalDateTime now = CustomTimeUtils.nowWithoutNano();
+        randomMatchService.createRandomMatch(user.getUsername(), randomMatchDto, now);
         return ResponseEntity.status(HttpStatus.CREATED).build();
 
     }
@@ -56,7 +59,8 @@ public class RandomMatchController {
     public ResponseEntity<Void> cancelRandomMatch(@Validated @Parameter @RequestBody RandomMatchCancelRequest randomMatchCancelRequest,
         @ApiParam(hidden = true) @AuthenticationPrincipal UserDetails user) {
         //contentCategory에 따라 필드 검증
-        randomMatchService.deleteRandomMatch(user.getUsername(), randomMatchCancelRequest);
+        LocalDateTime now = CustomTimeUtils.nowWithoutNano();
+        randomMatchService.deleteRandomMatch(user.getUsername(), randomMatchCancelRequest, now);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
@@ -66,7 +70,8 @@ public class RandomMatchController {
     public RandomMatchExistDto checkRandomMatchExist(RandomMatchParam randomMatchCancelRequest,
         @ApiParam(hidden = true) @AuthenticationPrincipal UserDetails user) {
         //contentCategory에 따라 필드 검증
-        return randomMatchService.checkRandomMatchExist(user.getUsername(), randomMatchCancelRequest);
+        LocalDateTime now = CustomTimeUtils.nowWithoutNano();
+        return randomMatchService.checkRandomMatchExist(user.getUsername(), randomMatchCancelRequest, now);
     }
 
     @Operation(summary = "랜덤 매칭 신청 인원 조회", description = "랜덤 매칭 신청 인원 조회")
@@ -82,7 +87,9 @@ public class RandomMatchController {
     public RandomMatchDto readRandomMatchCondition(RandomMatchParam randomMatchCancelRequest,
         @ApiParam(hidden = true) @AuthenticationPrincipal UserDetails user) {
         //contentCategory에 따라 필드 검증
-        return randomMatchService.readRandomMatchCondition(user.getUsername(), randomMatchCancelRequest);
+        LocalDateTime now = CustomTimeUtils.nowWithoutNano();
+
+        return randomMatchService.readRandomMatchCondition(user.getUsername(), randomMatchCancelRequest, now);
     }
 
     private void verifyRandomMatchDtoHasEmptyField(RandomMatchDto randomMatchDto) {

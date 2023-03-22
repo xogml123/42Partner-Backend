@@ -16,7 +16,7 @@ import partner42.modulecommon.domain.model.article.Article;
 import partner42.modulecommon.domain.model.match.ContentCategory;
 import partner42.modulecommon.repository.member.MemberRepository;
 import partner42.modulecommon.repository.user.UserRepository;
-import partner42.modulecommon.utils.CreateTestDataUtils;
+import partner42.modulecommon.config.BootstrapDataLoader;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
@@ -26,7 +26,7 @@ class ArticleRepositoryTest {
     private ArticleRepository articleRepository;
 
     @Autowired
-    private CreateTestDataUtils createTestDataUtils;
+    private BootstrapDataLoader bootstrapDataLoader;
 
     @Autowired
     private MemberRepository memberRepository;

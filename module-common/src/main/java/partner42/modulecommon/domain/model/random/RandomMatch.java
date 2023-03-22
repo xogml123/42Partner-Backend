@@ -53,6 +53,7 @@ public class RandomMatch extends BaseEntity implements Serializable {
 
     @Version
     private Long version;
+
     @Embedded
     private RandomMatchCondition randomMatchCondition;
 
@@ -64,10 +65,6 @@ public class RandomMatch extends BaseEntity implements Serializable {
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "MEMBER_ID", nullable = false, updatable = false)
     private Member member;
-
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "MATCH_ID", updatable = false)
-//    private Match match;
 
     /********************************* 생성 메서드 *********************************/
     public static RandomMatch of(RandomMatchCondition randomMatchCondition, Member member) {
@@ -92,11 +89,6 @@ public class RandomMatch extends BaseEntity implements Serializable {
             throw new InvalidInputException(ErrorCode.ALREADY_CANCELED_RANDOM_MATCH);
         }
     }
-
-//    public void updateMatch(Match match) {
-//        this.match = match;
-//        match.getRandomMatches().add(this);
-//    }
 
     /********************************* DTO *********************************/
 

@@ -1,4 +1,4 @@
-package partner42.modulecommon.utils;
+package partner42.modulecommon.config;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -7,10 +7,8 @@ import java.util.Optional;
 import java.util.UUID;
 import javax.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 import partner42.modulecommon.domain.model.match.ConditionCategory;
 import partner42.modulecommon.domain.model.matchcondition.MatchCondition;
 import partner42.modulecommon.domain.model.matchcondition.Place;
@@ -30,11 +28,10 @@ import partner42.modulecommon.repository.user.RoleRepository;
 import partner42.modulecommon.repository.user.UserRepository;
 import partner42.modulecommon.repository.user.UserRoleRepository;
 
+@Slf4j
 @RequiredArgsConstructor
 @Component
-public class CreateTestDataUtils {
-
-
+public class BootstrapDataLoader {
 
     private final UserRepository userRepository;
     private final MemberRepository memberRepository;
@@ -45,8 +42,9 @@ public class CreateTestDataUtils {
 
     private final MatchConditionRepository matchConditionRepository;
 
-    public void signUpUsers() {
+    public void createDefaultUsers() {
         createRoleAuthority();
+
         Map<String, Object> sorkim = new HashMap<>();
         sorkim.put("id", 3);
         sorkim.put("login", "sorkim");
@@ -74,9 +72,36 @@ public class CreateTestDataUtils {
 
     }
 
+    private void loadUser(Map<String, Object> attributes) {
+        String apiId = ((Integer) attributes.get("id")).toString();
+        //takim
+        String login = (String) attributes.get("login");
+        //takim@student.42seoul.kr
+        String email = (String) attributes.get("email");
+        //https://cdn.intra.42.fr/users/0f260cc3e59777f0f5ba926f19cc1ec9/takim.jpg
+        String imageUrl = (String) attributes.get("image_url");
+
+        HashMap<String, Object> necessaryAttributes = createNecessaryAttributes(apiId, login,
+            email, imageUrl);
+
+        String username = login;
+        Optional<User> userOptional = userRepository.findByUsername(username);
+        User oAuth2User = signUpOrUpdateUser(login, email, imageUrl, username, userOptional,
+            necessaryAttributes);
+    }
+
+    private HashMap<String, Object> createNecessaryAttributes(String apiId, String login,
+        String email, String imageUrl) {
+        HashMap<String, Object> necessaryAttributes = new HashMap<>();
+        necessaryAttributes.put("id", apiId);
+        necessaryAttributes.put("login", login);
+        necessaryAttributes.put("email", email);
+        necessaryAttributes.put("image_url", imageUrl);
+        return necessaryAttributes;
+    }
 
 
-    public void createRoleAuthority() {
+    private void createRoleAuthority() {
         //Authority 생성
         /**
          * 권한 규칙은 다음과 같다.
@@ -91,24 +116,24 @@ public class CreateTestDataUtils {
         Authority readUser = saveNewAuthority("user.read");
         Authority deleteUser = saveNewAuthority("user.delete");
 
-        System.out.println("--------------------------------------------------------");
+        log.info("--------------------------------------------------------");
         Authority createOpinion = saveNewAuthority("opinion.create");
         Authority updateOpinion = saveNewAuthority("opinion.update");
         Authority readOpinion = saveNewAuthority("opinion.read");
         Authority deleteOpinion = saveNewAuthority("opinion.delete");
-        System.out.println("--------------------------------------------------------");
+        log.info("--------------------------------------------------------");
 
         Authority createArticle = saveNewAuthority("article.create");
         Authority updateArticle = saveNewAuthority("article.update");
         Authority readArticle = saveNewAuthority("article.read");
         Authority deleteArticle = saveNewAuthority("article.delete");
-        System.out.println("--------------------------------------------------------");
+        log.info("--------------------------------------------------------");
 
         Authority createMatch = saveNewAuthority("match.create");
         Authority updateMatch = saveNewAuthority("match.update");
         Authority readMatch = saveNewAuthority("match.read");
         Authority deleteMatch = saveNewAuthority("match.delete");
-        System.out.println("--------------------------------------------------------");
+        log.info("--------------------------------------------------------");
 
         Authority createActivity = saveNewAuthority("activity.create");
         Authority updateActivity = saveNewAuthority("activity.update");
@@ -120,6 +145,10 @@ public class CreateTestDataUtils {
         Authority readRandomMatch = saveNewAuthority("random-match.read");
         Authority deleteRandomMatch = saveNewAuthority("random-match.delete");
 
+        Authority createAlarm = saveNewAuthority("alarm.create");
+        Authority updateAlarm = saveNewAuthority("alarm.update");
+        Authority readAlarm = saveNewAuthority("alarm.read");
+        Authority deleteAlarm = saveNewAuthority("alarm.delete");
 
 
         //Role 생성
@@ -135,8 +164,8 @@ public class CreateTestDataUtils {
             createArticle, updateArticle, readArticle, deleteArticle,
             createMatch, updateMatch, readMatch, deleteMatch,
             createActivity, updateActivity, readActivity, deleteActivity,
-            createRandomMatch, updateRandomMatch, readRandomMatch, deleteRandomMatch);
-
+            createRandomMatch, updateRandomMatch, readRandomMatch, deleteRandomMatch,
+            createAlarm, updateAlarm, readAlarm, deleteAlarm);
 
         userRole.getAuthorities().clear();
         userRole.addAuthorities(createUser, updateUser, readUser, deleteUser,
@@ -144,27 +173,37 @@ public class CreateTestDataUtils {
             createArticle, updateArticle, readArticle, deleteArticle,
             createMatch, updateMatch, readMatch, deleteMatch,
             createActivity, updateActivity, readActivity, deleteActivity,
-            createRandomMatch, updateRandomMatch, readRandomMatch, deleteRandomMatch);
+            createRandomMatch, updateRandomMatch, readRandomMatch, deleteRandomMatch,
+            createAlarm, updateAlarm, readAlarm, deleteAlarm);
 
         roleRepository.saveAll(Arrays.asList(adminRole, userRole));
-
     }
 
     public void createMatchCondition(){
         matchConditionRepository.save(
             MatchCondition.of(WayOfEating.DELIVERY.name(), ConditionCategory.WayOfEating));
-        matchConditionRepository.save(MatchCondition.of(WayOfEating.EATOUT.name(), ConditionCategory.WayOfEating));
-        matchConditionRepository.save(MatchCondition.of(WayOfEating.TAKEOUT.name(), ConditionCategory.WayOfEating));
+        matchConditionRepository.save(
+            MatchCondition.of(WayOfEating.EATOUT.name(), ConditionCategory.WayOfEating));
+        matchConditionRepository.save(
+            MatchCondition.of(WayOfEating.TAKEOUT.name(), ConditionCategory.WayOfEating));
 
-        matchConditionRepository.save(MatchCondition.of(Place.SEOCHO.name(), ConditionCategory.Place));
-        matchConditionRepository.save(MatchCondition.of(Place.GAEPO.name(), ConditionCategory.Place));
-        matchConditionRepository.save(MatchCondition.of(Place.OUT_OF_CLUSTER.name(), ConditionCategory.Place));
+        matchConditionRepository.save(
+            MatchCondition.of(Place.SEOCHO.name(), ConditionCategory.Place));
+        matchConditionRepository.save(
+            MatchCondition.of(Place.GAEPO.name(), ConditionCategory.Place));
+        matchConditionRepository.save(
+            MatchCondition.of(Place.OUT_OF_CLUSTER.name(), ConditionCategory.Place));
 
-        matchConditionRepository.save(MatchCondition.of(TimeOfEating.BREAKFAST.name(), ConditionCategory.TimeOfEating));
-        matchConditionRepository.save(MatchCondition.of(TimeOfEating.LUNCH.name(), ConditionCategory.TimeOfEating));
-        matchConditionRepository.save(MatchCondition.of(TimeOfEating.DUNCH.name(), ConditionCategory.TimeOfEating));
-        matchConditionRepository.save(MatchCondition.of(TimeOfEating.DINNER.name(), ConditionCategory.TimeOfEating));
-        matchConditionRepository.save(MatchCondition.of(TimeOfEating.MIDNIGHT.name(), ConditionCategory.TimeOfEating));
+        matchConditionRepository.save(
+            MatchCondition.of(TimeOfEating.BREAKFAST.name(), ConditionCategory.TimeOfEating));
+        matchConditionRepository.save(
+            MatchCondition.of(TimeOfEating.LUNCH.name(), ConditionCategory.TimeOfEating));
+        matchConditionRepository.save(
+            MatchCondition.of(TimeOfEating.DUNCH.name(), ConditionCategory.TimeOfEating));
+        matchConditionRepository.save(
+            MatchCondition.of(TimeOfEating.DINNER.name(), ConditionCategory.TimeOfEating));
+        matchConditionRepository.save(
+            MatchCondition.of(TimeOfEating.MIDNIGHT.name(), ConditionCategory.TimeOfEating));
 
 //        matchConditionRepository.save(MatchCondition.of(TypeOfEating.KOREAN.name(), ConditionCategory.TypeOfEating));
 //        matchConditionRepository.save(MatchCondition.of(TypeOfEating.JAPANESE.name(), ConditionCategory.TypeOfEating));
@@ -174,28 +213,14 @@ public class CreateTestDataUtils {
 //        matchConditionRepository.save(MatchCondition.of(TypeOfEating.EXOTIC.name(), ConditionCategory.TypeOfEating));
 //        matchConditionRepository.save(MatchCondition.of(TypeOfEating.CONVENIENCE.name(), ConditionCategory.TypeOfEating));
 
-        matchConditionRepository.save(MatchCondition.of(TypeOfStudy.INNER_CIRCLE.name(), ConditionCategory.TypeOfStudy));
-        matchConditionRepository.save(MatchCondition.of(TypeOfStudy.NOT_INNER_CIRCLE.name(), ConditionCategory.TypeOfStudy));
+        matchConditionRepository.save(
+            MatchCondition.of(TypeOfStudy.INNER_CIRCLE.name(), ConditionCategory.TypeOfStudy));
+        matchConditionRepository.save(
+            MatchCondition.of(TypeOfStudy.NOT_INNER_CIRCLE.name(), ConditionCategory.TypeOfStudy));
 
     }
 
-    private void loadUser(Map<String, Object> attributes) {
-        String apiId = ((Integer) attributes.get("id")).toString();
-        //takim
-        String login = (String) attributes.get("login");
-        //takim@student.42seoul.kr
-        String email = (String) attributes.get("email");
-        //https://cdn.intra.42.fr/users/0f260cc3e59777f0f5ba926f19cc1ec9/takim.jpg
-        String imageUrl = (String) attributes.get("image_url");
 
-        HashMap<String, Object> necessaryAttributes = createNecessaryAttributes(apiId, login,
-            email, imageUrl);
-
-        String username = email;
-        Optional<User> userOptional = userRepository.findByUsername(username);
-        User oAuth2User = signUpOrUpdateUser(login, email, imageUrl, username, userOptional,
-            necessaryAttributes);
-    }
 
     private Role saveNewRole(RoleEnum roleEnum) {
         Role role = Role.of(roleEnum);
@@ -207,15 +232,6 @@ public class CreateTestDataUtils {
             Authority.of(s));
     }
 
-    private HashMap<String, Object> createNecessaryAttributes(String apiId, String login,
-        String email, String imageUrl) {
-        HashMap<String, Object> necessaryAttributes = new HashMap<>();
-        necessaryAttributes.put("id", apiId);
-        necessaryAttributes.put("login", login);
-        necessaryAttributes.put("email", email);
-        necessaryAttributes.put("image_url", imageUrl);
-        return necessaryAttributes;
-    }
 
 
     private User signUpOrUpdateUser(String login, String email, String imageUrl, String username,

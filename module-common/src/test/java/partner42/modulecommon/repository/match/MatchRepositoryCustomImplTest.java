@@ -12,7 +12,6 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
-import org.springframework.data.domain.SliceImpl;
 import org.springframework.data.domain.Sort;
 import partner42.modulecommon.domain.model.match.ContentCategory;
 import partner42.modulecommon.domain.model.match.Match;
@@ -24,7 +23,7 @@ import partner42.modulecommon.repository.article.ArticleRepository;
 import partner42.modulecommon.repository.articlemember.ArticleMemberRepository;
 import partner42.modulecommon.repository.member.MemberRepository;
 import partner42.modulecommon.repository.user.UserRepository;
-import partner42.modulecommon.utils.CreateTestDataUtils;
+import partner42.modulecommon.config.BootstrapDataLoader;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
@@ -33,7 +32,7 @@ class MatchRepositoryCustomImplTest {
     @Autowired
     UserRepository userRepository;
     @Autowired
-    CreateTestDataUtils createTestDataUtils;
+    BootstrapDataLoader bootstrapDataLoader;
     @Autowired
     ArticleRepository articleRepository;
 

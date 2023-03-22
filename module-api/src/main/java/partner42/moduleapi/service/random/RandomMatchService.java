@@ -46,10 +46,9 @@ public class RandomMatchService {
 
     @Transactional
     public List<RandomMatch> createRandomMatch(String username,
-        RandomMatchDto randomMatchDto) {
+        RandomMatchDto randomMatchDto, LocalDateTime now) {
         Member member = getUserByUsernameOrException(username).getMember();
         //"2020-12-01T00:00:00"
-        LocalDateTime now = CustomTimeUtils.nowWithoutNano();
         //이미 RandomMatch.MAX_WAITING_TIME분 이내에 랜덤 매칭 신청을 한 경우 인지 체크
         verifyAlreadyApplied(randomMatchDto.getContentCategory(), member, now);
 
@@ -58,7 +57,8 @@ public class RandomMatchService {
             randomMatchDto, member, now);
 
         //랜덤 매칭 신청한 것 DB에 기록.
-        return randomMatchRepository.saveAll(randomMatches);
+        randomMatchRepository.saveAll(randomMatches);
+        return randomMatches;
     }
 
     private User getUserByUsernameOrException(String username) {
@@ -84,9 +84,8 @@ public class RandomMatchService {
 
     @Transactional
     public void deleteRandomMatch(String username,
-        RandomMatchCancelRequest request) {
+        RandomMatchCancelRequest request, LocalDateTime now) {
         Long memberId = getUserByUsernameOrException(username).getMember().getId();
-        LocalDateTime now = LocalDateTime.now();
         //생성된 지 RandomMatch.MAX_WAITING_TIME분 이내 + 취소되지 않은 신청 내역 있는지 확인.
         //취소 하는 도중 매칭이 잡힐 경우를 대비하여 for update
         List<RandomMatch> randomMatches = randomMatchRepository.findByCreatedAtAfterAndIsExpiredAndMemberIdAndContentCategory(
@@ -113,11 +112,11 @@ public class RandomMatchService {
     }
 
     public RandomMatchExistDto checkRandomMatchExist(String username,
-        RandomMatchParam randomMatchCancelRequest) {
+        RandomMatchParam randomMatchCancelRequest, LocalDateTime now) {
         Member member = getUserByUsernameOrException(username).getMember();
         try {
             verifyAlreadyApplied(randomMatchCancelRequest.getContentCategory(), member,
-                LocalDateTime.now());
+                now);
             return RandomMatchExistDto.builder()
                 .isExist(false).build();
         } catch (RandomMatchAlreadyExistException e) {
@@ -127,11 +126,10 @@ public class RandomMatchService {
     }
 
     public RandomMatchDto readRandomMatchCondition(String username,
-        RandomMatchParam randomMatchCancelRequest) {
+        RandomMatchParam randomMatchCancelRequest, LocalDateTime now) {
 
         Member member = getUserByUsernameOrException(username).getMember();
         Long memberId = member.getId();
-        LocalDateTime now = LocalDateTime.now();
 
         List<RandomMatch> randomMatches = randomMatchRepository.findByCreatedAtAfterAndIsExpiredAndMemberIdAndContentCategory(
             RandomMatchSearch.builder()
@@ -200,25 +198,23 @@ public class RandomMatchService {
         //matchConditionRandomMatchDto의 필드가 비어있는 경우 모든 조건으로 변환
         if (randomMatchDto.getContentCategory().equals(ContentCategory.STUDY) &&
             matchConditionRandomMatchDto.getTypeOfStudyList().isEmpty()) {
-            matchConditionRandomMatchDto.getTypeOfStudyList()
-                .addAll(List.of(TypeOfStudy.values()));
+            matchConditionRandomMatchDto.setTypeOfStudyList(
+                new ArrayList<>(List.of(TypeOfStudy.values())));
         } else if (randomMatchDto.getContentCategory().equals(ContentCategory.MEAL) &&
             matchConditionRandomMatchDto.getWayOfEatingList().isEmpty()) {
-            matchConditionRandomMatchDto.getWayOfEatingList()
-                .addAll(List.of(WayOfEating.values()));
+            matchConditionRandomMatchDto.setWayOfEatingList(
+                new ArrayList<>(List.of(WayOfEating.values())));
         }
         // 조건에 따라 모든 경우의 수 RandomMatch 생성
         for (Place place : matchConditionRandomMatchDto.getPlaceList()) {
             if (randomMatchDto.getContentCategory().equals(ContentCategory.STUDY)) {
                 for (TypeOfStudy typeOfStudy : matchConditionRandomMatchDto.getTypeOfStudyList()) {
-
                     randomMatches.add(
                         RandomMatch.of(RandomMatchCondition.of(
                             place, typeOfStudy), member));
                 }
             } else if (randomMatchDto.getContentCategory().equals(ContentCategory.MEAL)) {
                 for (WayOfEating wayOfEating : matchConditionRandomMatchDto.getWayOfEatingList()) {
-
                     randomMatches.add(
                         RandomMatch.of(RandomMatchCondition.of(
                             place, wayOfEating), member));
