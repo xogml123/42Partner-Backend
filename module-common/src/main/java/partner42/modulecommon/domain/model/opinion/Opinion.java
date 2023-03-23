@@ -113,7 +113,9 @@ public class Opinion extends BaseEntity {
         this.isDeleted = true;
     }
 
-    /********************************* DTO *********************************/
+    public Integer nextLevel() {
+        return this.level + 1;
+    }
 
 }
 

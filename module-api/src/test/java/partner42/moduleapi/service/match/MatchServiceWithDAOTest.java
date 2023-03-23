@@ -118,7 +118,6 @@ class MatchServiceWithDAOTest {
         MatchMember mm3 = MatchMember.of(match1, sorkim.getMember(), false);
         matchMemberRepository.saveAll(List.of(mm1, mm2, mm3));
         //then
-
         assertThatThrownBy(() ->
             matchService.readOneMatch(hyenam.getUsername(), match1Save.getApiId()))
             .isInstanceOf(BusinessException.class);

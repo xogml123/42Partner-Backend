@@ -31,17 +31,14 @@ import partner42.modulecommon.repository.user.UserRepository;
 class ActivityServiceWithDAOTest {
     @Autowired
     private ActivityService activityService;
-    @Autowired
-    private BootstrapDataLoader bootstrapDataLoader;
+
     @Autowired
     private UserRepository userRepository;
     @Autowired
     private ActivityRepository activityRepository;
-
     @BeforeEach
     void setUp() {
-//        bootstrapDataLoader.createDefaultUsers();
-//        bootstrapDataLoader.createMatchCondition();
+
     }
 
     @Test

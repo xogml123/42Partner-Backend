@@ -24,8 +24,10 @@ import partner42.modulecommon.domain.model.user.RoleEnum;
 import partner42.modulecommon.domain.model.user.User;
 import partner42.modulecommon.domain.model.user.UserRole;
 import partner42.modulecommon.exception.ErrorCode;
+import partner42.modulecommon.exception.InvalidInputException;
 import partner42.modulecommon.exception.NoEntityException;
 import partner42.modulecommon.exception.NotAuthorException;
+import partner42.modulecommon.exception.RequestValidationException;
 import partner42.modulecommon.producer.AlarmProducer;
 import partner42.modulecommon.repository.article.ArticleRepository;
 import partner42.modulecommon.repository.member.MemberRepository;
@@ -41,11 +43,9 @@ public class OpinionService {
     private final UserRepository userRepository;
     private final MemberRepository memberRepository;
     private final ArticleRepository articleRepository;
-
+    private final AlarmProducer alarmProducer;
     private final OpinionMapper opinionMapper;
 
-    private final AlarmService alarmService;
-    private final AlarmProducer alarmProducer;
 
     @Transactional
     public OpinionOnlyIdResponse createOpinion(OpinionDto request, String username) {
@@ -53,28 +53,33 @@ public class OpinionService {
         Article article = articleRepository.findByApiIdAndIsDeletedIsFalse(request.getArticleId())
             .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
         String parentOpinionId = request.getParentId();
+        Opinion parentOpinion = null;
+        Integer level = 1;
+        if (parentOpinionId != null) {
+            parentOpinion = opinionRepository.findByApiId(parentOpinionId)
+                .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
+            level = parentOpinion.nextLevel();
+        }
         Opinion opinion = Opinion.of(request.getContent(),
             user.getMember(),
             article,
             parentOpinionId,
-            request.getLevel()
+            level
         );
         opinionRepository.save(opinion);
 
         //부모 댓글이 있는 경우 알람 생성
-        if (request.getLevel() > 1 && request.getParentId() != null) {
-            Member parentOpinionAuthor = opinionRepository.findByApiId(parentOpinionId)
-                .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND))
-                .getMemberAuthor();
+        if (parentOpinionId != null) {
             alarmProducer.send(new AlarmEvent(AlarmType.COMMENT_ON_MY_COMMENT, AlarmArgs.builder()
                 .opinionId(parentOpinionId)
                 .articleId(request.getArticleId())
                 .callingMemberNickname(user.getMember().getNickname())
-                .build(), parentOpinionAuthor.getUser().getId(), SseEventName.ALARM_LIST));
+                .build(), parentOpinion.getMemberAuthor().getUser().getId(), SseEventName.ALARM_LIST));
         }
 
         return opinionMapper.entityToOpinionOnlyIdResponse(opinion);
     }
+
 
 
     @Transactional
@@ -130,12 +135,10 @@ public class OpinionService {
         User user = getUserByUsernameOrException(username);
         Opinion opinion = opinionRepository.findByApiId(opinionId)
             .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
-        if (!user.getUserRoles().stream()
-            .map(UserRole::getRole)
-            .map(Role::getValue)
-            .collect(Collectors.toSet())
-            .contains(RoleEnum.ROLE_ADMIN) &&
-            !opinion.getMemberAuthor().equals(user.getMember())) {
+        if (user.hasRole(RoleEnum.ROLE_ADMIN)) {
+            return ;
+        }
+        if (!opinion.getMemberAuthor().equals(user.getMember())) {
             throw new NotAuthorException(ErrorCode.NOT_OPINION_AUTHOR);
         }
     }

@@ -137,7 +137,7 @@ public class Match extends BaseEntity {
 
         verifyReviewerParticipatedInMatch(reviewer);
         verifyReviewedMemberInMatchAndNotReviewer(reviewer, reviewedMemberScoreMap.keySet());
-        //리뷰 작성자
+        //리뷰 작성자 매칭 참여 여부 true로 변경
         memberIsReviewedToTrueIfParticipated(reviewer);
 
         List<Activity> activities = new ArrayList<>();
@@ -156,8 +156,6 @@ public class Match extends BaseEntity {
         });
         return activities;
     }
-
-
     /**
      * 자기가 참여한 매치인지 확인
      * @param reviewer
@@ -172,6 +170,25 @@ public class Match extends BaseEntity {
                 .contains(reviewer)) {
             throw new BusinessException(ErrorCode.NOT_MATCH_PARTICIPATED);
         }
+    }
+
+    public Boolean isMemberReviewed(Member member){
+        return getMatchMembers().stream()
+            .filter((mm) ->
+                member.equals(mm.getMember())
+            ).findFirst()
+            .orElseThrow(() ->
+                new IllegalArgumentException("해당 매치에 참여한 멤버가 아닙니다."))
+            .getIsReviewed();
+    }
+    private void memberIsReviewedToTrueIfParticipated(Member member){
+        matchMembers.stream()
+            .filter(mm ->
+                mm.getMember().equals(member))
+            .findAny()
+            .orElseThrow(() ->
+                new IllegalArgumentException("해당 매치에 참여한 멤버가 아닙니다."))
+            .updateisReviewedToTrue();
     }
 
     /**
@@ -194,29 +211,6 @@ public class Match extends BaseEntity {
                     throw new BusinessException(ErrorCode.REVIEWING_SELF);
                 }
             });
-    }
-
-
-    public Boolean isMemberReviewed(Member member){
-
-        return getMatchMembers().stream()
-            .filter((mm) ->
-                member.equals(mm.getMember())
-            ).findFirst()
-            .orElseThrow(() ->
-                new IllegalArgumentException("해당 매치에 참여한 멤버가 아닙니다."))
-            .getIsReviewed();
-    }
-
-
-    private void memberIsReviewedToTrueIfParticipated(Member member){
-        matchMembers.stream()
-            .filter(mm ->
-                mm.getMember().equals(member))
-            .findAny()
-            .orElseThrow(() ->
-                new IllegalArgumentException("해당 매치에 참여한 멤버가 아닙니다."))
-            .updateisReviewedToTrue();
     }
 }
 

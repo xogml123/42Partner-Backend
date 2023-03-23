@@ -66,6 +66,7 @@ public enum ErrorCode {
 
     //Opinion
     NOT_OPINION_AUTHOR(HttpStatus.FORBIDDEN.value(), "OP001", "의견의 작성자가 아닙니다."),
+
     //User
     NOT_MINE(HttpStatus.FORBIDDEN.value(), "U001", "본인이 아닙니다."),
     //Match
