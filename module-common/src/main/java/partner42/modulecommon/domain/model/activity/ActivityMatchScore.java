@@ -20,7 +20,7 @@ public enum ActivityMatchScore {
 
     //매칭 참여 혹은 리뷰를 남겼을 때 점수를 부여한다.
     MATCH_PARTICIPANT("매치 참여자", 10),
-    MATCH_REVIEW("매치 리뷰", 20),
+    MAKE_MATCH_REVIEW("매치 리뷰", 20),
     ARTICLE_MATCH_AUTHOR("방 매치 작성자", 42),
     ;
 

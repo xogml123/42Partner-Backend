@@ -53,7 +53,8 @@ public class AlarmService implements MessageListener {
 
 
     /**
-     * 여러 서버에서 SSE를 구현하기 위한 Redis Pub/Sub CommandLineRunner에서 subscribe해두었던 topic에 publish가 일어나면 이
+     * 여러 서버에서 SSE를 구현하기 위한 Redis Pub/Sub
+     * subscribe해두었던 topic에 publish가 일어나면 이
      * 메서드가 호출된다.
      */
     @Override
@@ -114,9 +115,9 @@ public class AlarmService implements MessageListener {
 
     }
 
-    public SseEmitter subscribe(String username, String lastEventId) {
+    public SseEmitter subscribe(String username, String lastEventId, LocalDateTime now) {
         Long userId = getUserByUsernameOrException(username).getId();
-        LocalDateTime now = CustomTimeUtils.nowWithoutNano();
+        ;
         SseEmitter sse = new SseEmitter(Long.parseLong(sseTimeout));
 
         String key = new SseRepositoryKeyRule(userId, SseEventName.ALARM_LIST,

@@ -62,7 +62,9 @@ public class MatchController {
         @PathVariable("matchId") String matchId,
         @Validated @Parameter @RequestBody MatchReviewRequest request
     ) {
-        return matchService.makeReview(user.getUsername(), matchId, request);
+        matchService.makeReview(user.getUsername(), matchId, request);
+        return ResponseEntity.ok().build();
+
     }
 
 

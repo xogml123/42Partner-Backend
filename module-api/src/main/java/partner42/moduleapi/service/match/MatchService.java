@@ -1,6 +1,8 @@
 package partner42.moduleapi.service.match;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +19,6 @@ import partner42.moduleapi.dto.member.MemberReviewDto;
 import partner42.moduleapi.mapper.MemberMapper;
 import partner42.modulecommon.domain.model.activity.Activity;
 import partner42.modulecommon.domain.model.activity.ActivityMatchScore;
-import partner42.modulecommon.domain.model.activity.ActivityType;
 import partner42.modulecommon.domain.model.match.Match;
 import partner42.modulecommon.domain.model.match.MatchMember;
 import partner42.modulecommon.domain.model.matchcondition.MatchCondition;
@@ -79,13 +80,7 @@ public class MatchService {
                                 member.equals(matchMember.getMember()))
                         )
                         .collect(Collectors.toList()),
-                    match.getMatchMembers().stream()
-                        .filter((matchMember) ->
-                            member.equals(matchMember.getMember())
-                        ).findFirst()
-                        .orElseThrow(() ->
-                            new NoEntityException(ErrorCode.ENTITY_NOT_FOUND))
-                        .getIsReviewed()
+                    match.isMemberReviewed(member)
                 );
             })
             .collect(Collectors.toList());
@@ -101,14 +96,12 @@ public class MatchService {
 
     public MatchDto readOneMatch(String username, String matchId) {
         //자기 매치인지 확인
-        verifyNotMatchParticipated(username, matchId);
-
-        Member member = getUserByUsernameOrException(username)
-            .getMember();
-
+        Member member = getUserByUsernameOrException(username).getMember();
         Match match = matchRepository.findByApiId(matchId)
             .orElseThrow(() ->
                 new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
+        match.verifyReviewerParticipatedInMatch(member);
+
         List<MatchCondition> matchConditions = match.getMatchConditionMatches().stream()
             .map((matchConditionMatch) ->
                 matchConditionMatch.getMatchCondition()
@@ -125,94 +118,32 @@ public class MatchService {
                         member.equals(matchMember.getMember()))
                 )
                 .collect(Collectors.toList()),
-            match.getMatchMembers().stream()
-                .filter((matchMember) ->
-                    member.equals(matchMember.getMember())
-                ).findFirst()
-                .orElseThrow(() ->
-                    new NoEntityException(ErrorCode.ENTITY_NOT_FOUND))
-                .getIsReviewed()
+            match.isMemberReviewed(member)
         );
     }
 
 
-    public ResponseEntity<Void> makeReview(String username, String matchId,
+    @Transactional
+    public List<Activity> makeReview(String username, String matchId,
         MatchReviewRequest request) {
-        verifyNotMatchParticipated(username, matchId);
-
-        verifyReviewedMemberNotInMatch(matchId, request.getMemberReviewDtos().stream()
-            .map(MemberReviewDto::getNickname)
-            .collect(Collectors.toList()));
-
         Match match = matchRepository.findByApiId(matchId)
             .orElseThrow(() ->
                 new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
-        //uesrname에 해당하는 matchMember의 매칭상태 true로 변경.
-        match.getMatchMembers().stream()
-            .filter(mm ->
-                mm.getMember().getUser().getUsername().equals(username))
-            .findAny()
-            .orElseThrow(() ->
-                new NoEntityException(ErrorCode.ENTITY_NOT_FOUND))
-            .updateReviewStatusTrue();
-        //리뷰 작성자 참여 점수 추가.
-        Member memberReviewAuthor = memberRepository.findByNickname(username)
-            .orElseThrow(() ->
-                new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
-        activityRepository.save(
-            Activity.of(memberReviewAuthor,
-                match.getContentCategory(),
-                ActivityMatchScore.MATCH_REVIEW));
-        /**
-         * 리뷰에 따라 점수 추가
-         */
-        List<Activity> activities = request.getMemberReviewDtos().stream()
-            .map((memberReviewDto) -> {
-                Member member = memberRepository.findByNickname(memberReviewDto.getNickname())
-                    .orElseThrow(() ->
-                        new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
-                return Activity.of(member, match.getContentCategory(),
-                    memberReviewDto.getActivityMatchScore());
-            })
-            .collect(Collectors.toList());
-        activityRepository.saveAll(activities);
-        return ResponseEntity.ok().build();
-    }
-
-    private void verifyReviewedMemberNotInMatch(String matchId, List<String> nicknames) {
-        Match match = matchRepository.findByApiId(matchId)
-            .orElseThrow(() ->
-                new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
-        Set<Member> memberSet = match.getMatchMembers()
-            .stream()
-            .map(MatchMember::getMember)
-            .collect(Collectors.toSet());
-        memberRepository.findAllByNicknameIn(nicknames)
-            .forEach((member) -> {
-                if (!memberSet.contains(member)) {
-                    throw new BusinessException(ErrorCode.REVIEWED_MEMBER_NOT_IN_MATCH);
-                }
-            });
-
-    }
-
-    //자기 매치인지 확인
-    private void verifyNotMatchParticipated(String username, String matchId) {
-
-        User user = getUserByUsernameOrException(username);
-        Match match = matchRepository.findByApiId(matchId)
-            .orElseThrow(() ->
-                new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
-        if (!user.getUserRoles().stream()
-            .map(UserRole::getRole)
-            .map(Role::getValue)
-            .collect(Collectors.toSet())
-            .contains(RoleEnum.ROLE_ADMIN) &&
-            !match.getMatchMembers().stream()
-                .map(MatchMember::getMember)
-                .collect(Collectors.toSet())
-                .contains(user.getMember())) {
-            throw new BusinessException(ErrorCode.NOT_MATCH_PARTICIPATED);
+        User reviewingUser = getUserByUsernameOrException(username);
+        Map<String, ActivityMatchScore> nicknameActivityScoreMap = request.getMemberReviewDtos().stream()
+            .collect(Collectors.toMap(MemberReviewDto::getNickname,
+                MemberReviewDto::getActivityMatchScore));
+        List<Member> reviewedTargets = memberRepository.findAllByNicknameIn(
+            new ArrayList<>(nicknameActivityScoreMap.keySet()));
+        // request의 nickname이 member에 없는 경우
+        if (reviewedTargets.size() != nicknameActivityScoreMap.size()) {
+            throw new NoEntityException(ErrorCode.ENTITY_NOT_FOUND);
         }
+        List<Activity> createdActivities = match.makeReview(reviewingUser.getMember(),
+            reviewedTargets.stream()
+                .collect(Collectors.toMap(m -> m,
+                    m -> nicknameActivityScoreMap.get(m.getNickname()))));
+        return activityRepository.saveAll(createdActivities);
     }
+
 }

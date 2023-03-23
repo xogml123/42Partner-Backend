@@ -28,7 +28,4 @@ public class MatchReviewRequest {
     @Schema(name = "memberReviewDtos", example = "[]", description = "멤버별 리뷰 남길 정보")
     @Builder.Default
     private List<MemberReviewDto> memberReviewDtos = new ArrayList<>();
-
-
-
 }

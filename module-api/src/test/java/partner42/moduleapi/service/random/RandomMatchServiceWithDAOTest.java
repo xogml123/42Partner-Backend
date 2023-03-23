@@ -8,30 +8,21 @@ import static org.mockito.BDDMockito.given;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.EntityTransaction;
-import javax.persistence.Persistence;
-import javax.persistence.PersistenceContext;
-import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.stereotype.Repository;
-import org.springframework.test.context.jdbc.Sql;
+import partner42.moduleapi.TestBootstrapConfig;
 import partner42.moduleapi.dto.matchcondition.MatchConditionRandomMatchDto;
 import partner42.moduleapi.dto.random.RandomMatchCancelRequest;
 import partner42.moduleapi.dto.random.RandomMatchCountResponse;
 import partner42.moduleapi.dto.random.RandomMatchDto;
 import partner42.moduleapi.dto.random.RandomMatchExistDto;
 import partner42.moduleapi.dto.random.RandomMatchParam;
+import partner42.moduleapi.service.activity.ActivityService;
 import partner42.modulecommon.config.BootstrapDataLoader;
 import partner42.modulecommon.config.jpa.Auditor;
 import partner42.modulecommon.config.querydsl.QuerydslConfig;
@@ -50,7 +41,7 @@ import partner42.modulecommon.utils.CustomTimeUtils;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Import({RandomMatchService.class, QuerydslConfig.class, Auditor.class, BootstrapDataLoader.class})
+@Import({RandomMatchService.class, Auditor.class, QuerydslConfig.class, TestBootstrapConfig.class, BootstrapDataLoader.class})
 class RandomMatchServiceWithDAOTest {
 
     @Autowired
@@ -67,8 +58,7 @@ class RandomMatchServiceWithDAOTest {
 
     @BeforeEach
     void setUp() {
-        bootstrapDataLoader.createDefaultUsers();
-        bootstrapDataLoader.createMatchCondition();
+
     }
 
 

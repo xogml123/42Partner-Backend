@@ -294,13 +294,13 @@ public class ArticleService {
         //활동 점수 부여
         article.getArticleMembers()
             .forEach(am -> {
-                ActivityMatchScore activityMatchScore =
-                    am.getIsAuthor() ? ActivityMatchScore.ARTICLE_MATCH_AUTHOR
-                        : ActivityMatchScore.MATCH_PARTICIPANT;
-                activityRepository.save(
-                    Activity.of(am.getMember(),
-                        article.getContentCategory(),
-                        activityMatchScore));
+                    ActivityMatchScore activityMatchScore =
+                        am.getIsAuthor() ? ActivityMatchScore.ARTICLE_MATCH_AUTHOR
+                            : ActivityMatchScore.MATCH_PARTICIPANT;
+                    activityRepository.save(
+                        Activity.of(am.getMember(),
+                            article.getContentCategory(),
+                            activityMatchScore));
                 }
             );
 

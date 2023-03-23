@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -183,10 +184,13 @@ public class User extends BaseEntity {
         this.email = email;
     }
 
-//    public void updateUserByOAuthIfo(String imageUrl) {
-//        this.imageUrl = imageUrl;
-//
-//    }
+    public Boolean hasRole(RoleEnum roleEnum) {
+        return this.getUserRoles().stream()
+            .map(UserRole::getRole)
+            .map(Role::getValue)
+            .collect(Collectors.toSet())
+            .contains(roleEnum);
+    }
 
 
     /********************************* DTO *********************************/
