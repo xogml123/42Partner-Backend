@@ -45,11 +45,11 @@ class OpinionRepositoryTest {
         Member author = Member.of("author");
         memberRepository.save(author);
 
-        Opinion opinion1 = Opinion.of("content", author, article1, "a", 0);
-        Opinion opinion2 = Opinion.of("content", author, article1, "a", 0);
-        Opinion opinion3 = Opinion.of("content", author, article1, "a", 0);
-        Opinion opinion4 = Opinion.of("content", author, article2, "a", 0);
-        Opinion opinionDeleted = Opinion.of("content", author, article2, "a", 0);
+        Opinion opinion1 = Opinion.of("content", author, article1, null);
+        Opinion opinion2 = Opinion.of("content", author, article1, null);
+        Opinion opinion3 = Opinion.of("content", author, article1, null);
+        Opinion opinion4 = Opinion.of("content", author, article2, null);
+        Opinion opinionDeleted = Opinion.of("content", author, article2, null);
         opinionDeleted.recoverableDelete();
         opinionRepository.saveAll(List.of(opinion1, opinion2, opinion3, opinionDeleted, opinion4));
 

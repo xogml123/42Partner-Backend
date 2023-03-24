@@ -27,7 +27,6 @@ import partner42.modulecommon.exception.ErrorCode;
 import partner42.modulecommon.exception.InvalidInputException;
 import partner42.modulecommon.exception.NoEntityException;
 import partner42.modulecommon.exception.NotAuthorException;
-import partner42.modulecommon.exception.RequestValidationException;
 import partner42.modulecommon.producer.AlarmProducer;
 import partner42.modulecommon.repository.article.ArticleRepository;
 import partner42.modulecommon.repository.member.MemberRepository;
@@ -53,18 +52,13 @@ public class OpinionService {
         Article article = articleRepository.findByApiIdAndIsDeletedIsFalse(request.getArticleId())
             .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
         String parentOpinionId = request.getParentId();
-        Opinion parentOpinion = null;
-        Integer level = 1;
-        if (parentOpinionId != null) {
-            parentOpinion = opinionRepository.findByApiId(parentOpinionId)
-                .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
-            level = parentOpinion.nextLevel();
-        }
+        Opinion parentOpinion = parentOpinionId == null ? null :
+            opinionRepository.findByApiId(parentOpinionId)
+            .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));;
         Opinion opinion = Opinion.of(request.getContent(),
             user.getMember(),
             article,
-            parentOpinionId,
-            level
+            parentOpinion
         );
         opinionRepository.save(opinion);
 
