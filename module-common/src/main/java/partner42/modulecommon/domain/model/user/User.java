@@ -184,7 +184,7 @@ public class User extends BaseEntity {
         this.email = email;
     }
 
-    public Boolean hasRole(RoleEnum roleEnum) {
+    public boolean hasRole(RoleEnum roleEnum) {
         return this.getUserRoles().stream()
             .map(UserRole::getRole)
             .map(Role::getValue)

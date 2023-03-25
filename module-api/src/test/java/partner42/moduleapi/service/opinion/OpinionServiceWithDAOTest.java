@@ -45,7 +45,6 @@ import partner42.modulecommon.repository.user.UserRepository;
 @Import({OpinionService.class, OpinionMapperImpl.class, Auditor.class, QuerydslConfig.class,
     TestBootstrapConfig.class, BootstrapDataLoader.class})
 class OpinionServiceWithDAOTest {
-
     @Autowired
     private OpinionService opinionService;
     @MockBean

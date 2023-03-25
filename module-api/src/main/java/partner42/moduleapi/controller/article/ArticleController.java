@@ -5,14 +5,12 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.SliceImpl;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -94,7 +92,7 @@ public class ArticleController {
     public ArticleOnlyIdResponse recoverableDeleteArticle(@PathVariable String articleId,
         @Parameter(hidden = true) @AuthenticationPrincipal UserDetails user
     ) {
-        return articleService.changeIsDelete(user.getUsername(), articleId);
+        return articleService.softDelete(user.getUsername(), articleId);
     }
 
     @PreAuthorize("hasAuthority('article.update')")

@@ -60,7 +60,7 @@ public class BootstrapDataLoader {
             "https://cdn.intra.42.fr/users/0f260cc3e59777f0f5ba926f19cc1ec9/hyenam.jpg");
 
         Map<String, Object> takim = new HashMap<>();
-        takim.put("id", 4);
+        takim.put("id", 5);
         takim.put("login", "takim");
         takim.put("email", "takim@student.42seoul.kr");
         takim.put("image_url",
@@ -69,7 +69,6 @@ public class BootstrapDataLoader {
         loadUser(sorkim);
         loadUser(hyenam);
         loadUser(takim);
-
     }
 
     private void loadUser(Map<String, Object> attributes) {

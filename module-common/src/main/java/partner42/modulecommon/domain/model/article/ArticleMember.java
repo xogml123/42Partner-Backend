@@ -36,7 +36,6 @@ public class ArticleMember extends BaseEntity {
     @Column(name = "ARTICLE_MEMBER_ID")
     private Long id;
 
-
     /********************************* PK가 아닌 필드 *********************************/
 
     /**
@@ -46,18 +45,9 @@ public class ArticleMember extends BaseEntity {
     @Column(name = "IS_AUTHOR", nullable = false, updatable = false)
     private Boolean isAuthor;
 
-
-
-
-
-
-
-
     /********************************* 비영속 필드 *********************************/
 
     /********************************* 연관관계 매핑 *********************************/
-
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "MEMBER_ID", nullable = false, updatable = false)
     private Member member;

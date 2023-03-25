@@ -30,11 +30,4 @@ public class MemberDto {
     @NotNull
     private Boolean isMe;
 
-//    public static MemberDto of(String nickname, Boolean isAuthor, Boolean isMe) {
-//        return MemberDto.builder()
-//                .nickname(nickname)
-//                .isAuthor(isAuthor)
-//                .isMe(isMe)
-//                .build();
-//    }
 }

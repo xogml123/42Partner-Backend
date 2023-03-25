@@ -31,6 +31,7 @@ import partner42.modulecommon.domain.model.member.Member;
 import partner42.modulecommon.domain.model.opinion.Opinion;
 import partner42.modulecommon.exception.ErrorCode;
 import partner42.modulecommon.exception.InvalidInputException;
+import partner42.modulecommon.exception.NotAuthorException;
 import partner42.modulecommon.exception.UnmodifiableArticleException;
 
 
@@ -114,15 +115,14 @@ public class Article extends BaseEntity{
     /********************************* 연관관계 매핑 *********************************/
 
 
-    /*********************************  *********************************/
-
     @Builder.Default
     @OneToMany(mappedBy = "article", fetch = FetchType.LAZY, cascade = {CascadeType.REMOVE,
         CascadeType.PERSIST})
     private List<ArticleMatchCondition> articleMatchConditions = new ArrayList<>();
 
     @Builder.Default
-    @OneToMany(mappedBy = "article", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "article", fetch = FetchType.LAZY, cascade = {CascadeType.REMOVE,
+        CascadeType.PERSIST})
     private List<ArticleMember> articleMembers = new ArrayList<>();
 
     @Builder.Default
@@ -150,7 +150,8 @@ public class Article extends BaseEntity{
     /********************************* 비니지스 로직 *********************************/
 
 
-    public void update(LocalDate date, String title, String content, Integer participantNumMax,
+    public void update(LocalDate date, String title, String content, Boolean anonymity,
+        Integer participantNumMax, ContentCategory contentCategory,
         List<ArticleMatchCondition> articleMatchConditions) {
         verifyDeleted();
         verifyCompleted();
@@ -158,7 +159,9 @@ public class Article extends BaseEntity{
         this.date = date;
         this.title = title;
         this.content = content;
+        this.anonymity = anonymity;
         this.participantNumMax = participantNumMax;
+        this.contentCategory = contentCategory;
         this.getArticleMatchConditions().clear();
         for (ArticleMatchCondition articleMatchCondition : articleMatchConditions) {
             articleMatchCondition.setArticle(this);
@@ -181,14 +184,10 @@ public class Article extends BaseEntity{
             .map(ArticleMember::getMember)
             .collect(Collectors.toList());
     }
-
-
     public boolean isDateToday() {
         return this.date.isEqual(LocalDate.now());
 
     }
-
-
     private void verifyChangeableParticipantNumMax(Integer participantNumMax) {
         if (this.participantNum > participantNumMax) {
             throw new InvalidInputException(ErrorCode.NOT_CHANGEABLE_PARTICIPANT_NUM_MAX);
@@ -285,6 +284,9 @@ public class Article extends BaseEntity{
         this.isDeleted = true;
     }
 
+    public boolean isAuthorMember(Member member) {
+        return getAuthorMember().equals(member);
+    }
 
     /********************************* Dto *********************************/
 
