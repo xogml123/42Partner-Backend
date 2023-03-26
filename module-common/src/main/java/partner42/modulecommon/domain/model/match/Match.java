@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -101,11 +102,11 @@ public class Match extends BaseEntity {
     private Article article;
 
     @Builder.Default
-    @OneToMany(mappedBy = "match", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "match", fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
     private List<MatchMember> matchMembers = new ArrayList<>();
 
     @Builder.Default
-    @OneToMany(mappedBy = "match", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "match", fetch = FetchType.LAZY, , cascade = CascadeType.PERSIST)
     private List<MatchConditionMatch> matchConditionMatches = new ArrayList<>();
 
     /********************************* 연관관계 편의 메서드 *********************************/

@@ -11,6 +11,7 @@ import partner42.modulecommon.domain.model.sse.SseEventName;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@EqualsAndHashCode
 public class AlarmEvent {
     private AlarmType type;
     private AlarmArgs args;

@@ -1,12 +1,15 @@
 package partner42.moduleapi.service.article;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.BDDMockito.*;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.mockito.BDDMockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -26,7 +29,10 @@ import partner42.moduleapi.mapper.MatchConditionMapperImpl;
 import partner42.moduleapi.mapper.MemberMapperImpl;
 import partner42.modulecommon.config.BootstrapDataLoader;
 import partner42.modulecommon.config.jpa.Auditor;
+import partner42.modulecommon.config.kafka.AlarmEvent;
 import partner42.modulecommon.config.querydsl.QuerydslConfig;
+import partner42.modulecommon.domain.model.alarm.AlarmArgs;
+import partner42.modulecommon.domain.model.alarm.AlarmType;
 import partner42.modulecommon.domain.model.article.Article;
 import partner42.modulecommon.domain.model.article.ArticleMember;
 import partner42.modulecommon.domain.model.match.ConditionCategory;
@@ -37,7 +43,10 @@ import partner42.modulecommon.domain.model.matchcondition.Place;
 import partner42.modulecommon.domain.model.matchcondition.TimeOfEating;
 import partner42.modulecommon.domain.model.matchcondition.TypeOfStudy;
 import partner42.modulecommon.domain.model.matchcondition.WayOfEating;
+import partner42.modulecommon.domain.model.sse.SseEventName;
 import partner42.modulecommon.domain.model.user.User;
+import partner42.modulecommon.exception.BusinessException;
+import partner42.modulecommon.exception.ErrorCode;
 import partner42.modulecommon.exception.InvalidInputException;
 import partner42.modulecommon.exception.NotAuthorException;
 import partner42.modulecommon.producer.AlarmProducer;
@@ -69,6 +78,7 @@ class ArticleServiceWithDaoTest {
     private ArticleMatchConditionRepository articleMatchConditionRepository;
     @Autowired
     private MatchConditionRepository matchConditionRepository;
+
     @BeforeEach
     void setUp() {
     }
@@ -100,7 +110,8 @@ class ArticleServiceWithDaoTest {
             .get();
         //then
         assertThat(article).extracting(Article::getDate, Article::getTitle, Article::getContent,
-                Article::getAnonymity, Article::getIsComplete, Article::getParticipantNum, Article::getParticipantNumMax, Article::getContentCategory)
+                Article::getAnonymity, Article::getIsComplete, Article::getParticipantNum,
+                Article::getParticipantNumMax, Article::getContentCategory)
             .containsExactly(date, "title", "content", false, false, 1, 3, ContentCategory.MEAL);
         assertThat(article.getArticleMatchConditions()).extracting(
                 ArticleMatchCondition::getMatchCondition)
@@ -129,7 +140,8 @@ class ArticleServiceWithDaoTest {
         ArticleMember am = articleMemberRepository.save(
             ArticleMember.of(takim.getMember(), true, article));
         ArticleMatchCondition amc = articleMatchConditionRepository.save(
-            ArticleMatchCondition.of(matchConditionRepository.findByValue(Place.GAEPO.name()).get(), article));
+            ArticleMatchCondition.of(matchConditionRepository.findByValue(Place.GAEPO.name()).get(),
+                article));
         articleService.deleteArticle(takim.getUsername(), article.getApiId());
         Optional<Article> optionalArticle = articleRepository.findByApiId(article.getApiId());
         //then
@@ -149,7 +161,8 @@ class ArticleServiceWithDaoTest {
         ArticleMember am = articleMemberRepository.save(
             ArticleMember.of(takim.getMember(), true, article));
         ArticleMatchCondition amc = articleMatchConditionRepository.save(
-            ArticleMatchCondition.of(matchConditionRepository.findByValue(Place.GAEPO.name()).get(), article));
+            ArticleMatchCondition.of(matchConditionRepository.findByValue(Place.GAEPO.name()).get(),
+                article));
 
         Optional<Article> optionalArticle = articleRepository.findByApiId(article.getApiId());
         //then
@@ -169,7 +182,8 @@ class ArticleServiceWithDaoTest {
         ArticleMember am = articleMemberRepository.save(
             ArticleMember.of(takim.getMember(), true, article));
         ArticleMatchCondition amc = articleMatchConditionRepository.save(
-            ArticleMatchCondition.of(matchConditionRepository.findByValue(Place.GAEPO.name()).get(), article));
+            ArticleMatchCondition.of(matchConditionRepository.findByValue(Place.GAEPO.name()).get(),
+                article));
         articleService.softDelete(takim.getUsername(), article.getApiId());
         //then
         articleRepository.findByApiId(article.getApiId()).ifPresent(
@@ -230,20 +244,29 @@ class ArticleServiceWithDaoTest {
             ArticleMember.of(takim.getMember(), true, article));
         articleMatchConditionRepository.saveAll(
             List.of(
-                ArticleMatchCondition.of(matchConditionRepository.findByValue(Place.GAEPO.name()).get(), article),
-                ArticleMatchCondition.of(matchConditionRepository.findByValue(TimeOfEating.MIDNIGHT.name()).get(), article),
-                ArticleMatchCondition.of(matchConditionRepository.findByValue(TimeOfEating.BREAKFAST.name()).get(), article),
-                ArticleMatchCondition.of(matchConditionRepository.findByValue(WayOfEating.TAKEOUT.name()).get(), article)
-                )
-            );
+                ArticleMatchCondition.of(
+                    matchConditionRepository.findByValue(Place.GAEPO.name()).get(), article),
+                ArticleMatchCondition.of(
+                    matchConditionRepository.findByValue(TimeOfEating.MIDNIGHT.name()).get(),
+                    article),
+                ArticleMatchCondition.of(
+                    matchConditionRepository.findByValue(TimeOfEating.BREAKFAST.name()).get(),
+                    article),
+                ArticleMatchCondition.of(
+                    matchConditionRepository.findByValue(WayOfEating.TAKEOUT.name()).get(), article)
+            )
+        );
 
         ArticleOnlyIdResponse articleOnlyIdResponse = articleService.updateArticle(dto,
             takim.getUsername(), article.getApiId());
-        Article updatedArticle = articleRepository.findByApiId(articleOnlyIdResponse.getArticleId()).get();
+        Article updatedArticle = articleRepository.findByApiId(articleOnlyIdResponse.getArticleId())
+            .get();
 
         //then
-        assertThat(updatedArticle).extracting(Article::getDate, Article::getTitle, Article::getContent,
-                Article::getAnonymity, Article::getIsComplete, Article::getParticipantNum, Article::getParticipantNumMax, Article::getContentCategory)
+        assertThat(updatedArticle).extracting(Article::getDate, Article::getTitle,
+                Article::getContent,
+                Article::getAnonymity, Article::getIsComplete, Article::getParticipantNum,
+                Article::getParticipantNumMax, Article::getContentCategory)
             .containsExactly(date, "title", "content", false, false, 1, 3, ContentCategory.MEAL);
         assertThat(article.getArticleMatchConditions()).extracting(
                 ArticleMatchCondition::getMatchCondition)
@@ -291,10 +314,16 @@ class ArticleServiceWithDaoTest {
             ArticleMember.of(takim.getMember(), true, article));
         articleMatchConditionRepository.saveAll(
             List.of(
-                ArticleMatchCondition.of(matchConditionRepository.findByValue(Place.GAEPO.name()).get(), article),
-                ArticleMatchCondition.of(matchConditionRepository.findByValue(TimeOfEating.MIDNIGHT.name()).get(), article),
-                ArticleMatchCondition.of(matchConditionRepository.findByValue(TimeOfEating.BREAKFAST.name()).get(), article),
-                ArticleMatchCondition.of(matchConditionRepository.findByValue(WayOfEating.TAKEOUT.name()).get(), article)
+                ArticleMatchCondition.of(
+                    matchConditionRepository.findByValue(Place.GAEPO.name()).get(), article),
+                ArticleMatchCondition.of(
+                    matchConditionRepository.findByValue(TimeOfEating.MIDNIGHT.name()).get(),
+                    article),
+                ArticleMatchCondition.of(
+                    matchConditionRepository.findByValue(TimeOfEating.BREAKFAST.name()).get(),
+                    article),
+                ArticleMatchCondition.of(
+                    matchConditionRepository.findByValue(WayOfEating.TAKEOUT.name()).get(), article)
             )
         );
         //then
@@ -318,10 +347,16 @@ class ArticleServiceWithDaoTest {
             ArticleMember.of(takim.getMember(), true, article));
         articleMatchConditionRepository.saveAll(
             List.of(
-                ArticleMatchCondition.of(matchConditionRepository.findByValue(Place.GAEPO.name()).get(), article),
-                ArticleMatchCondition.of(matchConditionRepository.findByValue(TimeOfEating.MIDNIGHT.name()).get(), article),
-                ArticleMatchCondition.of(matchConditionRepository.findByValue(TimeOfEating.BREAKFAST.name()).get(), article),
-                ArticleMatchCondition.of(matchConditionRepository.findByValue(WayOfEating.TAKEOUT.name()).get(), article)
+                ArticleMatchCondition.of(
+                    matchConditionRepository.findByValue(Place.GAEPO.name()).get(), article),
+                ArticleMatchCondition.of(
+                    matchConditionRepository.findByValue(TimeOfEating.MIDNIGHT.name()).get(),
+                    article),
+                ArticleMatchCondition.of(
+                    matchConditionRepository.findByValue(TimeOfEating.BREAKFAST.name()).get(),
+                    article),
+                ArticleMatchCondition.of(
+                    matchConditionRepository.findByValue(WayOfEating.TAKEOUT.name()).get(), article)
             )
         );
         ArticleReadOneResponse articleReadOneResponse = articleService.readOneArticle(
@@ -332,7 +367,8 @@ class ArticleServiceWithDaoTest {
                 ArticleReadOneResponse::getTitle, ArticleReadOneResponse::getDate,
                 ArticleReadOneResponse::getCreatedAt, ArticleReadOneResponse::getContent,
                 ArticleReadOneResponse::getAnonymity, ArticleReadOneResponse::getIsToday,
-                ArticleReadOneResponse::getParticipantNumMax, ArticleReadOneResponse::getParticipantNum,
+                ArticleReadOneResponse::getParticipantNumMax,
+                ArticleReadOneResponse::getParticipantNum,
                 ArticleReadOneResponse::getContentCategory)
             .containsExactly(article.getApiId(), takim.getApiId(), "a", date,
                 article.getCreatedAt(), "a", false, false, 3, 1,
@@ -377,10 +413,16 @@ class ArticleServiceWithDaoTest {
             ArticleMember.of(takim.getMember(), true, article));
         articleMatchConditionRepository.saveAll(
             List.of(
-                ArticleMatchCondition.of(matchConditionRepository.findByValue(Place.GAEPO.name()).get(), article),
-                ArticleMatchCondition.of(matchConditionRepository.findByValue(TimeOfEating.MIDNIGHT.name()).get(), article),
-                ArticleMatchCondition.of(matchConditionRepository.findByValue(TimeOfEating.BREAKFAST.name()).get(), article),
-                ArticleMatchCondition.of(matchConditionRepository.findByValue(WayOfEating.TAKEOUT.name()).get(), article)
+                ArticleMatchCondition.of(
+                    matchConditionRepository.findByValue(Place.GAEPO.name()).get(), article),
+                ArticleMatchCondition.of(
+                    matchConditionRepository.findByValue(TimeOfEating.MIDNIGHT.name()).get(),
+                    article),
+                ArticleMatchCondition.of(
+                    matchConditionRepository.findByValue(TimeOfEating.BREAKFAST.name()).get(),
+                    article),
+                ArticleMatchCondition.of(
+                    matchConditionRepository.findByValue(WayOfEating.TAKEOUT.name()).get(), article)
             )
         );
         ArticleReadOneResponse articleReadOneResponseBySorkim = articleService.readOneArticle(
@@ -425,10 +467,17 @@ class ArticleServiceWithDaoTest {
             ArticleMember.of(takim.getMember(), true, article1));
         articleMatchConditionRepository.saveAll(
             List.of(
-                ArticleMatchCondition.of(matchConditionRepository.findByValue(Place.GAEPO.name()).get(), article1),
-                ArticleMatchCondition.of(matchConditionRepository.findByValue(TimeOfEating.MIDNIGHT.name()).get(), article1),
-                ArticleMatchCondition.of(matchConditionRepository.findByValue(TimeOfEating.BREAKFAST.name()).get(), article1),
-                ArticleMatchCondition.of(matchConditionRepository.findByValue(WayOfEating.TAKEOUT.name()).get(), article1)
+                ArticleMatchCondition.of(
+                    matchConditionRepository.findByValue(Place.GAEPO.name()).get(), article1),
+                ArticleMatchCondition.of(
+                    matchConditionRepository.findByValue(TimeOfEating.MIDNIGHT.name()).get(),
+                    article1),
+                ArticleMatchCondition.of(
+                    matchConditionRepository.findByValue(TimeOfEating.BREAKFAST.name()).get(),
+                    article1),
+                ArticleMatchCondition.of(
+                    matchConditionRepository.findByValue(WayOfEating.TAKEOUT.name()).get(),
+                    article1)
             )
         );
 
@@ -445,7 +494,7 @@ class ArticleServiceWithDaoTest {
                     article2)
             )
         );
-            List<ArticleReadResponse> articleReadResponses = articleService.readAllArticle(
+        List<ArticleReadResponse> articleReadResponses = articleService.readAllArticle(
             PageRequest.of(0, 10), new ArticleSearch()).getContent();
         //then
         assertThat(articleReadResponses)
@@ -484,11 +533,320 @@ class ArticleServiceWithDaoTest {
     }
 
     @Test
-    void participateArticle() {
+    void readAllArticle_whenPageSizeNearFindAllSize_thenSliceHasNext() {
+        User takim = userRepository.findByUsername("takim").get();
+        User sorkim = userRepository.findByUsername("sorkim").get();
+
+        LocalDate date = LocalDate.now().plusDays(1);
+
+        //when
+        Article article1 = articleRepository.save(
+            Article.of(date, "a", "a", false, 3, ContentCategory.MEAL));
+        articleMemberRepository.save(
+            ArticleMember.of(takim.getMember(), true, article1));
+        articleMatchConditionRepository.saveAll(
+            List.of(
+                ArticleMatchCondition.of(
+                    matchConditionRepository.findByValue(Place.GAEPO.name()).get(), article1),
+                ArticleMatchCondition.of(
+                    matchConditionRepository.findByValue(TimeOfEating.MIDNIGHT.name()).get(),
+                    article1),
+                ArticleMatchCondition.of(
+                    matchConditionRepository.findByValue(TimeOfEating.BREAKFAST.name()).get(),
+                    article1),
+                ArticleMatchCondition.of(
+                    matchConditionRepository.findByValue(WayOfEating.TAKEOUT.name()).get(),
+                    article1)
+            )
+        );
+
+        Article article2 = articleRepository.save(
+            Article.of(date, "a", "a", false, 3, ContentCategory.STUDY));
+        articleMemberRepository.save(
+            ArticleMember.of(sorkim.getMember(), true, article2));
+        articleMatchConditionRepository.saveAll(
+            List.of(
+                ArticleMatchCondition.of(
+                    matchConditionRepository.findByValue(Place.GAEPO.name()).get(), article2),
+                ArticleMatchCondition.of(
+                    matchConditionRepository.findByValue(WayOfEating.TAKEOUT.name()).get(),
+                    article2)
+            )
+        );
+        SliceImpl<ArticleReadResponse> articleReadResponsesUnder = articleService.readAllArticle(
+            PageRequest.of(0, 1), new ArticleSearch());
+        SliceImpl<ArticleReadResponse> articleReadResponsesEquals = articleService.readAllArticle(
+            PageRequest.of(0, 2), new ArticleSearch());
+        SliceImpl<ArticleReadResponse> articleReadResponsesOver = articleService.readAllArticle(
+            PageRequest.of(0, 3), new ArticleSearch());
+        //then
+        assertThat(articleReadResponsesUnder.hasNext()).isTrue();
+        assertThat(articleReadResponsesEquals.hasNext()).isFalse();
+        assertThat(articleReadResponsesOver.hasNext()).isFalse();
     }
 
     @Test
+    void participateArticle() {
+        //given
+        User takim = userRepository.findByUsername("takim").get();
+        User sorkim = userRepository.findByUsername("sorkim").get();
+
+        LocalDate date = LocalDate.now().plusDays(1);
+        //when
+        Article article = articleRepository.save(
+            Article.of(date, "a", "a", false, 3, ContentCategory.MEAL));
+        ArticleMember.of(takim.getMember(), true, article);
+
+        ArticleMatchCondition.of(matchConditionRepository.findByValue(Place.GAEPO.name()).get(), article);
+        ArticleMatchCondition.of(
+            matchConditionRepository.findByValue(TimeOfEating.MIDNIGHT.name()).get(), article);
+        ArticleMatchCondition.of(
+            matchConditionRepository.findByValue(TimeOfEating.BREAKFAST.name()).get(), article);
+        ArticleMatchCondition.of(
+            matchConditionRepository.findByValue(WayOfEating.TAKEOUT.name()).get(), article);
+
+        ArticleOnlyIdResponse articleOnlyIdResponse = articleService.participateArticle(
+            sorkim.getUsername(), article.getApiId());
+        Article participatedArticle = articleRepository.findByApiId(
+                articleOnlyIdResponse.getArticleId()).get();
+        //then
+
+        assertThat(participatedArticle).extracting(Article::getParticipantNum)
+            .isEqualTo(2);
+        assertThat(participatedArticle.getArticleMembers())
+            .extracting(ArticleMember::getIsAuthor, ArticleMember::getMember)
+            .containsExactlyInAnyOrder(tuple(true, takim.getMember()),
+                tuple(false, sorkim.getMember()));
+    }
+
+    @Test
+    void participateArticle_verifyAlarmProducer_SendIsCalled() {
+        //given
+        User takim = userRepository.findByUsername("takim").get();
+        User sorkim = userRepository.findByUsername("sorkim").get();
+
+        LocalDate date = LocalDate.now().plusDays(1);
+        //when
+        Article article = articleRepository.save(
+            Article.of(date, "a", "a", false, 3, ContentCategory.MEAL));
+        ArticleMember.of(takim.getMember(), true, article);
+
+        ArticleMatchCondition.of(matchConditionRepository.findByValue(Place.GAEPO.name()).get(),
+            article);
+        ArticleMatchCondition.of(
+            matchConditionRepository.findByValue(TimeOfEating.MIDNIGHT.name()).get(), article);
+        ArticleMatchCondition.of(
+            matchConditionRepository.findByValue(TimeOfEating.BREAKFAST.name()).get(), article);
+        ArticleMatchCondition.of(
+            matchConditionRepository.findByValue(WayOfEating.TAKEOUT.name()).get(), article);
+
+        ArticleOnlyIdResponse articleOnlyIdResponse = articleService.participateArticle(
+            sorkim.getUsername(), article.getApiId());
+        Article participatedArticle = articleRepository.findByApiId(
+            articleOnlyIdResponse.getArticleId()).get();
+        //then
+        verify(alarmProducer).send(
+            new AlarmEvent(AlarmType.PARTICIPATION_ON_MY_POST, AlarmArgs.builder()
+                .opinionId(null)
+                .articleId(articleOnlyIdResponse.getArticleId())
+                .callingMemberNickname(sorkim.getMember().getNickname())
+                .build(), article.getAuthorMember().getUser().getId(), SseEventName.ALARM_LIST));
+    }
+
+    @Test
+    void participateArticle_whenArticleIsFullOrAlreadyParticipatedUser_thenThrow() {
+        //given
+        User takim = userRepository.findByUsername("takim").get();
+        User sorkim = userRepository.findByUsername("sorkim").get();
+        User hyenam = userRepository.findByUsername("hyenam").get();
+
+        LocalDate date = LocalDate.now().plusDays(1);
+        int participantNumMax = 2;
+
+        //when
+        Article article = articleRepository.save(
+            Article.of(date, "a", "a", false, participantNumMax, ContentCategory.MEAL));
+        ArticleMember.of(takim.getMember(), true, article);
+        ArticleMatchCondition.of(matchConditionRepository.findByValue(Place.GAEPO.name()).get(), article);
+        ArticleMatchCondition.of(
+            matchConditionRepository.findByValue(TimeOfEating.MIDNIGHT.name()).get(), article);
+        ArticleMatchCondition.of(
+            matchConditionRepository.findByValue(TimeOfEating.BREAKFAST.name()).get(), article);
+        ArticleMatchCondition.of(
+            matchConditionRepository.findByValue(WayOfEating.TAKEOUT.name()).get(), article);
+
+        ArticleOnlyIdResponse articleOnlyIdResponse = articleService.participateArticle(
+            sorkim.getUsername(), article.getApiId());
+        //then
+
+
+        assertThatThrownBy(() -> articleService.participateArticle(sorkim.getUsername(), article.getApiId()))
+            .isInstanceOf(InvalidInputException.class);
+
+        assertThatThrownBy(() -> articleService.participateArticle(hyenam.getUsername(), article.getApiId()))
+            .isInstanceOf(BusinessException.class)
+            .hasMessage(ErrorCode.FULL_ARTICLE.getMessage());
+    }
+
+
+    @Test
     void participateCancelArticle() {
+        User takim = userRepository.findByUsername("takim").get();
+        User sorkim = userRepository.findByUsername("sorkim").get();
+
+        LocalDate date = LocalDate.now().plusDays(1);
+        int participantNumMax = 2;
+
+        //when
+        Article article = articleRepository.save(
+            Article.of(date, "a", "a", false, participantNumMax, ContentCategory.MEAL));
+        ArticleMember.of(takim.getMember(), true, article);
+        ArticleMatchCondition.of(matchConditionRepository.findByValue(Place.GAEPO.name()).get(), article);
+        ArticleMatchCondition.of(
+            matchConditionRepository.findByValue(TimeOfEating.MIDNIGHT.name()).get(), article);
+        ArticleMatchCondition.of(
+            matchConditionRepository.findByValue(TimeOfEating.BREAKFAST.name()).get(), article);
+        ArticleMatchCondition.of(
+            matchConditionRepository.findByValue(WayOfEating.TAKEOUT.name()).get(), article);
+
+        ArticleOnlyIdResponse articleOnlyIdResponse = articleService.participateArticle(
+            sorkim.getUsername(), article.getApiId());
+        ArticleOnlyIdResponse articleOnlyIdResponseCancel = articleService.participateCancelArticle(
+            sorkim.getUsername(), article.getApiId());
+        Article participatedArticle = articleRepository.findByApiId(
+            articleOnlyIdResponse.getArticleId()).get();
+        //then
+
+        assertThat(participatedArticle).extracting(Article::getParticipantNum)
+            .isEqualTo(1);
+
+        assertThat(participatedArticle.getArticleMembers())
+            .extracting(ArticleMember::getIsAuthor, ArticleMember::getMember)
+            .containsExactlyInAnyOrder(tuple(true, takim.getMember()));
+
+    }
+
+    @Test
+    void participateCancelArticle_verifyAlarmProducer_sendIsCalled() {
+        User takim = userRepository.findByUsername("takim").get();
+        User sorkim = userRepository.findByUsername("sorkim").get();
+
+        LocalDate date = LocalDate.now().plusDays(1);
+        int participantNumMax = 2;
+
+        //when
+        Article article = articleRepository.save(
+            Article.of(date, "a", "a", false, participantNumMax, ContentCategory.MEAL));
+        ArticleMember.of(takim.getMember(), true, article);
+        ArticleMatchCondition.of(matchConditionRepository.findByValue(Place.GAEPO.name()).get(),
+            article);
+        ArticleMatchCondition.of(
+            matchConditionRepository.findByValue(TimeOfEating.MIDNIGHT.name()).get(), article);
+        ArticleMatchCondition.of(
+            matchConditionRepository.findByValue(TimeOfEating.BREAKFAST.name()).get(), article);
+        ArticleMatchCondition.of(
+            matchConditionRepository.findByValue(WayOfEating.TAKEOUT.name()).get(), article);
+
+        ArticleOnlyIdResponse articleOnlyIdResponse = articleService.participateArticle(
+            sorkim.getUsername(), article.getApiId());
+        ArticleOnlyIdResponse articleOnlyIdResponseCancel = articleService.participateCancelArticle(
+            sorkim.getUsername(), article.getApiId());
+
+        //then
+        verify(alarmProducer).send(
+            new AlarmEvent(AlarmType.PARTICIPATION_CANCEL_ON_MY_POST, AlarmArgs.builder()
+                .opinionId(null)
+                .articleId(articleOnlyIdResponse.getArticleId())
+                .callingMemberNickname(sorkim.getMember().getNickname())
+                .build(), article.getAuthorMember().getUser().getId(), SseEventName.ALARM_LIST));
+    }
+
+    @Test
+    void participateCancelArticle_whenParticipateCancelToNoneOfUserParticipatedArticle_thenThrow() {
+        User takim = userRepository.findByUsername("takim").get();
+        User sorkim = userRepository.findByUsername("sorkim").get();
+        User hyenam = userRepository.findByUsername("hyenam").get();
+
+        LocalDate date = LocalDate.now().plusDays(1);
+        int participantNumMax = 2;
+
+        //when
+        Article article = articleRepository.save(
+            Article.of(date, "a", "a", false, participantNumMax, ContentCategory.MEAL));
+        ArticleMember.of(takim.getMember(), true, article);
+        ArticleMatchCondition.of(matchConditionRepository.findByValue(Place.GAEPO.name()).get(), article);
+        ArticleMatchCondition.of(
+            matchConditionRepository.findByValue(TimeOfEating.MIDNIGHT.name()).get(), article);
+        ArticleMatchCondition.of(
+            matchConditionRepository.findByValue(TimeOfEating.BREAKFAST.name()).get(), article);
+        ArticleMatchCondition.of(
+            matchConditionRepository.findByValue(WayOfEating.TAKEOUT.name()).get(), article);
+
+        assertThatThrownBy(() ->
+            articleService.participateCancelArticle(
+                hyenam.getUsername(), article.getApiId()))
+            .isInstanceOf(BusinessException.class)
+            .hasMessage(ErrorCode.EMPTY_ARTICLE.getMessage());
+
+    }
+    @Test
+    void participateCancelArticle_whenNotParticipatedUserCancel_thenThrow() {
+        User takim = userRepository.findByUsername("takim").get();
+        User sorkim = userRepository.findByUsername("sorkim").get();
+        User hyenam = userRepository.findByUsername("hyenam").get();
+
+        LocalDate date = LocalDate.now().plusDays(1);
+        int participantNumMax = 2;
+
+        //when
+        Article article = articleRepository.save(
+            Article.of(date, "a", "a", false, participantNumMax, ContentCategory.MEAL));
+        ArticleMember.of(takim.getMember(), true, article);
+        ArticleMatchCondition.of(matchConditionRepository.findByValue(Place.GAEPO.name()).get(), article);
+        ArticleMatchCondition.of(
+            matchConditionRepository.findByValue(TimeOfEating.MIDNIGHT.name()).get(), article);
+        ArticleMatchCondition.of(
+            matchConditionRepository.findByValue(TimeOfEating.BREAKFAST.name()).get(), article);
+        ArticleMatchCondition.of(
+            matchConditionRepository.findByValue(WayOfEating.TAKEOUT.name()).get(), article);
+        articleService.participateArticle(sorkim.getUsername(), article.getApiId());
+
+        //then
+        assertThatThrownBy(() ->
+            articleService.participateCancelArticle(
+                hyenam.getUsername(), article.getApiId()))
+            .isInstanceOf(InvalidInputException.class)
+            .hasMessage(ErrorCode.NOT_PARTICIPATED_MEMBER.getMessage());
+
+    }
+
+    @Test
+    void participateCancelArticle_whenAuthorMember_thenThrow() {
+        User takim = userRepository.findByUsername("takim").get();
+        User sorkim = userRepository.findByUsername("sorkim").get();
+        User hyenam = userRepository.findByUsername("hyenam").get();
+
+        LocalDate date = LocalDate.now().plusDays(1);
+        int participantNumMax = 2;
+
+        //when
+        Article article = articleRepository.save(
+            Article.of(date, "a", "a", false, participantNumMax, ContentCategory.MEAL));
+        ArticleMember.of(takim.getMember(), true, article);
+        ArticleMatchCondition.of(matchConditionRepository.findByValue(Place.GAEPO.name()).get(), article);
+        ArticleMatchCondition.of(
+            matchConditionRepository.findByValue(TimeOfEating.MIDNIGHT.name()).get(), article);
+        ArticleMatchCondition.of(
+            matchConditionRepository.findByValue(TimeOfEating.BREAKFAST.name()).get(), article);
+        ArticleMatchCondition.of(
+            matchConditionRepository.findByValue(WayOfEating.TAKEOUT.name()).get(), article);
+
+        //then
+        assertThatThrownBy(() ->
+            articleService.participateCancelArticle(
+                takim.getUsername(), article.getApiId()))
+            .isInstanceOf(InvalidInputException.class)
+            .hasMessage(ErrorCode.NOT_ALLOW_AUTHOR_MEMBER_DELETE.getMessage());
     }
 
     @Test

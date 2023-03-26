@@ -228,18 +228,13 @@ public class ArticleService {
         Member member = user.getMember();
 
         ArticleMember participateMember = article.participateMember(member);
-
         articleMemberRepository.save(participateMember);
-
         // 알림 생성
-        //sse event 생성.
-
         alarmProducer.send(new AlarmEvent(AlarmType.PARTICIPATION_ON_MY_POST, AlarmArgs.builder()
             .opinionId(null)
             .articleId(articleId)
             .callingMemberNickname(member.getNickname())
             .build(), article.getAuthorMember().getUser().getId(), SseEventName.ALARM_LIST));
-
         return ArticleOnlyIdResponse.of(article.getApiId());
     }
 
@@ -281,12 +276,9 @@ public class ArticleService {
             throw new InvalidInputException(ErrorCode.NOT_ARTICLE_AUTHOR);
         }
 
-        //글이 이미 삭제된 경우,
-        article.complete();
+        Match match = article.complete();
         //매칭 완료
-        Match match = matchRepository.save(
-            Match.of(MatchStatus.MATCHED, article.getContentCategory(), MethodCategory.MANUAL,
-                article, article.getParticipantNum()));
+        matchRepository.save(match);
         matchConditionMatchRepository.saveAll(article.getArticleMatchConditions().stream()
             .map(arm ->
                 MatchConditionMatch.of(match, arm.getMatchCondition()))

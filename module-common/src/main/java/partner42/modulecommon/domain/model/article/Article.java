@@ -26,13 +26,15 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import partner42.modulecommon.domain.model.BaseEntity;
 import partner42.modulecommon.domain.model.match.ContentCategory;
+import partner42.modulecommon.domain.model.match.Match;
+import partner42.modulecommon.domain.model.match.MatchStatus;
+import partner42.modulecommon.domain.model.match.MethodCategory;
 import partner42.modulecommon.domain.model.matchcondition.ArticleMatchCondition;
 import partner42.modulecommon.domain.model.member.Member;
 import partner42.modulecommon.domain.model.opinion.Opinion;
+import partner42.modulecommon.exception.BusinessException;
 import partner42.modulecommon.exception.ErrorCode;
 import partner42.modulecommon.exception.InvalidInputException;
-import partner42.modulecommon.exception.NotAuthorException;
-import partner42.modulecommon.exception.UnmodifiableArticleException;
 
 
 @Builder(access = AccessLevel.PRIVATE)
@@ -67,8 +69,6 @@ public class Article extends BaseEntity{
      */
     @Version
     private Long version;
-
-
     /**
      * AUTH에 필요한 필드
      */
@@ -144,12 +144,9 @@ public class Article extends BaseEntity{
             .participantNumMax(participantNumMax)
             .contentCategory(contentCategory)
             .build();
-
     }
 
     /********************************* 비니지스 로직 *********************************/
-
-
     public void update(LocalDate date, String title, String content, Boolean anonymity,
         Integer participantNumMax, ContentCategory contentCategory,
         List<ArticleMatchCondition> articleMatchConditions) {
@@ -196,28 +193,25 @@ public class Article extends BaseEntity{
 
     private void verifyDeleted() {
         if (this.isDeleted) {
-            throw new UnmodifiableArticleException(ErrorCode.DELETED_ARTICLE);
+            throw new BusinessException(ErrorCode.DELETED_ARTICLE);
         }
     }
 
     private void verifyFull() {
         if (this.participantNum >= this.participantNumMax) {
-            throw new UnmodifiableArticleException(ErrorCode.FULL_ARTICLE);
+            throw new BusinessException(ErrorCode.FULL_ARTICLE);
         }
     }
-
     private void verifyEmpty() {
         if (this.participantNum <= 1) {
-            throw new UnmodifiableArticleException(ErrorCode.EMPTY_ARTICLE);
+            throw new BusinessException(ErrorCode.EMPTY_ARTICLE);
         }
     }
-
     private void verifyCompleted() {
         if (this.isComplete) {
-            throw new UnmodifiableArticleException(ErrorCode.COMPLETED_ARTICLE);
+            throw new BusinessException(ErrorCode.COMPLETED_ARTICLE);
         }
     }
-
 
     private void verifyParticipatedMember(Member member) {
 
@@ -238,17 +232,21 @@ public class Article extends BaseEntity{
     }
 
 
-    public void complete() {
+    public Match complete() {
         verifyDeleted();
         verifyCompleted();
+        Match match = Match.of(MatchStatus.MATCHED, contentCategory,
+            MethodCategory.MANUAL,
+            this, participantNum);
         this.isComplete = true;
+        return match;
     }
 
     public ArticleMember participateMember(Member member) {
         verifyDeleted();
         verifyCompleted();
-        verifyFull();
         verifyParticipatedMember(member);
+        verifyFull();
         ArticleMember participateMember = ArticleMember.of(member, false, this);
         this.participantNum++;
         return participateMember;
@@ -257,9 +255,9 @@ public class Article extends BaseEntity{
     public ArticleMember participateCancelMember(Member member) {
         verifyDeleted();
         verifyCompleted();
-        verifyEmpty();
         verifyUnParticipatedMember(member);
         verifyAuthorMember(member);
+        verifyEmpty();
         ArticleMember participateMember = this.getArticleMembers().stream()
             .filter((articleMember1) ->
                 articleMember1.getMember().equals(member))
