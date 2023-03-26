@@ -2,8 +2,8 @@ package partner42.moduleapi.service.alarm;
 
 
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.verify;
 
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +11,6 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
@@ -20,15 +19,13 @@ import org.springframework.data.redis.core.RedisTemplate;
 import partner42.moduleapi.TestBootstrapConfig;
 import partner42.moduleapi.dto.alarm.AlarmArgsDto;
 import partner42.moduleapi.dto.alarm.AlarmDto;
-import partner42.moduleapi.mapper.MatchConditionMapperImpl;
-import partner42.moduleapi.mapper.MemberMapperImpl;
-import partner42.moduleapi.service.article.ArticleService;
 import partner42.modulecommon.config.BootstrapDataLoader;
 import partner42.modulecommon.config.jpa.Auditor;
 import partner42.modulecommon.config.querydsl.QuerydslConfig;
 import partner42.modulecommon.domain.model.alarm.Alarm;
 import partner42.modulecommon.domain.model.alarm.AlarmArgs;
 import partner42.modulecommon.domain.model.alarm.AlarmType;
+import partner42.modulecommon.domain.model.sse.SseEventName;
 import partner42.modulecommon.domain.model.user.User;
 import partner42.modulecommon.repository.alarm.AlarmRepository;
 import partner42.modulecommon.repository.sse.SSEInMemoryRepository;
@@ -39,7 +36,7 @@ import partner42.modulecommon.repository.user.UserRepository;
 @Import({AlarmService.class, SSEInMemoryRepository.class,
     Auditor.class, QuerydslConfig.class,
     TestBootstrapConfig.class, BootstrapDataLoader.class})
-class AlarmServiceTest {
+class AlarmServiceWithDaoTest {
 
     @MockBean
     private RedisTemplate<String, String> redisTemplate;
@@ -126,12 +123,45 @@ class AlarmServiceTest {
                 tuple(alarm1.getApiId(), alarm1.getAlarmType().getAlarmContent(), isRead),
                 tuple(alarm2.getApiId(), alarm2.getAlarmType().getAlarmContent(), isRead),
                 //alarm3만 처음 읽혀지므로 isRead false
-                tuple(alarm3.getApiId(), alarm3.getAlarmType().getAlarmContent(), !isRead)
+                tuple(alarm3.getApiId(), alarm3.getAlarmType().getAlarmContent(), false)
             );
     }
 
     @Test
-    void send() {
+    void send_whenCalled_thenAlarmEntitySaved() {
+        //given
+        User takim = userRepository.findByUsername("takim").get();
+        User sorkim = userRepository.findByUsername("sorkim").get();
+        AlarmArgs alarmArgs = AlarmArgs.builder()
+            .callingMemberNickname("sorkim")
+            .build();
+        AlarmType alarmType = AlarmType.COMMENT_ON_MY_COMMENT;
+
+        //when
+        alarmService.send(takim.getId(), alarmType, alarmArgs, SseEventName.ALARM_LIST);
+        //then
+        assertThat(alarmRepository.findAll())
+            .extracting(Alarm::getAlarmType, Alarm::getAlarmArgs, Alarm::getCalledMember)
+            .containsExactlyInAnyOrder(
+                tuple(alarmType, alarmArgs, takim.getMember())
+            );
+    }
+
+    @Test
+    void send_verifyRedisTemplate_convertAndSend() {
+        //given
+        User takim = userRepository.findByUsername("takim").get();
+        User sorkim = userRepository.findByUsername("sorkim").get();
+        AlarmArgs alarmArgs = AlarmArgs.builder()
+            .callingMemberNickname("sorkim")
+            .build();
+        AlarmType alarmType = AlarmType.COMMENT_ON_MY_COMMENT;
+
+        //when
+        alarmService.send(takim.getId(), alarmType, alarmArgs, SseEventName.ALARM_LIST);
+        //then
+        verify(redisTemplate).convertAndSend(SseEventName.ALARM_LIST.getValue(),
+            takim.getId() + "_" + SseEventName.ALARM_LIST.getValue());
     }
 
     @Test
