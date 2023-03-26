@@ -106,7 +106,7 @@ public class Match extends BaseEntity {
     private List<MatchMember> matchMembers = new ArrayList<>();
 
     @Builder.Default
-    @OneToMany(mappedBy = "match", fetch = FetchType.LAZY, , cascade = CascadeType.PERSIST)
+    @OneToMany(mappedBy = "match", fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
     private List<MatchConditionMatch> matchConditionMatches = new ArrayList<>();
 
     /********************************* 연관관계 편의 메서드 *********************************/
@@ -139,7 +139,13 @@ public class Match extends BaseEntity {
         verifyReviewerParticipatedInMatch(reviewer);
         verifyReviewedMemberInMatchAndNotReviewer(reviewer, reviewedMemberScoreMap.keySet());
         //리뷰 작성자 매칭 참여 여부 true로 변경
-        memberIsReviewedToTrueIfParticipated(reviewer);
+        matchMembers.stream()
+            .filter(mm ->
+                mm.getMember().equals(reviewer))
+            .findAny()
+            .orElseThrow(() ->
+                new IllegalArgumentException("해당 매치에 참여한 멤버가 아닙니다."))
+            .updateisReviewedToTrue();
 
         List<Activity> activities = new ArrayList<>();
         //리뷰 작성자 참여 점수 추가.
@@ -181,15 +187,6 @@ public class Match extends BaseEntity {
             .orElseThrow(() ->
                 new IllegalArgumentException("해당 매치에 참여한 멤버가 아닙니다."))
             .getIsReviewed();
-    }
-    private void memberIsReviewedToTrueIfParticipated(Member member){
-        matchMembers.stream()
-            .filter(mm ->
-                mm.getMember().equals(member))
-            .findAny()
-            .orElseThrow(() ->
-                new IllegalArgumentException("해당 매치에 참여한 멤버가 아닙니다."))
-            .updateisReviewedToTrue();
     }
 
     /**

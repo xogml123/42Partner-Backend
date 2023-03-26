@@ -25,11 +25,15 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import partner42.modulecommon.domain.model.BaseEntity;
+import partner42.modulecommon.domain.model.activity.Activity;
+import partner42.modulecommon.domain.model.activity.ActivityMatchScore;
 import partner42.modulecommon.domain.model.match.ContentCategory;
 import partner42.modulecommon.domain.model.match.Match;
+import partner42.modulecommon.domain.model.match.MatchMember;
 import partner42.modulecommon.domain.model.match.MatchStatus;
 import partner42.modulecommon.domain.model.match.MethodCategory;
 import partner42.modulecommon.domain.model.matchcondition.ArticleMatchCondition;
+import partner42.modulecommon.domain.model.matchcondition.MatchConditionMatch;
 import partner42.modulecommon.domain.model.member.Member;
 import partner42.modulecommon.domain.model.opinion.Opinion;
 import partner42.modulecommon.exception.BusinessException;
@@ -232,13 +236,19 @@ public class Article extends BaseEntity{
     }
 
 
-    public Match complete() {
+    public Match completeArticleWhenMatchDecided() {
         verifyDeleted();
         verifyCompleted();
+        this.isComplete = true;
         Match match = Match.of(MatchStatus.MATCHED, contentCategory,
             MethodCategory.MANUAL,
             this, participantNum);
-        this.isComplete = true;
+        articleMatchConditions
+            .forEach(arm ->
+                MatchConditionMatch.of(match, arm.getMatchCondition()));
+        articleMembers
+            .forEach(am ->
+                MatchMember.of(match, am.getMember(), am.getIsAuthor()));
         return match;
     }
 
@@ -284,6 +294,15 @@ public class Article extends BaseEntity{
 
     public boolean isAuthorMember(Member member) {
         return getAuthorMember().equals(member);
+    }
+
+    public List<Activity> activityScoreToParticipatingMember() {
+        return articleMembers.stream()
+            .map(am ->
+                Activity.of(am.getMember(),
+                    contentCategory, am.getIsAuthor() ? ActivityMatchScore.ARTICLE_MATCH_AUTHOR
+                        : ActivityMatchScore.MATCH_PARTICIPANT))
+            .collect(Collectors.toList());
     }
 
     /********************************* Dto *********************************/

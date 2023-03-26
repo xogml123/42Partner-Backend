@@ -5,13 +5,10 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.time.LocalDate;
 import java.util.List;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import partner42.modulecommon.domain.model.match.ContentCategory;
 import partner42.modulecommon.domain.model.matchcondition.ArticleMatchCondition;
 import partner42.modulecommon.domain.model.member.Member;
-import partner42.modulecommon.exception.ErrorCode;
-import partner42.modulecommon.exception.InvalidInputException;
 
 class ArticleTest {
 
@@ -105,7 +102,7 @@ class ArticleTest {
         //when
         ArticleMember articleMember = article1.participateMember(sorkim);
         articleDelete.recoverableDelete();
-        articleComplete.complete();
+        articleComplete.completeArticleWhenMatchDecided();
         articleParticipatedMember.participateMember(sorkim);
         articleOverParticipantNum.participateMember(sorkim);
 
@@ -156,7 +153,7 @@ class ArticleTest {
 
         //when
         articleDelete.recoverableDelete();
-        articleComplete.complete();
+        articleComplete.completeArticleWhenMatchDecided();
         articleParticipatedMember.participateMember(sorkim);
         ArticleMember articleMember = articleParticipatedMember.participateCancelMember(sorkim);
 

@@ -15,6 +15,7 @@ import partner42.moduleapi.dto.article.ArticleDto;
 import partner42.moduleapi.dto.article.ArticleOnlyIdResponse;
 import partner42.moduleapi.dto.article.ArticleReadOneResponse;
 import partner42.moduleapi.dto.article.ArticleReadResponse;
+import partner42.moduleapi.dto.match.MatchOnlyIdResponse;
 import partner42.moduleapi.dto.matchcondition.MatchConditionDto;
 import partner42.moduleapi.dto.member.MemberDto;
 import partner42.moduleapi.mapper.MatchConditionMapper;
@@ -28,12 +29,8 @@ import partner42.modulecommon.domain.model.activity.Activity;
 import partner42.modulecommon.domain.model.article.Article;
 import partner42.modulecommon.domain.model.article.ArticleMember;
 import partner42.modulecommon.domain.model.match.Match;
-import partner42.modulecommon.domain.model.match.MatchMember;
-import partner42.modulecommon.domain.model.match.MatchStatus;
-import partner42.modulecommon.domain.model.match.MethodCategory;
 import partner42.modulecommon.domain.model.matchcondition.ArticleMatchCondition;
 import partner42.modulecommon.domain.model.matchcondition.MatchCondition;
-import partner42.modulecommon.domain.model.matchcondition.MatchConditionMatch;
 import partner42.modulecommon.domain.model.matchcondition.Place;
 import partner42.modulecommon.domain.model.matchcondition.TimeOfEating;
 import partner42.modulecommon.domain.model.matchcondition.TypeOfStudy;
@@ -62,6 +59,7 @@ import partner42.modulecommon.repository.user.UserRepository;
 @Transactional(readOnly = true)
 @Service
 public class ArticleService {
+
     private final UserRepository userRepository;
     private final ArticleRepository articleRepository;
     private final MemberRepository memberRepository;
@@ -89,7 +87,8 @@ public class ArticleService {
 
         articleMemberRepository.save(ArticleMember.of(member, true, article));
 
-        List<ArticleMatchCondition> articleMatchConditionList = matchConditionRepository.findByValueIn(allMatchConditionToStringList(articleRequest.getMatchConditionDto())).stream()
+        List<ArticleMatchCondition> articleMatchConditionList = matchConditionRepository.findByValueIn(
+                allMatchConditionToStringList(articleRequest.getMatchConditionDto())).stream()
             .map((matchCondition) ->
                 ArticleMatchCondition.of(matchCondition, article))
             .collect(Collectors.toList());
@@ -109,10 +108,7 @@ public class ArticleService {
         User user = getUserByUsernameOrException(username);
         Article article = articleRepository.findByApiIdAndIsDeletedIsFalse(articleId)
             .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
-        if (!user.hasRole(RoleEnum.ROLE_ADMIN) &&
-                    !article.isAuthorMember(user.getMember())){
-            throw new InvalidInputException(ErrorCode.NOT_ARTICLE_AUTHOR);
-        }
+        verifyUserIsArticleAuthorMember(user, article);
         articleRepository.deleteByApiId(articleId);
 
         return ArticleOnlyIdResponse.of(articleId);
@@ -125,10 +121,7 @@ public class ArticleService {
         User user = getUserByUsernameOrException(username);
         Article article = articleRepository.findByApiIdAndIsDeletedIsFalse(articleId)
             .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
-        if (!user.hasRole(RoleEnum.ROLE_ADMIN) &&
-                    !article.isAuthorMember(user.getMember())){
-            throw new InvalidInputException(ErrorCode.NOT_ARTICLE_AUTHOR);
-        }
+        verifyUserIsArticleAuthorMember(user, article);
         article.recoverableDelete();
         return ArticleOnlyIdResponse.of(articleId);
     }
@@ -141,17 +134,15 @@ public class ArticleService {
         User user = getUserByUsernameOrException(username);
         Article article = articleRepository.findByApiIdAndIsDeletedIsFalse(articleId)
             .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
-        if (!user.hasRole(RoleEnum.ROLE_ADMIN) &&
-                    !article.isAuthorMember(user.getMember())){
-            throw new InvalidInputException(ErrorCode.NOT_ARTICLE_AUTHOR);
-        }
+        verifyUserIsArticleAuthorMember(user, article);
 
         //기존 조건 삭제
         articleMatchConditionRepository.deleteAll(article.getArticleMatchConditions());
         article.getArticleMatchConditions().clear();
 
         //새로운 조건 객체 생성
-        List<ArticleMatchCondition> articleMatchConditions = matchConditionRepository.findByValueIn(allMatchConditionToStringList(articleRequest.getMatchConditionDto())).stream()
+        List<ArticleMatchCondition> articleMatchConditions = matchConditionRepository.findByValueIn(
+                allMatchConditionToStringList(articleRequest.getMatchConditionDto())).stream()
             .map((matchCondition) ->
                 ArticleMatchCondition.of(matchCondition, article))
             .collect(Collectors.toList());
@@ -160,7 +151,7 @@ public class ArticleService {
 
         //article delete, match여부, participantNumMax적정한지 확인.
         article.update(articleRequest.getDate(), articleRequest.getTitle(),
-            articleRequest.getContent(),articleRequest.getAnonymity(),
+            articleRequest.getContent(), articleRequest.getAnonymity(),
             articleRequest.getParticipantNumMax(), articleRequest.getContentCategory(),
             articleMatchConditions);
         return ArticleOnlyIdResponse.of(article.getApiId());
@@ -266,59 +257,44 @@ public class ArticleService {
 
     //OptimisticLockException
     @Transactional
-    public EmailDto<ArticleOnlyIdResponse> completeArticle(String username, String articleId) {
+    public EmailDto<MatchOnlyIdResponse> completeArticle(String username, String articleId) {
         //글 작성자아닌 경우
         User user = getUserByUsernameOrException(username);
         Article article = articleRepository.findByApiIdAndIsDeletedIsFalse(articleId)
             .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
-        if (!user.hasRole(RoleEnum.ROLE_ADMIN) &&
-                    !article.isAuthorMember(user.getMember())){
-            throw new InvalidInputException(ErrorCode.NOT_ARTICLE_AUTHOR);
-        }
-
-        Match match = article.complete();
+        verifyUserIsArticleAuthorMember(user, article);
         //매칭 완료
+        Match match = article.completeArticleWhenMatchDecided();
         matchRepository.save(match);
-        matchConditionMatchRepository.saveAll(article.getArticleMatchConditions().stream()
-            .map(arm ->
-                MatchConditionMatch.of(match, arm.getMatchCondition()))
-            .collect(Collectors.toList()));
-        matchMemberRepository.saveAll(article.getArticleMembers().stream()
-            .map(am ->
-                MatchMember.of(match, am.getMember(), am.getIsAuthor()))
-            .collect(Collectors.toList()));
-
         //활동 점수 부여
-        article.getArticleMembers()
-            .forEach(am -> {
-                    ActivityMatchScore activityMatchScore =
-                        am.getIsAuthor() ? ActivityMatchScore.ARTICLE_MATCH_AUTHOR
-                            : ActivityMatchScore.MATCH_PARTICIPANT;
-                    activityRepository.save(
-                        Activity.of(am.getMember(),
-                            article.getContentCategory(),
-                            activityMatchScore));
-                }
-            );
-
+        List<Activity> activities = article.activityScoreToParticipatingMember();
+        activityRepository.saveAll(activities);
         // 알림 생성
         //sse
         Member authorMember = article.getAuthorMember();
-        for (ArticleMember articleMember : article.getArticleMembers()) {
-            Member matchedMember = articleMember.getMember();
-            alarmProducer.send(new AlarmEvent(AlarmType.MATCH_CONFIRMED, AlarmArgs.builder()
-                .opinionId(null)
-                .articleId(articleId)
-                .callingMemberNickname(authorMember.getNickname())
-                .build(), matchedMember.getUser().getId(), SseEventName.ALARM_LIST));
-        }
+        article.getArticleMembers()
+            .forEach(am ->
+                alarmProducer.send(new AlarmEvent(AlarmType.MATCH_CONFIRMED, AlarmArgs.builder()
+                    .opinionId(null)
+                    .articleId(articleId)
+                    .callingMemberNickname(authorMember.getNickname())
+                    .build(), am.getMember().getUser().getId(), SseEventName.ALARM_LIST)));
 
-        return EmailDto.<ArticleOnlyIdResponse>builder()
+        return EmailDto.<MatchOnlyIdResponse>builder()
             .emails(article.getArticleMembers().stream()
                 .map(am -> am.getMember().getUser().getEmail())
                 .collect(Collectors.toList()))
-            .response(ArticleOnlyIdResponse.of(article.getApiId()))
+            .response(MatchOnlyIdResponse.builder()
+                .matchId(match.getApiId())
+                .build())
             .build();
+    }
+
+    private void verifyUserIsArticleAuthorMember(User user, Article article) {
+        if (!user.hasRole(RoleEnum.ROLE_ADMIN) &&
+            !article.isAuthorMember(user.getMember())) {
+            throw new InvalidInputException(ErrorCode.NOT_ARTICLE_AUTHOR);
+        }
     }
 
     private List<String> allMatchConditionToStringList(MatchConditionDto matchConditionDto) {
@@ -346,7 +322,4 @@ public class ArticleService {
         }
         return matchConditionStrings;
     }
-
-
-
 }

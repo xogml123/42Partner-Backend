@@ -35,7 +35,7 @@ class ArticleRepositoryCustomImplTest {
 
         Article articleIsCompleteTrue = Article.of(LocalDate.now().plusDays(1L), "articleIsCompleteTrue", "content", false,
             3, ContentCategory.MEAL);
-        articleIsCompleteTrue.complete();
+        articleIsCompleteTrue.completeArticleWhenMatchDecided();
         articleRepository.save(articleIsCompleteTrue);
 
 
