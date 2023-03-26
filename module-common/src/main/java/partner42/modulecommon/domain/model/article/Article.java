@@ -206,11 +206,7 @@ public class Article extends BaseEntity{
             throw new BusinessException(ErrorCode.FULL_ARTICLE);
         }
     }
-    private void verifyEmpty() {
-        if (this.participantNum <= 1) {
-            throw new BusinessException(ErrorCode.EMPTY_ARTICLE);
-        }
-    }
+
     private void verifyCompleted() {
         if (this.isComplete) {
             throw new BusinessException(ErrorCode.COMPLETED_ARTICLE);
@@ -267,7 +263,6 @@ public class Article extends BaseEntity{
         verifyCompleted();
         verifyUnParticipatedMember(member);
         verifyAuthorMember(member);
-        verifyEmpty();
         ArticleMember participateMember = this.getArticleMembers().stream()
             .filter((articleMember1) ->
                 articleMember1.getMember().equals(member))

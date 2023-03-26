@@ -39,7 +39,6 @@ import partner42.modulecommon.utils.CustomTimeUtils;
 @Transactional(readOnly = true)
 @Service
 public class AlarmService implements MessageListener {
-
     @Value("${sse.timeout}")
     private String sseTimeout;
     private static final String UNDER_SCORE = "_";
@@ -47,15 +46,10 @@ public class AlarmService implements MessageListener {
     private final AlarmRepository alarmRepository;
     private final UserRepository userRepository;
     private final SSEInMemoryRepository sseRepository;
-
-
     private final RedisTemplate<String, String> redisTemplate;
-
-
     /**
      * 여러 서버에서 SSE를 구현하기 위한 Redis Pub/Sub
-     * subscribe해두었던 topic에 publish가 일어나면 이
-     * 메서드가 호출된다.
+     * subscribe해두었던 topic에 publish가 일어나면 메서드가 호출된다.
      */
     @Override
     public void onMessage(Message message, byte[] pattern) {
@@ -89,8 +83,8 @@ public class AlarmService implements MessageListener {
         List<Alarm> alarms = alarmSlices.getContent();
 
         //update 쿼리 여러번 나가는지 확인 해봐야함.
-        alarms.forEach(Alarm::read);
-        return new SliceImpl<>(alarms.stream()
+
+        SliceImpl<AlarmDto> alarmDtos = new SliceImpl<>(alarms.stream()
             .map(alarm ->
                 AlarmDto.builder()
                     .alarmId(alarm.getApiId())
@@ -98,13 +92,19 @@ public class AlarmService implements MessageListener {
                     .alarmArgsDto(AlarmArgsDto.builder()
                         .articleId(alarm.getAlarmArgs().getArticleId())
                         .opinionId(alarm.getAlarmArgs().getOpinionId())
-                        .callingMemberId(alarm.getAlarmArgs().getCallingMemberNickname())
+                        .callingMemberNickname(alarm.getAlarmArgs().getCallingMemberNickname())
                         .build())
+                    .isRead(alarm.getIsRead())
                     .build())
             .collect(Collectors.toList()),
             alarmSlices.getPageable(), alarmSlices.hasNext());
+        alarmRepository.bulkUpdateAlarmIsReadToTrueInIdList(alarms.stream()
+            .map(Alarm::getId)
+            .collect(Collectors.toList()));
+        return alarmDtos;
     }
 
+    @Transactional
     public void send(Long userId, AlarmType alarmType, AlarmArgs alarmArgs, SseEventName sseEventName) {
         User user = userRepository.findById(userId).orElseThrow(() ->
             new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
@@ -117,7 +117,7 @@ public class AlarmService implements MessageListener {
 
     public SseEmitter subscribe(String username, String lastEventId, LocalDateTime now) {
         Long userId = getUserByUsernameOrException(username).getId();
-        ;
+
         SseEmitter sse = new SseEmitter(Long.parseLong(sseTimeout));
 
         String key = new SseRepositoryKeyRule(userId, SseEventName.ALARM_LIST,
@@ -126,7 +126,6 @@ public class AlarmService implements MessageListener {
         sse.onCompletion(() -> {
             log.info("onCompletion callback");
             //만료 시 Repository에서 삭제 되어야함.
-
             sseRepository.remove(key);
         });
         sse.onTimeout(() -> {
@@ -147,21 +146,22 @@ public class AlarmService implements MessageListener {
         }
 
         // 중간에 연결이 끊겨서 다시 연결할 때, lastEventId를 통해 기존의 받지못한 이벤트를 받을 수 있도록 할 수 있음.
-        // 현재 로직상에서는 어처피 한번의 알림이나 새로고침을 받으면 알림 list를 paging해서 가져오기 때문에
-        // 수신 못한 응답을 다시 보내는게 불 필요하고 효율을 떨어뜨릴 수 있음.
+        // 한번의 알림이나 새로고침을 받으면 알림을 slice로 가져오기 때문에
+        // 수신 못한 응답을 다시 보내는 로직을 구현하지 않음.
         return sse;
     }
 
+    /*
+     * 특정 유저의 특정 sse 이벤트에 대한 id를 생성한다.
+     *
+     */
     private String getEventId(Long userId, LocalDateTime now, SseEventName eventName) {
         return userId + UNDER_SCORE + eventName.getValue() + UNDER_SCORE + now;
     }
-
-
     private User getUserByUsernameOrException(String username) {
         return userRepository.findByUsername(username)
             .orElseThrow(() -> new NoEntityException(
                 ErrorCode.ENTITY_NOT_FOUND));
     }
-
 
 }

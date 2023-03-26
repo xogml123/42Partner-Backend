@@ -13,6 +13,7 @@ import com.querydsl.core.types.dsl.PathBuilder;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.util.List;
+import javax.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
@@ -28,7 +29,7 @@ import partner42.modulecommon.domain.model.match.ContentCategory;
 @Repository
 public class AlarmRepositoryCustomImpl implements AlarmRepositoryCustom {
 
-
+    private final EntityManager em;
     private final JPAQueryFactory queryFactory;
 
     @Override
@@ -57,8 +58,18 @@ public class AlarmRepositoryCustomImpl implements AlarmRepositoryCustom {
         return new SliceImpl<>(alarms, pageable, hasnext);
     }
 
+    @Override
+    public void bulkUpdateAlarmIsReadToTrueInIdList(List<Long> idList) {
+        queryFactory.update(alarm)
+            .set(alarm.isRead, true)
+            .where(
+                alarm.id.in(idList)
+            )
+            .execute();
+        em.flush();
+        em.clear();
+    }
     private BooleanExpression isMemberId(Long memberId) {
         return member.id.eq(memberId);
     }
-
 }

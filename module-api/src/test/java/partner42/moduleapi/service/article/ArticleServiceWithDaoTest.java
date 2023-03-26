@@ -86,7 +86,6 @@ class ArticleServiceWithDaoTest {
     private ArticleMatchConditionRepository articleMatchConditionRepository;
     @Autowired
     private MatchConditionRepository matchConditionRepository;
-
     @Autowired
     private MatchRepository matchRepository;
 
@@ -772,34 +771,6 @@ class ArticleServiceWithDaoTest {
                 .build(), article.getAuthorMember().getUser().getId(), SseEventName.ALARM_LIST));
     }
 
-    @Test
-    void participateCancelArticle_whenParticipateCancelToNoneOfUserParticipatedArticle_thenThrow() {
-        User takim = userRepository.findByUsername("takim").get();
-        User sorkim = userRepository.findByUsername("sorkim").get();
-        User hyenam = userRepository.findByUsername("hyenam").get();
-
-        LocalDate date = LocalDate.now().plusDays(1);
-        int participantNumMax = 2;
-
-        //when
-        Article article = articleRepository.save(
-            Article.of(date, "a", "a", false, participantNumMax, ContentCategory.MEAL));
-        ArticleMember.of(takim.getMember(), true, article);
-        ArticleMatchCondition.of(matchConditionRepository.findByValue(Place.GAEPO.name()).get(), article);
-        ArticleMatchCondition.of(
-            matchConditionRepository.findByValue(TimeOfEating.MIDNIGHT.name()).get(), article);
-        ArticleMatchCondition.of(
-            matchConditionRepository.findByValue(TimeOfEating.BREAKFAST.name()).get(), article);
-        ArticleMatchCondition.of(
-            matchConditionRepository.findByValue(WayOfEating.TAKEOUT.name()).get(), article);
-
-        assertThatThrownBy(() ->
-            articleService.participateCancelArticle(
-                hyenam.getUsername(), article.getApiId()))
-            .isInstanceOf(BusinessException.class)
-            .hasMessage(ErrorCode.EMPTY_ARTICLE.getMessage());
-
-    }
     @Test
     void participateCancelArticle_whenNotParticipatedUserCancel_thenThrow() {
         User takim = userRepository.findByUsername("takim").get();
