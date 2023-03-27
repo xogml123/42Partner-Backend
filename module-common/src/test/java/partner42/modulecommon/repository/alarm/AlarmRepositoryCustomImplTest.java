@@ -33,11 +33,6 @@ class AlarmRepositoryCustomImplTest {
     @BeforeEach
     void setUp() {
     }
-
-    @AfterEach
-    void tearDown() {
-    }
-
     @Test
     void findSliceByMemberId_givenDifferentAlarmWithDifferentMember_whenFindByMemberId_thenContainsExactly() {
         //given

@@ -36,7 +36,6 @@ import partner42.modulecommon.domain.model.member.Member;
 import partner42.modulecommon.domain.model.user.RoleEnum;
 import partner42.modulecommon.exception.BusinessException;
 import partner42.modulecommon.exception.ErrorCode;
-import partner42.modulecommon.exception.NoEntityException;
 
 
 @Builder(access = AccessLevel.PRIVATE)
@@ -136,8 +135,8 @@ public class Match extends BaseEntity {
     /********************************* 비니지스 로직 *********************************/
     public List<Activity> makeReview(Member reviewer, Map<Member, ActivityMatchScore> reviewedMemberScoreMap) {
 
-        verifyReviewerParticipatedInMatch(reviewer);
-        verifyReviewedMemberInMatchAndNotReviewer(reviewer, reviewedMemberScoreMap.keySet());
+        verifyMemberParticipatedInMatchOrAdmin(reviewer);
+        verifyReviewedMemberIsInMatchAndNotReviewer(reviewer, reviewedMemberScoreMap.keySet());
         //리뷰 작성자 매칭 참여 여부 true로 변경
         matchMembers.stream()
             .filter(mm ->
@@ -165,21 +164,21 @@ public class Match extends BaseEntity {
     }
     /**
      * 자기가 참여한 매치인지 확인
-     * @param reviewer
+     * @param member
      */
-    public void verifyReviewerParticipatedInMatch(Member reviewer) {
-        if (reviewer.getUser().hasRole(RoleEnum.ROLE_ADMIN)){
+    public void verifyMemberParticipatedInMatchOrAdmin(Member member) {
+        if (member.getUser().hasRole(RoleEnum.ROLE_ADMIN)){
             return ;
         }
         if (!matchMembers.stream()
                 .map(MatchMember::getMember)
                 .collect(Collectors.toSet())
-                .contains(reviewer)) {
+                .contains(member)) {
             throw new BusinessException(ErrorCode.NOT_MATCH_PARTICIPATED);
         }
     }
 
-    public Boolean isMemberReviewed(Member member){
+    public Boolean isMemberReviewingBefore(Member member){
         return getMatchMembers().stream()
             .filter((mm) ->
                 member.equals(mm.getMember())
@@ -190,11 +189,11 @@ public class Match extends BaseEntity {
     }
 
     /**
-     * 매칭 대상자가 자기 자신이 아니고 매칭에 포함되어있는지 확인
+     * 리뷰 대상자가 자기 자신이 아니고 매칭에 포함되어있는지 확인
      * @param reviewer
      * @param reviewedMemberSet
      */
-    private void verifyReviewedMemberInMatchAndNotReviewer(Member reviewer, Set<Member> reviewedMemberSet) {
+    private void verifyReviewedMemberIsInMatchAndNotReviewer(Member reviewer, Set<Member> reviewedMemberSet) {
 
         Set<Member> memberSet = this.getMatchMembers()
             .stream()

@@ -121,6 +121,7 @@ public class User extends BaseEntity {
 
     public void setMember(Member member) {
         this.member = member;
+        member.setUser(this);
     }
 
     /********************************* 생성 메서드 *********************************/

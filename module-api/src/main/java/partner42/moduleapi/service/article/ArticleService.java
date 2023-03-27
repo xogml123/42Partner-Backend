@@ -21,7 +21,6 @@ import partner42.moduleapi.dto.member.MemberDto;
 import partner42.moduleapi.mapper.MatchConditionMapper;
 import partner42.moduleapi.mapper.MemberMapper;
 import partner42.modulecommon.config.kafka.AlarmEvent;
-import partner42.modulecommon.domain.model.activity.ActivityMatchScore;
 import partner42.modulecommon.domain.model.alarm.AlarmArgs;
 import partner42.modulecommon.domain.model.alarm.AlarmType;
 import partner42.modulecommon.domain.model.sse.SseEventName;
@@ -108,7 +107,7 @@ public class ArticleService {
         User user = getUserByUsernameOrException(username);
         Article article = articleRepository.findByApiIdAndIsDeletedIsFalse(articleId)
             .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
-        verifyUserIsArticleAuthorMember(user, article);
+        verifyUserIsArticleAuthorMemberOrAdmin(user, article);
         articleRepository.deleteByApiId(articleId);
 
         return ArticleOnlyIdResponse.of(articleId);
@@ -121,7 +120,7 @@ public class ArticleService {
         User user = getUserByUsernameOrException(username);
         Article article = articleRepository.findByApiIdAndIsDeletedIsFalse(articleId)
             .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
-        verifyUserIsArticleAuthorMember(user, article);
+        verifyUserIsArticleAuthorMemberOrAdmin(user, article);
         article.recoverableDelete();
         return ArticleOnlyIdResponse.of(articleId);
     }
@@ -134,7 +133,7 @@ public class ArticleService {
         User user = getUserByUsernameOrException(username);
         Article article = articleRepository.findByApiIdAndIsDeletedIsFalse(articleId)
             .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
-        verifyUserIsArticleAuthorMember(user, article);
+        verifyUserIsArticleAuthorMemberOrAdmin(user, article);
 
         //기존 조건 삭제
         articleMatchConditionRepository.deleteAll(article.getArticleMatchConditions());
@@ -262,7 +261,7 @@ public class ArticleService {
         User user = getUserByUsernameOrException(username);
         Article article = articleRepository.findByApiIdAndIsDeletedIsFalse(articleId)
             .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
-        verifyUserIsArticleAuthorMember(user, article);
+        verifyUserIsArticleAuthorMemberOrAdmin(user, article);
         //매칭 완료
         Match match = article.completeArticleWhenMatchDecided();
         matchRepository.save(match);
@@ -290,9 +289,11 @@ public class ArticleService {
             .build();
     }
 
-    private void verifyUserIsArticleAuthorMember(User user, Article article) {
-        if (!user.hasRole(RoleEnum.ROLE_ADMIN) &&
-            !article.isAuthorMember(user.getMember())) {
+    private void verifyUserIsArticleAuthorMemberOrAdmin(User user, Article article) {
+        if (user.hasRole(RoleEnum.ROLE_ADMIN)) {
+            return ;
+        }
+        if (!article.isAuthorMember(user.getMember())) {
             throw new InvalidInputException(ErrorCode.NOT_ARTICLE_AUTHOR);
         }
     }

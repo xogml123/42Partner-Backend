@@ -3,13 +3,11 @@ package partner42.moduleapi.service.match;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import partner42.moduleapi.dto.match.MatchDto;
@@ -20,18 +18,13 @@ import partner42.moduleapi.mapper.MemberMapper;
 import partner42.modulecommon.domain.model.activity.Activity;
 import partner42.modulecommon.domain.model.activity.ActivityMatchScore;
 import partner42.modulecommon.domain.model.match.Match;
-import partner42.modulecommon.domain.model.match.MatchMember;
 import partner42.modulecommon.domain.model.matchcondition.MatchCondition;
 import partner42.modulecommon.domain.model.matchcondition.Place;
 import partner42.modulecommon.domain.model.matchcondition.TimeOfEating;
 import partner42.modulecommon.domain.model.matchcondition.TypeOfStudy;
 import partner42.modulecommon.domain.model.matchcondition.WayOfEating;
 import partner42.modulecommon.domain.model.member.Member;
-import partner42.modulecommon.domain.model.user.Role;
-import partner42.modulecommon.domain.model.user.RoleEnum;
 import partner42.modulecommon.domain.model.user.User;
-import partner42.modulecommon.domain.model.user.UserRole;
-import partner42.modulecommon.exception.BusinessException;
 import partner42.modulecommon.exception.ErrorCode;
 import partner42.modulecommon.exception.NoEntityException;
 import partner42.modulecommon.repository.activity.ActivityRepository;
@@ -80,7 +73,7 @@ public class MatchService {
                                 member.equals(matchMember.getMember()))
                         )
                         .collect(Collectors.toList()),
-                    match.isMemberReviewed(member)
+                    match.isMemberReviewingBefore(member)
                 );
             })
             .collect(Collectors.toList());
@@ -100,7 +93,7 @@ public class MatchService {
         Match match = matchRepository.findByApiId(matchId)
             .orElseThrow(() ->
                 new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
-        match.verifyReviewerParticipatedInMatch(member);
+        match.verifyMemberParticipatedInMatchOrAdmin(member);
 
         List<MatchCondition> matchConditions = match.getMatchConditionMatches().stream()
             .map((matchConditionMatch) ->
@@ -118,7 +111,7 @@ public class MatchService {
                         member.equals(matchMember.getMember()))
                 )
                 .collect(Collectors.toList()),
-            match.isMemberReviewed(member)
+            match.isMemberReviewingBefore(member)
         );
     }
 
