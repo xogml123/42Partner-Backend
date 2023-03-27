@@ -38,7 +38,6 @@ import partner42.modulecommon.exception.InvalidInputException;
 )
 public class RandomMatch extends BaseEntity implements Serializable {
 
-    //
     private static final long serialVersionUID = 1L;
 
     //매칭 maximum대기 시간
