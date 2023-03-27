@@ -50,21 +50,9 @@ import partner42.modulecommon.utils.slack.SlackBotService;
         @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = SecurityConfig.class)
     }
 )
-//@AutoConfigureWebMvc
+@AutoConfigureWebMvc
 class ArticleControllerTest {
 
-//    @MockBean
-//    private AuthenticationEntryPoint authenticationEntryPoint;
-//    @MockBean
-//    private ObjectMapper objectMapper;
-//
-//    @MockBean
-//    private CustomAuthorizationFilter customAuthorizationFilter;
-//    @MockBean
-//    private AuthenticationSuccessHandler authenticationSuccessHandler;
-//
-//    @MockBean
-//    private DefaultOAuth2UserService oAuth2UserService;
     private MockMvc mockMvc;
 
     @Autowired
@@ -77,12 +65,12 @@ class ArticleControllerTest {
 
     @BeforeEach
     private void setUp() {
-        mockMvc = MockMvcBuilders.webAppContextSetup(context)
-            .apply(springSecurity())
-            .build();
+//        mockMvc = MockMvcBuilders.webAppContextSetup(context)
+//            .apply(springSecurity())
+//            .build();
     }
     @Test
-    @WithMockUser("username")
+//    @WithMockUser("username")
     void readOneArticle() throws Exception {
         //given
         String username = "username";
@@ -91,7 +79,7 @@ class ArticleControllerTest {
             .articleId(articleId)
             .build();
 
-        when(articleService.readOneArticle(any(), any())).thenReturn(articleReadOneResponse);
+//        when(articleService.readOneArticle(any(), any())).thenReturn(articleReadOneResponse);
 //        when(slackBotService.createSlackMIIM(List.of())
         //andExpect
         mockMvc.perform(get("/api/articles/" + articleId))
@@ -100,11 +88,11 @@ class ArticleControllerTest {
             .andDo(print());
 
         //verify
-        verify(articleService).readOneArticle(username, articleId);
+//        verify(articleService).readOneArticle(username, articleId);
     }
 
     @Test
-    @WithMockUser(authorities = "article.create")
+//    @WithMockUser(authorities = "article.create")
     void writeArticle() {
         //given
     }

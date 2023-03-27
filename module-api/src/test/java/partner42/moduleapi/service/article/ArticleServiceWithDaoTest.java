@@ -19,6 +19,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
 import partner42.moduleapi.TestBootstrapConfig;
+import partner42.moduleapi.config.JpaPackage.JpaAndEntityPackagePathConfig;
 import partner42.moduleapi.dto.EmailDto;
 import partner42.moduleapi.dto.article.ArticleDto;
 import partner42.moduleapi.dto.article.ArticleOnlyIdResponse;
@@ -27,7 +28,6 @@ import partner42.moduleapi.dto.article.ArticleReadResponse;
 import partner42.moduleapi.dto.match.MatchOnlyIdResponse;
 import partner42.moduleapi.dto.matchcondition.MatchConditionDto;
 import partner42.moduleapi.dto.member.MemberDto;
-import partner42.moduleapi.mapper.MatchConditionMapperImpl;
 import partner42.moduleapi.mapper.MemberMapperImpl;
 import partner42.modulecommon.config.BootstrapDataLoader;
 import partner42.modulecommon.config.jpa.Auditor;
@@ -67,8 +67,8 @@ import partner42.modulecommon.repository.user.UserRepository;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Import({ArticleService.class, MemberMapperImpl.class, MatchConditionMapperImpl.class,
-    Auditor.class, QuerydslConfig.class,
+@Import({ArticleService.class, MemberMapperImpl.class,
+    Auditor.class, QuerydslConfig.class, JpaAndEntityPackagePathConfig.class,
     TestBootstrapConfig.class, BootstrapDataLoader.class})
 class ArticleServiceWithDaoTest {
 

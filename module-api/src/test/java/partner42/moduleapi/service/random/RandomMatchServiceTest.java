@@ -148,25 +148,28 @@ class RandomMatchServiceTest {
         //then
         assertThat(randomMatches).hasSize(1);
         //모든 필드와 객체가 적절하게 생성되는지
-        assertThat(randomMatches.get(0)).usingRecursiveComparison()
-            .ignoringAllOverriddenEquals()
-            .ignoringFields("apiId", "member.apiId")
-            .isEqualTo(RandomMatch.of(RandomMatchCondition.of(Place.GAEPO, WayOfEating.DELIVERY),
-                Member.of(username)));
+        assertThat(randomMatches).extracting(RandomMatch::getIsExpired)
+                .containsExactly(false);
+        assertThat(randomMatches).extracting(RandomMatch::getRandomMatchCondition)
+            .extracting(RandomMatchCondition::getPlace, RandomMatchCondition::getContentCategory,
+                RandomMatchCondition::getTypeOfStudy, RandomMatchCondition::getWayOfEating)
+            .containsExactlyInAnyOrder(
+                tuple(Place.GAEPO, ContentCategory.MEAL, null, WayOfEating.DELIVERY)
+            );
         //조건 필드가 빈 List인 경우 모든 조건으로 RandomMatch반환.
         assertThat(randomMatchesWithEmptyList).extracting(RandomMatch::getRandomMatchCondition)
             .extracting(RandomMatchCondition::getWayOfEating)
             .containsOnly(WayOfEating.values());
 
         //study(다른 ContentCategory)
-        assertThat(randomMatchesStudy).hasSize(1);
-        //모든 필드와 객체가 적절하게 생성되는지
-        assertThat(randomMatchesStudy.get(0)).usingRecursiveComparison()
-            .ignoringAllOverriddenEquals()
-            .ignoringFields("apiId", "member.apiId")
-            .isEqualTo(
-                RandomMatch.of(RandomMatchCondition.of(Place.GAEPO, TypeOfStudy.INNER_CIRCLE),
-                    Member.of(username)));
+        assertThat(randomMatchesStudy).extracting(RandomMatch::getIsExpired)
+            .containsExactly(false);
+        assertThat(randomMatchesStudy).extracting(RandomMatch::getRandomMatchCondition)
+            .extracting(RandomMatchCondition::getPlace, RandomMatchCondition::getContentCategory,
+                RandomMatchCondition::getTypeOfStudy, RandomMatchCondition::getWayOfEating)
+            .containsExactlyInAnyOrder(
+                tuple(Place.GAEPO, ContentCategory.STUDY, TypeOfStudy.INNER_CIRCLE, null)
+            );
         //조건 필드가 빈 List인 경우 모든 조건으로 RandomMatch반환.
         assertThat(randomMatchesStudyWithEmptyList).extracting(RandomMatch::getRandomMatchCondition)
             .extracting(RandomMatchCondition::getTypeOfStudy)

@@ -18,7 +18,6 @@ import partner42.moduleapi.dto.article.ArticleReadResponse;
 import partner42.moduleapi.dto.match.MatchOnlyIdResponse;
 import partner42.moduleapi.dto.matchcondition.MatchConditionDto;
 import partner42.moduleapi.dto.member.MemberDto;
-import partner42.moduleapi.mapper.MatchConditionMapper;
 import partner42.moduleapi.mapper.MemberMapper;
 import partner42.modulecommon.config.kafka.AlarmEvent;
 import partner42.modulecommon.domain.model.alarm.AlarmArgs;
@@ -70,7 +69,6 @@ public class ArticleService {
     private final MatchMemberRepository matchMemberRepository;
     private final ActivityRepository activityRepository;
     private final MemberMapper memberMapper;
-    private final MatchConditionMapper matchConditionMapper;
     private final AlarmProducer alarmProducer;
 
     @Transactional

@@ -12,6 +12,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ContextConfiguration;
 import partner42.moduleapi.TestBootstrapConfig;
+import partner42.moduleapi.config.JpaPackage.JpaAndEntityPackagePathConfig;
 import partner42.moduleapi.dto.activity.ActivityScoreResponse;
 import partner42.modulecommon.config.BootstrapDataLoader;
 import partner42.modulecommon.config.jpa.Auditor;
@@ -27,7 +28,9 @@ import partner42.modulecommon.repository.user.UserRepository;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Import({ActivityService.class, Auditor.class, QuerydslConfig.class, TestBootstrapConfig.class, BootstrapDataLoader.class})
+@Import({ActivityService.class,
+    Auditor.class, QuerydslConfig.class, JpaAndEntityPackagePathConfig.class,
+    TestBootstrapConfig.class, BootstrapDataLoader.class})
 class ActivityServiceWithDAOTest {
     @Autowired
     private ActivityService activityService;

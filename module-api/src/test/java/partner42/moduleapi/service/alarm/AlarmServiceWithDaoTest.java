@@ -17,6 +17,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.redis.core.RedisTemplate;
 import partner42.moduleapi.TestBootstrapConfig;
+import partner42.moduleapi.config.JpaPackage.JpaAndEntityPackagePathConfig;
 import partner42.moduleapi.dto.alarm.AlarmArgsDto;
 import partner42.moduleapi.dto.alarm.AlarmDto;
 import partner42.modulecommon.config.BootstrapDataLoader;
@@ -34,7 +35,7 @@ import partner42.modulecommon.repository.user.UserRepository;
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Import({AlarmService.class, SSEInMemoryRepository.class,
-    Auditor.class, QuerydslConfig.class,
+    Auditor.class, QuerydslConfig.class, JpaAndEntityPackagePathConfig.class,
     TestBootstrapConfig.class, BootstrapDataLoader.class})
 class AlarmServiceWithDaoTest {
 

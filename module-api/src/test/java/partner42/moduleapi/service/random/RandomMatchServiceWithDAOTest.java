@@ -16,6 +16,7 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import partner42.moduleapi.TestBootstrapConfig;
+import partner42.moduleapi.config.JpaPackage.JpaAndEntityPackagePathConfig;
 import partner42.moduleapi.dto.matchcondition.MatchConditionRandomMatchDto;
 import partner42.moduleapi.dto.random.RandomMatchCancelRequest;
 import partner42.moduleapi.dto.random.RandomMatchCountResponse;
@@ -41,7 +42,10 @@ import partner42.modulecommon.utils.CustomTimeUtils;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Import({RandomMatchService.class, Auditor.class, QuerydslConfig.class, TestBootstrapConfig.class, BootstrapDataLoader.class})
+@Import({RandomMatchService.class,
+    Auditor.class, QuerydslConfig.class, JpaAndEntityPackagePathConfig.class,
+    TestBootstrapConfig.class, BootstrapDataLoader.class,
+})
 class RandomMatchServiceWithDAOTest {
 
     @Autowired

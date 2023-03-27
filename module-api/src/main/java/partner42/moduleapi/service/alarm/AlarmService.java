@@ -57,7 +57,7 @@ public class AlarmService implements MessageListener {
         Long userId = Long.parseLong(strings[0]);
         SseEventName eventName = SseEventName.getEnumFromValue(strings[1]);
         String keyPrefix = new SseRepositoryKeyRule(userId, eventName,
-            null).toKeyUserAndEventInfo();
+            null).toCompleteKeyWhichSpecifyOnlyOneValue();
 
         LocalDateTime now = CustomTimeUtils.nowWithoutNano();
 

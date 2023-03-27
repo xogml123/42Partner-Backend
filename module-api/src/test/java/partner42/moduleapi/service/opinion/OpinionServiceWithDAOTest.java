@@ -18,6 +18,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ContextConfiguration;
 import partner42.moduleapi.TestBootstrapConfig;
+import partner42.moduleapi.config.JpaPackage.JpaAndEntityPackagePathConfig;
 import partner42.moduleapi.dto.ListResponse;
 import partner42.moduleapi.dto.opinion.OpinionDto;
 import partner42.moduleapi.dto.opinion.OpinionOnlyIdResponse;
@@ -42,7 +43,8 @@ import partner42.modulecommon.repository.user.UserRepository;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Import({OpinionService.class, OpinionMapperImpl.class, Auditor.class, QuerydslConfig.class,
+@Import({OpinionService.class, OpinionMapperImpl.class,
+    Auditor.class, QuerydslConfig.class, JpaAndEntityPackagePathConfig.class,
     TestBootstrapConfig.class, BootstrapDataLoader.class})
 class OpinionServiceWithDAOTest {
     @Autowired
