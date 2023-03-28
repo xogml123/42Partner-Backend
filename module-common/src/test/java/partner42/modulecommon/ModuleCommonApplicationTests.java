@@ -8,7 +8,6 @@ import partner42.modulecommon.config.querydsl.QuerydslConfig;
 
 
 @SpringBootApplication
-@Import({QuerydslConfig.class, Auditor.class})
 class ModuleCommonApplicationTests {
 
 	@Test

@@ -2,22 +2,16 @@ package partner42.moduleapi.service.opinion;
 
 
 import static org.assertj.core.api.Assertions.*;
-import static org.mockito.BDDMockito.*;
 
 import java.time.LocalDate;
-import lombok.RequiredArgsConstructor;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.BDDMockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.context.ContextConfiguration;
-import partner42.moduleapi.TestBootstrapConfig;
+import partner42.moduleapi.config.TestBootstrapConfig;
 import partner42.moduleapi.config.JpaPackage.JpaAndEntityPackagePathConfig;
 import partner42.moduleapi.dto.ListResponse;
 import partner42.moduleapi.dto.opinion.OpinionDto;
@@ -25,14 +19,11 @@ import partner42.moduleapi.dto.opinion.OpinionOnlyIdResponse;
 import partner42.moduleapi.dto.opinion.OpinionResponse;
 import partner42.moduleapi.dto.opinion.OpinionUpdateRequest;
 import partner42.moduleapi.mapper.OpinionMapperImpl;
-import partner42.moduleapi.service.alarm.AlarmService;
 import partner42.modulecommon.config.BootstrapDataLoader;
 import partner42.modulecommon.config.jpa.Auditor;
-import partner42.modulecommon.config.kafka.AlarmEvent;
 import partner42.modulecommon.config.querydsl.QuerydslConfig;
 import partner42.modulecommon.domain.model.article.Article;
 import partner42.modulecommon.domain.model.match.ContentCategory;
-import partner42.modulecommon.domain.model.member.Member;
 import partner42.modulecommon.domain.model.opinion.Opinion;
 import partner42.modulecommon.domain.model.user.User;
 import partner42.modulecommon.exception.NoEntityException;

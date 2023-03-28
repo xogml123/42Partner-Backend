@@ -38,7 +38,7 @@ import partner42.modulecommon.utils.CustomTimeUtils;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 @Service
-public class AlarmService implements MessageListener {
+public class AlarmService {
     @Value("${sse.timeout}")
     private String sseTimeout;
     private static final String UNDER_SCORE = "_";
@@ -47,34 +47,8 @@ public class AlarmService implements MessageListener {
     private final UserRepository userRepository;
     private final SSEInMemoryRepository sseRepository;
     private final RedisTemplate<String, String> redisTemplate;
-    /**
-     * 여러 서버에서 SSE를 구현하기 위한 Redis Pub/Sub
-     * subscribe해두었던 topic에 publish가 일어나면 메서드가 호출된다.
-     */
-    @Override
-    public void onMessage(Message message, byte[] pattern) {
-        String[] strings = message.toString().split(UNDER_SCORE);
-        Long userId = Long.parseLong(strings[0]);
-        SseEventName eventName = SseEventName.getEnumFromValue(strings[1]);
-        String keyPrefix = new SseRepositoryKeyRule(userId, eventName,
-            null).toCompleteKeyWhichSpecifyOnlyOneValue();
 
-        LocalDateTime now = CustomTimeUtils.nowWithoutNano();
 
-        sseRepository.getKeyListByKeyPrefix(keyPrefix).forEach(key -> {
-            SseEmitter emitter = sseRepository.get(key).get();
-            try {
-                emitter.send(SseEmitter.event()
-                    .id(getEventId(userId, now, eventName))
-                    .name(eventName.getValue())
-                    .data(eventName.getValue()));
-            } catch (IOException e) {
-                sseRepository.remove(key);
-                log.error("SSE send error", e);
-                throw new SseException(ErrorCode.SSE_SEND_ERROR);
-            }
-        });
-    }
 
     @Transactional
     public Slice<AlarmDto> sendAlarmSliceAndIsReadToTrue(Pageable pageable, String username) {

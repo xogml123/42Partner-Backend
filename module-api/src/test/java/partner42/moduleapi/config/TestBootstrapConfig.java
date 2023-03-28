@@ -1,4 +1,4 @@
-package partner42.moduleapi;
+package partner42.moduleapi.config;
 
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;

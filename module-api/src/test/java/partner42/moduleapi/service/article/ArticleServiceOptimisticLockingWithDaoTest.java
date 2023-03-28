@@ -9,27 +9,20 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Import;
-import partner42.moduleapi.TestBootstrapConfig;
-import partner42.moduleapi.config.JpaPackage.JpaAndEntityPackagePathConfig;
+import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import partner42.moduleapi.dto.article.ArticleDto;
 import partner42.moduleapi.dto.article.ArticleOnlyIdResponse;
 import partner42.moduleapi.dto.matchcondition.MatchConditionDto;
-import partner42.moduleapi.mapper.MemberMapperImpl;
 import partner42.moduleapi.utils.WorkerWithCountDownLatch;
-import partner42.modulecommon.config.BootstrapDataLoader;
-import partner42.modulecommon.config.jpa.Auditor;
-import partner42.modulecommon.config.querydsl.QuerydslConfig;
 import partner42.modulecommon.domain.model.match.ContentCategory;
 import partner42.modulecommon.producer.AlarmProducer;
 import partner42.modulecommon.repository.article.ArticleRepository;
 import partner42.modulecommon.repository.member.MemberRepository;
 
 @SpringBootTest
-//@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Slf4j
 class ArticleServiceOptimisticLockingWithDaoTest {
 
@@ -39,6 +32,7 @@ class ArticleServiceOptimisticLockingWithDaoTest {
     private MemberRepository memberRepository;
     @MockBean
     private AlarmProducer alarmProducer;
+    //Mocking 하지 않으면 SpringBootTest진행되지 않음.
     @Autowired
     private ArticleRepository articleRepository;
 
@@ -92,6 +86,8 @@ class ArticleServiceOptimisticLockingWithDaoTest {
         countDownLatch.countDown();
         Thread.sleep(2000);
         //then
+
+        //LostUpdate 발생 하지않는지
         assertThat(
             articleRepository.findByApiIdAndIsDeletedIsFalse(articleOnlyIdResponse.getArticleId()).get()
                 .getParticipantNum()).isEqualTo(3);

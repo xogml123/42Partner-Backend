@@ -26,17 +26,12 @@ public class BootstrapCommandLineRunner implements CommandLineRunner {
     private String dataLoader;
 
 
-    private void publishRedisPubSub(String topic) {
-        container.addMessageListener(alarmService, new ChannelTopic(topic));
-    }
-
-
+    @Transactional
     @Override
     public void run(String... args) throws Exception {
         if (dataLoader.equals("1")) {
             bootstrapDataLoader.createDefaultUsers();
             bootstrapDataLoader.createMatchCondition();
         }
-        publishRedisPubSub(SseEventName.ALARM_LIST.name());
     }
 }

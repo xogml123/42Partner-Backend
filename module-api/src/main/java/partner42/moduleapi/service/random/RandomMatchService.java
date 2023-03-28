@@ -99,8 +99,7 @@ public class RandomMatchService {
         if (randomMatches.isEmpty()) {
             throw new InvalidInputException(ErrorCode.ALREADY_CANCELED_RANDOM_MATCH);
         }
-
-        //변경 감지 이용하는 경우 성능 저하
+        //변경 감지 이용하는 쿼리 수 증가
 //        randomMatches
 //            .forEach(RandomMatch::expire);
         randomMatchRepository.bulkUpdateOptimisticLockIsExpiredToTrueByIds(randomMatches.stream()

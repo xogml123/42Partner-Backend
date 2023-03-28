@@ -10,6 +10,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
+import partner42.modulecommon.config.jpa.Auditor;
+import partner42.modulecommon.config.querydsl.QuerydslConfig;
 import partner42.modulecommon.domain.model.article.Article;
 import partner42.modulecommon.domain.model.match.ContentCategory;
 import partner42.modulecommon.domain.model.member.Member;
@@ -20,6 +23,7 @@ import partner42.modulecommon.repository.member.MemberRepository;
 @DataJpaTest
 //custom db를 사용하기 위해 필요, 없으면 embeded h2db사용하려고 함.
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@Import({QuerydslConfig.class, Auditor.class})
 class OpinionRepositoryTest {
 
     @Autowired

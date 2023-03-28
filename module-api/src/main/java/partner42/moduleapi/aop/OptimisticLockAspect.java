@@ -10,11 +10,12 @@ import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.dao.CannotAcquireLockException;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @Transactional annotation보다 먼저 실행되어야함.
  * Transactional annotation Default Order가 Integer.Max값임
- * 바로 앞에 실행되어야 하므로 Order를 Integer.Max -1로 지정
+ * Transactional으로 생성되는 AOP 보다 바로 먼저 실행되어야 하므로 Order를 Integer.Max -1로 지정
  */
 @Slf4j
 @Order(Ordered.LOWEST_PRECEDENCE - 1)

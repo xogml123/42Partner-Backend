@@ -54,7 +54,7 @@ public class RandomMatchRepositoryCustomImpl implements RandomMatchRepositoryCus
 
     /**
      * 1. OptimisticLock을 통해 Lost Update가 발생하지 않도록함.
-     * 2. 이것을 구현하기 위해 영속성 컨텍스트를 비워 준 후(최신 DB상태를 조회 하기 위해) Write_Lock과 함께 해당 Id의  Update이전 마지막 조회 시점의 version을 가져와서 Write_Lock을 건 후 트랜잭션 내에서 조회 했을 때version이 바뀌었거나 엔티티가 삭제되었는지 확인하고
+     * 2. 영속성 컨텍스트를 비워 준 후(최신 DB상태를 조회 하기 위해) Write_Lock과 함께 해당 Id의  Update이전 마지막 조회 시점의 version을 가져와서 Write_Lock을 건 후 트랜잭션 내에서 조회 했을 때version이 바뀌었거나 엔티티가 삭제되었는지 확인하고
      *   문제가 있는 경우 OptimisticLockException발생.
      * 3. 정상 Update가 가능한 경우 version을 1 증가 시키고 isExpired를 true로 변경.
      * 4. 벌크성 수정 쿼리는 영속성 컨텍스트를 무시하고 실행되므로, 영속성 컨텍스트를 초기화함.
@@ -63,7 +63,7 @@ public class RandomMatchRepositoryCustomImpl implements RandomMatchRepositoryCus
     @Override
     public void bulkUpdateOptimisticLockIsExpiredToTrueByIds(
         Set<RandomMatchBulkUpdateDto> randomMatchBulkUpdateDtos){
-        // 영속성 컨텍스트를 초기화 하여 영속성 컨테스트가 아닌 현재 DB 상태를 조회해온다.
+        // 영속성 컨텍스트를 초기화 하여 새로 조회한다.
         em.flush();
         em.clear();
         List<Long> idList = randomMatchBulkUpdateDtos.stream().map(RandomMatchBulkUpdateDto::getId)
