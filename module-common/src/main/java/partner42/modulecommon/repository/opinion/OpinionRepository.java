@@ -10,6 +10,8 @@ public interface OpinionRepository extends JpaRepository<Opinion, Long> {
 
     Optional<Opinion> findByApiId(String apiId);
 
+    Optional<Opinion> findByApiIdAndIsDeletedIsFalse(String apiId);
+
     @EntityGraph(attributePaths = {"article", "memberAuthor"})
     List<Opinion> findAllEntityGraphArticleAndMemberAuthorByArticleApiIdAndIsDeletedIsFalse(String articleApiId);
 }

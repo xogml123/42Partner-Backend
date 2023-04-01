@@ -67,7 +67,7 @@ public class Alarm extends BaseEntity {
 
     @Builder.Default
     @Column(nullable = false)
-    private boolean isRead = false;
+    private Boolean isRead = false;
 
     /**
      * 알람 기능이 확장 될 때 필요한 정보들을 저장.

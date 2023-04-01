@@ -89,7 +89,7 @@ public class MatchMember extends BaseEntity {
     /********************************* 비니지스 로직 *********************************/
 
 
-    public void updateReviewStatusTrue(){
+    public void updateisReviewedToTrue(){
         verifyAlreadyReviewed();
         this.isReviewed = true;
     }

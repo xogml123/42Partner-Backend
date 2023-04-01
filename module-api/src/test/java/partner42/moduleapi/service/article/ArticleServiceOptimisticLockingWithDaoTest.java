@@ -6,32 +6,33 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
 import lombok.extern.slf4j.Slf4j;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import partner42.moduleapi.dto.article.ArticleDto;
 import partner42.moduleapi.dto.article.ArticleOnlyIdResponse;
 import partner42.moduleapi.dto.matchcondition.MatchConditionDto;
-import partner42.moduleapi.utils.CreateTestDataUtils;
 import partner42.moduleapi.utils.WorkerWithCountDownLatch;
 import partner42.modulecommon.domain.model.match.ContentCategory;
+import partner42.modulecommon.producer.AlarmProducer;
 import partner42.modulecommon.repository.article.ArticleRepository;
 import partner42.modulecommon.repository.member.MemberRepository;
 
-@Slf4j
 @SpringBootTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-class ArticleServiceTest {
+@Slf4j
+class ArticleServiceOptimisticLockingWithDaoTest {
 
     @Autowired
     private ArticleService articleService;
     @Autowired
-    private CreateTestDataUtils createTestDataUtils;
-    @Autowired
     private MemberRepository memberRepository;
-
+    @MockBean
+    private AlarmProducer alarmProducer;
+    //Mocking 하지 않으면 SpringBootTest진행되지 않음.
     @Autowired
     private ArticleRepository articleRepository;
 
@@ -39,9 +40,8 @@ class ArticleServiceTest {
      * 낙관적 락 AOP처리 제대로 동작하는지 확인
      */
     @Test
-    void participateArticle() throws Exception{
+    void participateArticle_whenMultiTransactionConcurrentlyStart_thenOptimisticLockExceptionOrDeadLockExceptionOccurAndRetryApplied() throws Exception{
         //given
-        createTestDataUtils.signUpUsers();
         LocalDate tomorrow = LocalDate.now().plusDays(1);
         ArticleDto articleDto = ArticleDto.builder()
             .anonymity(false)
@@ -57,23 +57,23 @@ class ArticleServiceTest {
                 .build())
             .build();
 
-        ArticleOnlyIdResponse articleOnlyIdResponse = articleService.createArticle("takim@student.42Seoul.kr",
+        ArticleOnlyIdResponse articleOnlyIdResponse = articleService.createArticle("takim",
             articleDto);
+        Thread.sleep(100);
         //when
         CountDownLatch countDownLatch = new CountDownLatch(1);
         //동시에 두 요청이 들어왔을 때 retry를 안정적으로 잘 해주는지 검증.
         WorkerWithCountDownLatch sorkimParticipate = new WorkerWithCountDownLatch(
             "sorkim participate", countDownLatch, () ->
         {
-
-            articleService.participateArticle("sorkim@student.42Seoul.kr",
+            articleService.participateArticle("sorkim",
                 articleOnlyIdResponse.getArticleId());
         });
 
         WorkerWithCountDownLatch hyenamParticipate = new WorkerWithCountDownLatch(
             "hyenam participate", countDownLatch, () ->
         {
-            articleService.participateArticle("hyenam@student.42Seoul.kr",
+            articleService.participateArticle("hyenam",
                 articleOnlyIdResponse.getArticleId());
         });
         sorkimParticipate.start();
@@ -86,6 +86,8 @@ class ArticleServiceTest {
         countDownLatch.countDown();
         Thread.sleep(2000);
         //then
+
+        //LostUpdate 발생 하지않는지
         assertThat(
             articleRepository.findByApiIdAndIsDeletedIsFalse(articleOnlyIdResponse.getArticleId()).get()
                 .getParticipantNum()).isEqualTo(3);

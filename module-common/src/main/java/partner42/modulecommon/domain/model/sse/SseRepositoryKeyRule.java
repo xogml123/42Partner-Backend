@@ -21,18 +21,10 @@ public class SseRepositoryKeyRule {
      * @return
      */
     public String toCompleteKeyWhichSpecifyOnlyOneValue() {
-        
-        return createdAt != null ? toKeyUserAndEventInfo() + UNDER_SCORE + createdAt.toString() :
-            toKeyUserAndEventInfo();
+
+        String createdAtString = createdAt == null ? "" : createdAt.toString();
+        return userId + UNDER_SCORE + sseEventName.getValue() + UNDER_SCORE + createdAtString;
     }
 
-    /**
-     * SSEInMemoryRepository에서 사용될
-     * 특정 user, 특정 SSEEventName에 대한
-     * 모든 SSEEmitter를 찾기 위한 key를 생성한다.
-     * @return
-     */
-    public String toKeyUserAndEventInfo(){
-        return userId + UNDER_SCORE + sseEventName.getValue();
-    }
+
 }

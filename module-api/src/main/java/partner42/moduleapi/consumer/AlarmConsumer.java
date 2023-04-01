@@ -18,7 +18,7 @@ public class AlarmConsumer {
     private final AlarmService alarmService;
 
     /**
-     * offset을 최신으로 설정해야한다.
+     * offset을 최신으로 설정.
      * https://stackoverflow.com/questions/57163953/kafkalistener-consumerconfig-auto-offset-reset-doc-earliest-for-multiple-listene
      * @param alarmEvent
      * @param ack

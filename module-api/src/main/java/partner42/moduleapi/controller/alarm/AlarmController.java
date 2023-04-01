@@ -3,6 +3,7 @@ package partner42.moduleapi.controller.alarm;
 
 import io.swagger.annotations.ApiParam;
 import io.swagger.v3.oas.annotations.Operation;
+import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import partner42.moduleapi.dto.alarm.AlarmDto;
 import partner42.moduleapi.service.alarm.AlarmService;
+import partner42.modulecommon.utils.CustomTimeUtils;
 
 @Slf4j
 @RestController
@@ -41,6 +43,7 @@ public class AlarmController {
     public SseEmitter alarmSubscribe(
         @ApiParam(hidden = true) @AuthenticationPrincipal UserDetails user,
         @RequestHeader(value = "Last-Event-ID", required = false) String lastEventId) {
-        return alarmService.subscribe(user.getUsername(), lastEventId);
+        LocalDateTime now = CustomTimeUtils.nowWithoutNano();
+        return alarmService.subscribe(user.getUsername(), lastEventId, now);
     }
 }

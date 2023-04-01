@@ -4,6 +4,7 @@ package partner42.modulecommon.domain.model.member;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -22,7 +23,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import partner42.modulecommon.domain.model.BaseEntity;
 import partner42.modulecommon.domain.model.alarm.Alarm;
+import partner42.modulecommon.domain.model.user.Role;
+import partner42.modulecommon.domain.model.user.RoleEnum;
 import partner42.modulecommon.domain.model.user.User;
+import partner42.modulecommon.domain.model.user.UserRole;
 
 
 @Builder(access = AccessLevel.PRIVATE)
@@ -37,11 +41,6 @@ import partner42.modulecommon.domain.model.user.User;
 public class Member extends BaseEntity {
     //********************************* static final 상수 필드 *********************************/
 
-    /**
-     * email 뒤에 붙는 문자열
-     */
-
-
     /********************************* PK 필드 *********************************/
 
     /**
@@ -52,7 +51,9 @@ public class Member extends BaseEntity {
     @Column(name = "MEMBER_ID")
     private Long id;
 
-
+    public void setId(Long id) {
+        this.id = id;
+    }
     /********************************* PK가 아닌 필드 *********************************/
 
     /**
@@ -97,4 +98,7 @@ public class Member extends BaseEntity {
         this.nickname = nickname;
     }
 
+    public void setUser(User user) {
+        this.user = user;
+    }
 }

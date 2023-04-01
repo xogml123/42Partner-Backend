@@ -31,7 +31,7 @@ public class ActivityService {
                 member.getId(),
                 activitySearch)
             .stream().map(ActivityMatchScore::getScore)
-            .reduce(0, (a, b) -> a + b);
+            .reduce(0, Integer::sum);
         return ActivityScoreResponse.of(
             scoreSum);
     }

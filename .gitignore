@@ -65,7 +65,7 @@ application*.*
 !gradle/wrapper/gradle-wrapper.jar
 
 ### SQL ###
-/sql/*
+/module-api/sql/*
 
 ### build-send.sh ###
 build-send.sh

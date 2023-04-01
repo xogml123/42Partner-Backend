@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -120,6 +121,7 @@ public class User extends BaseEntity {
 
     public void setMember(Member member) {
         this.member = member;
+        member.setUser(this);
     }
 
     /********************************* 생성 메서드 *********************************/
@@ -146,34 +148,34 @@ public class User extends BaseEntity {
         newUserRole.setUserAndAddUserRoleToUser(this);
     }
 
-    public static String getRamdomPassword(int size) {
-        char[] charSet = new char[] {
-            '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-            'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
-            'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
-            '!', '@', '#', '$', '%', '^', '&' };
-
-        //동시성 문제 없음.
-        StringBuilder sb = new StringBuilder();
-        SecureRandom sr = new SecureRandom();
-        sr.setSeed(new Date().getTime());
-
-        int idx = 0;
-        int len = charSet.length;
-        for (int i=0; i<size; i++) {
-            // idx = (int) (len * Math.random());
-            idx = sr.nextInt(len);    // 강력한 난수를 발생시키기 위해 SecureRandom을 사용한다.
-            sb.append(charSet[idx]);
-        }
-        int[] start = {0, 10, 36, 62};
-        int[] diff = {10, 26, 26, 7};
-        for (int i=0; i<4; i++) {
-            idx = sr.nextInt(len);
-            sb.append(charSet[(idx) % diff[i] + start[i]]);
-        }
-
-        return sb.toString();
-    }
+//    public static String getRamdomPassword(int size) {
+//        char[] charSet = new char[] {
+//            '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+//            'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
+//            'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
+//            '!', '@', '#', '$', '%', '^', '&' };
+//
+//        //동시성 문제 없음.
+//        StringBuilder sb = new StringBuilder();
+//        SecureRandom sr = new SecureRandom();
+//        sr.setSeed(new Date().getTime());
+//
+//        int idx = 0;
+//        int len = charSet.length;
+//        for (int i=0; i<size; i++) {
+//            // idx = (int) (len * Math.random());
+//            idx = sr.nextInt(len);    // 강력한 난수를 발생시키기 위해 SecureRandom을 사용한다.
+//            sb.append(charSet[idx]);
+//        }
+//        int[] start = {0, 10, 36, 62};
+//        int[] diff = {10, 26, 26, 7};
+//        for (int i=0; i<4; i++) {
+//            idx = sr.nextInt(len);
+//            sb.append(charSet[(idx) % diff[i] + start[i]]);
+//        }
+//
+//        return sb.toString();
+//    }
 
     public void updatePassword(String encodedPassword) {
         this.password = encodedPassword;
@@ -183,10 +185,13 @@ public class User extends BaseEntity {
         this.email = email;
     }
 
-//    public void updateUserByOAuthIfo(String imageUrl) {
-//        this.imageUrl = imageUrl;
-//
-//    }
+    public boolean hasRole(RoleEnum roleEnum) {
+        return this.getUserRoles().stream()
+            .map(UserRole::getRole)
+            .map(Role::getValue)
+            .collect(Collectors.toSet())
+            .contains(roleEnum);
+    }
 
 
     /********************************* DTO *********************************/

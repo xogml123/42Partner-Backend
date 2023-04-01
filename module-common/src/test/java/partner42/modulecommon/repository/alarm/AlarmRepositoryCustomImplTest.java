@@ -10,10 +10,13 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
+import partner42.modulecommon.config.jpa.Auditor;
+import partner42.modulecommon.config.querydsl.QuerydslConfig;
 import partner42.modulecommon.domain.model.alarm.Alarm;
 import partner42.modulecommon.domain.model.alarm.AlarmArgs;
 import partner42.modulecommon.domain.model.alarm.AlarmType;
@@ -22,6 +25,7 @@ import partner42.modulecommon.repository.member.MemberRepository;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@Import({QuerydslConfig.class, Auditor.class})
 class AlarmRepositoryCustomImplTest {
 
     @Autowired
@@ -33,11 +37,6 @@ class AlarmRepositoryCustomImplTest {
     @BeforeEach
     void setUp() {
     }
-
-    @AfterEach
-    void tearDown() {
-    }
-
     @Test
     void findSliceByMemberId_givenDifferentAlarmWithDifferentMember_whenFindByMemberId_thenContainsExactly() {
         //given

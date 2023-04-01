@@ -10,10 +10,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
-import org.springframework.data.domain.SliceImpl;
 import org.springframework.data.domain.Sort;
+import partner42.modulecommon.config.jpa.Auditor;
+import partner42.modulecommon.config.querydsl.QuerydslConfig;
 import partner42.modulecommon.domain.model.match.ContentCategory;
 import partner42.modulecommon.domain.model.match.Match;
 import partner42.modulecommon.domain.model.match.MatchMember;
@@ -24,16 +26,17 @@ import partner42.modulecommon.repository.article.ArticleRepository;
 import partner42.modulecommon.repository.articlemember.ArticleMemberRepository;
 import partner42.modulecommon.repository.member.MemberRepository;
 import partner42.modulecommon.repository.user.UserRepository;
-import partner42.modulecommon.utils.CreateTestDataUtils;
+import partner42.modulecommon.config.BootstrapDataLoader;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@Import({QuerydslConfig.class, Auditor.class})
 class MatchRepositoryCustomImplTest {
 
     @Autowired
     UserRepository userRepository;
     @Autowired
-    CreateTestDataUtils createTestDataUtils;
+    BootstrapDataLoader bootstrapDataLoader;
     @Autowired
     ArticleRepository articleRepository;
 

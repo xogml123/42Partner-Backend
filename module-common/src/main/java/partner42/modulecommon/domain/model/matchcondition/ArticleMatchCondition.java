@@ -62,10 +62,7 @@ public class ArticleMatchCondition extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "MATCH_CONDITION_ID", nullable = false, updatable = false)
     private MatchCondition matchCondition;
-
-
     /********************************* 연관관계 편의 메서드 *********************************/
-
 
     /********************************* 생성 메서드 *********************************/
 

@@ -11,43 +11,64 @@ import io.lettuce.core.ClientOptions;
 import io.lettuce.core.SocketOptions;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+import javax.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.connection.RedisClusterConfiguration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisStaticMasterReplicaConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
+import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import partner42.modulecommon.domain.model.sse.SseEventName;
+import partner42.modulecommon.repository.sse.SSEInMemoryRepository;
+import partner42.modulecommon.subscriber.RedisMessageSubscriber;
 
+@Slf4j
 @Configuration
+@RequiredArgsConstructor
 public class LettuceConnectionConfig {
-
-
-    @Value("${spring.redis.host}")
-    String masterHost;
-
-    @Value("${redis.replica.host}")
-    String redisReplica;
-
-    @Value("${redis.replica.port}")
-    int redisReplicaPort;
-
-    @Value("${spring.redis.port}")
-    int port;
-
+//    @Value("${spring.redis.host}")
+//    String masterHost;
+//
+//    @Value("${redis.replica.host}")
+//    String redisReplica;
+//
+//    @Value("${redis.replica.port}")
+//    int redisReplicaPort;
+//
+//    @Value("${spring.redis.port}")
+//    int port;
+//
+//    @Value("${spring.redis.password}")
+//    String password;
+//
+//
+//    @Value("${spring.redis.ssl}")
+//    boolean useSSL;
+//
+//    @Value("${redis.expire.default}")
+//    private long defaultExpireSecond;
+    @Value("${spring.redis.cluster.nodes}")
+    private String clusterNodes;
+    @Value("${spring.redis.cluster.max-redirects}")
+    private int maxRedirects;
     @Value("${spring.redis.password}")
-    String password;
+    private String password;
+    private final SSEInMemoryRepository sseRepository;
 
-
-    @Value("${spring.redis.ssl}")
-    boolean useSSL;
-
-    @Value("${redis.expire.default}")
-    private long defaultExpireSecond;
 
 //    private final EntityManagerFactory entityManagerFactory;
 //    private final DataSource dataSource;
@@ -77,16 +98,18 @@ public class LettuceConnectionConfig {
 
 
     /**
-     * Redis readReplica를 추가하기 위한 설정
+     * RedisStaticMasterReplicaConfiguration를 사용할 경우 pub/sub사용 불가
      * @return
      */
     @Bean
-    public RedisStaticMasterReplicaConfiguration redisStaticMasterReplicaConfiguration() {
-        RedisStaticMasterReplicaConfiguration redisStaticMasterReplicaConfiguration =
-            new RedisStaticMasterReplicaConfiguration(masterHost, port);
-        redisStaticMasterReplicaConfiguration.addNode(redisReplica, redisReplicaPort);
-        redisStaticMasterReplicaConfiguration.setPassword(password);
-        return redisStaticMasterReplicaConfiguration;
+    public RedisClusterConfiguration redisClusterConfiguration() {
+        List<String> clusterNodeList = Arrays.stream(StringUtils.split(clusterNodes, ','))
+            .map(String::trim)
+            .collect(Collectors.toList());
+        RedisClusterConfiguration redisClusterConfiguration = new RedisClusterConfiguration(clusterNodeList);
+        redisClusterConfiguration.setMaxRedirects(maxRedirects);
+        redisClusterConfiguration.setPassword(password);
+        return redisClusterConfiguration;
     }
 
     /*
@@ -101,10 +124,9 @@ public class LettuceConnectionConfig {
      *
      * Jedis와 Lettuce의 성능 비교  https://jojoldu.tistory.com/418
      */
-
     @Bean
     public RedisConnectionFactory redisConnectionFactory(
-        final RedisStaticMasterReplicaConfiguration redisStaticMasterReplicaConfiguration) {
+        final RedisClusterConfiguration redisClusterConfiguration) {
         final SocketOptions socketOptions =
             SocketOptions.builder().connectTimeout(Duration.of(10, ChronoUnit.MINUTES)).build();
 
@@ -115,13 +137,13 @@ public class LettuceConnectionConfig {
             LettuceClientConfiguration.builder()
                 .clientOptions(clientOptions)
                 .readFrom(REPLICA_PREFERRED);
-        if (useSSL) {
-            // aws elasticcache uses in-transit encryption therefore no need for providing certificates
-            clientConfig = clientConfig.useSsl().disablePeerVerification().and();
-        }
+//        if (useSSL) {
+//            // aws elasticcache uses in-transit encryption therefore no need for providing certificates
+//            clientConfig = clientConfig.useSsl().disablePeerVerification().and();
+//        }
 
         return new LettuceConnectionFactory(
-            redisStaticMasterReplicaConfiguration, clientConfig.build());
+            redisClusterConfiguration, clientConfig.build());
     }
 
 
@@ -140,7 +162,7 @@ public class LettuceConnectionConfig {
             new GenericJackson2JsonRedisSerializer(objectMapper);
 
         RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
-        redisTemplate.setConnectionFactory(redisConnectionFactory(redisStaticMasterReplicaConfiguration()));
+        redisTemplate.setConnectionFactory(redisConnectionFactory(redisClusterConfiguration()));
         // json 형식으로 데이터를 받을 때
         // 값이 깨지지 않도록 직렬화한다.
         // 저장할 클래스가 여러개일 경우 범용 JacksonSerializer인 GenericJackson2JsonRedisSerializer를 이용한다
@@ -156,15 +178,25 @@ public class LettuceConnectionConfig {
 
         return redisTemplate;
     }
+    @Bean
+    ChannelTopic topic() {
+        return new ChannelTopic(SseEventName.ALARM_LIST.getValue());
+    }
 
+    @Bean
+    MessageListenerAdapter messageListener() {
+        return new MessageListenerAdapter(new RedisMessageSubscriber(sseRepository));
+    }
     @Bean
     public RedisMessageListenerContainer redisMessageListenerContainer() {
         final RedisMessageListenerContainer container = new RedisMessageListenerContainer();
-        container.setConnectionFactory(redisConnectionFactory(redisStaticMasterReplicaConfiguration()));
+        container.setConnectionFactory(redisConnectionFactory(redisClusterConfiguration()));
+        container.addMessageListener(messageListener(), topic());
+        log.info("PubSubConfig init");
         return container;
     }
 
-//
+
 //    /**
 //     * Redis Cache를 사용하기 위한 cache manager 등록.<br>
 //     * 커스텀 설정을 적용하기 위해 RedisCacheConfiguration을 먼저 생성한다.<br>
