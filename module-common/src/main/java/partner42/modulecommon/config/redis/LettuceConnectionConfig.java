@@ -98,18 +98,9 @@ public class LettuceConnectionConfig {
 
 
     /**
-     * Redis readReplica를 추가하기 위한 설정
+     * RedisStaticMasterReplicaConfiguration를 사용할 경우 pub/sub사용 불가
      * @return
      */
-//    @Bean
-//    public RedisStaticMasterReplicaConfiguration redisStaticMasterReplicaConfiguration() {
-//        RedisStaticMasterReplicaConfiguration redisStaticMasterReplicaConfiguration =
-//            new RedisStaticMasterReplicaConfiguration(masterHost, port);
-//        redisStaticMasterReplicaConfiguration.addNode(redisReplica, redisReplicaPort);
-//        redisStaticMasterReplicaConfiguration.setPassword(password);
-//        return redisStaticMasterReplicaConfiguration;
-//    }
-
     @Bean
     public RedisClusterConfiguration redisClusterConfiguration() {
         List<String> clusterNodeList = Arrays.stream(StringUtils.split(clusterNodes, ','))
@@ -133,29 +124,6 @@ public class LettuceConnectionConfig {
      *
      * Jedis와 Lettuce의 성능 비교  https://jojoldu.tistory.com/418
      */
-
-//    @Bean
-//    public RedisConnectionFactory redisConnectionFactory(
-//        final RedisStaticMasterReplicaConfiguration redisStaticMasterReplicaConfiguration) {
-//        final SocketOptions socketOptions =
-//            SocketOptions.builder().connectTimeout(Duration.of(10, ChronoUnit.MINUTES)).build();
-//
-//        final var clientOptions =
-//            ClientOptions.builder().socketOptions(socketOptions).autoReconnect(true).build();
-//
-//        var clientConfig =
-//            LettuceClientConfiguration.builder()
-//                .clientOptions(clientOptions)
-//                .readFrom(REPLICA_PREFERRED);
-//        if (useSSL) {
-//            // aws elasticcache uses in-transit encryption therefore no need for providing certificates
-//            clientConfig = clientConfig.useSsl().disablePeerVerification().and();
-//        }
-//
-//        return new LettuceConnectionFactory(
-//            redisStaticMasterReplicaConfiguration, clientConfig.build());
-//    }
-
     @Bean
     public RedisConnectionFactory redisConnectionFactory(
         final RedisClusterConfiguration redisClusterConfiguration) {
