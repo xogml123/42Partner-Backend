@@ -127,7 +127,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             callback(redirect) URI: /login/oauth2/code/authclient
             login URI: /oauth2/authorization/authclient - 설정을 하면 바꿀 수 있을 것 같음.
         */
-
         http.oauth2Login()
             .userInfoEndpoint()
             .userService(oAuth2UserService)
