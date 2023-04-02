@@ -80,6 +80,8 @@ class RandomMatchServiceWithDAOTest {
                 .build())
             .build();
 
+
+
         RandomMatchDto randomMatchDtoEmptyList = RandomMatchDto.builder()
             .contentCategory(ContentCategory.MEAL)
             .matchConditionRandomMatchDto(MatchConditionRandomMatchDto.builder()

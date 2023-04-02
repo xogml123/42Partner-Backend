@@ -96,10 +96,9 @@ public class RandomMatchController {
     private void verifyRandomMatchDtoHasEmptyField(RandomMatchDto randomMatchDto) {
         ContentCategory contentCategory = randomMatchDto.getContentCategory();
         MatchConditionRandomMatchDto matchConditionRandomMatchDto = randomMatchDto.getMatchConditionRandomMatchDto();
-        if (matchConditionRandomMatchDto.getPlaceList().isEmpty() ||
-            (contentCategory == ContentCategory.MEAL && matchConditionRandomMatchDto.getWayOfEatingList().isEmpty()) ||
-            (contentCategory == ContentCategory.STUDY && matchConditionRandomMatchDto.getTypeOfStudyList().isEmpty())) {
-            throw new InvalidInputException(ErrorCode.MATCH_CONDITION_EMPTY);
+        if ((contentCategory == ContentCategory.MEAL && !matchConditionRandomMatchDto.getTypeOfStudyList().isEmpty()) ||
+            (contentCategory == ContentCategory.STUDY && !matchConditionRandomMatchDto.getWayOfEatingList().isEmpty())) {
+            throw new InvalidInputException(ErrorCode.MATCH_CONDITION_NOT_EMPTY);
         }
     }
 }
