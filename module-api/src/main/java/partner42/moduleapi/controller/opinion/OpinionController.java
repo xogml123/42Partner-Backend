@@ -58,14 +58,12 @@ public class OpinionController {
         return opinionService.recoverableDeleteOpinion(opinionId, user.getUsername());
     }
 
-//    @PreAuthorize("hasAuthority('opinion.read')")
     @Operation(summary = "댓글 전체 조회", description = "댓글 전체 조회")
     @GetMapping("/articles/{articleId}/opinions")
     public ListResponse<OpinionResponse> getAllOpinionsInArticle(@PathVariable String articleId) {
         return opinionService.findAllOpinionsInArticle(articleId);
     }
 
-//    @PreAuthorize("hasAuthority('opinion.read')")
     @Operation(summary = "댓글 하나 조회", description = "댓글 하나 조회")
     @GetMapping("/opinions/{opinionId}")
     public OpinionResponse getOneOpinion(

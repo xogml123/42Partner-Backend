@@ -43,7 +43,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private final DefaultOAuth2UserService oAuth2UserService;
 
     private final AuthenticationEntryPoint authenticationEntryPoint;
-    private final ObjectMapper objectMapper;
 
     private final CustomAuthorizationFilter customAuthorizationFilter;
 
@@ -167,7 +166,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         .build();
                     res.setHeader(HttpHeaders.SET_COOKIE, cookie.toString());
                     body.setAccessToken(accessToken);
-                    res.getWriter().write(objectMapper.writeValueAsString(body));
+                    res.getWriter().write(new ObjectMapper().writeValueAsString(body));
                 })
                 .failureHandler((req, res, e) -> {
                     res.setStatus(401);

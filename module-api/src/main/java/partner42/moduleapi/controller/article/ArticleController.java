@@ -52,7 +52,6 @@ public class ArticleController {
         return articleService.readOneArticle(username, articleId);
     }
 
-//    @PreAuthorize("hasAuthority('article.read')")
     @Operation(summary = "방 목록조회", description = "방 목록 페이지, ")
     @GetMapping("/articles")
     public SliceImpl<ArticleReadResponse> readAllArticle(Pageable pageable, ArticleSearch condition) {

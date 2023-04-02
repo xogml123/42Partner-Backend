@@ -34,6 +34,7 @@ import partner42.moduleapi.dto.user.CustomAuthenticationPrincipal;
 import partner42.moduleapi.error.ErrorResponse;
 import partner42.moduleapi.util.JWTUtil;
 import partner42.moduleapi.util.JWTUtil.JWTInfo;
+import partner42.modulecommon.domain.model.member.Member;
 import partner42.modulecommon.domain.model.user.User;
 import partner42.modulecommon.exception.ErrorCode;
 
@@ -125,7 +126,7 @@ public class CustomAuthorizationFilter extends OncePerRequestFilter {
     private UsernamePasswordAuthenticationToken getAuthenticationTokenFromDecodedJwtInfo(JWTInfo jwtInfo) {
         return  new UsernamePasswordAuthenticationToken(CustomAuthenticationPrincipal.of(
                 User.of(jwtInfo.getUsername(),
-                    null, null, null, null, null), null),
+                    null, null, null, null, Member.of("temporal")), null),
                 null,
                 Arrays.stream(jwtInfo.getAuthorities())
                     .map(SimpleGrantedAuthority::new)
