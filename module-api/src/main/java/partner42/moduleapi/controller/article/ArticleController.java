@@ -114,7 +114,6 @@ public class ArticleController {
     }
 
     @PreAuthorize("hasAuthority('article.update')")
-    //작성자인지 확인하는 권한 처리.
     @Operation(summary = "방 매칭 글 확정", description = "방 매칭 글 확정")
     @PostMapping("/articles/{articleId}/complete")
     public MatchOnlyIdResponse completeArticle(@PathVariable String articleId,

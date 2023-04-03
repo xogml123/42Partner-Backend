@@ -32,6 +32,4 @@ public class MemberReviewDto {
         + "    MATCH_ABSENT(\"매치 불참\"),")
     @NotNull
     private ActivityMatchScore activityMatchScore;
-
-
 }
