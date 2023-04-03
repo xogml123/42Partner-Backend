@@ -29,10 +29,9 @@ import partner42.modulecommon.exception.ErrorCode;
 import partner42.modulecommon.exception.NoEntityException;
 import partner42.modulecommon.exception.SseException;
 import partner42.modulecommon.repository.alarm.AlarmRepository;
-import partner42.modulecommon.repository.sse.SSEInMemoryRepository;
 import partner42.modulecommon.domain.model.sse.SseRepositoryKeyRule;
+import partner42.modulecommon.repository.sse.SSERepository;
 import partner42.modulecommon.repository.user.UserRepository;
-import partner42.modulecommon.utils.CustomTimeUtils;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -45,7 +44,7 @@ public class AlarmService {
     private static final String CONNECTED = "CONNECTED";
     private final AlarmRepository alarmRepository;
     private final UserRepository userRepository;
-    private final SSEInMemoryRepository sseRepository;
+    private final SSERepository sseRepository;
     private final RedisTemplate<String, String> redisTemplate;
 
 
@@ -97,11 +96,11 @@ public class AlarmService {
 
         sse.onCompletion(() -> {
             log.info("onCompletion callback");
-            //만료 시 Repository에서 삭제 되어야함.
             sseRepository.remove(key);
         });
         sse.onTimeout(() -> {
             log.info("onTimeout callback");
+            //만료 시 Repository에서 삭제 되어야함.
             sse.complete();
         });
 

@@ -14,7 +14,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
-import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -23,7 +22,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisClusterConfiguration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.connection.RedisStaticMasterReplicaConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -33,41 +31,21 @@ import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import partner42.modulecommon.domain.model.sse.SseEventName;
-import partner42.modulecommon.repository.sse.SSEInMemoryRepository;
+import partner42.modulecommon.repository.sse.SSERepository;
 import partner42.modulecommon.subscriber.RedisMessageSubscriber;
 
 @Slf4j
 @Configuration
 @RequiredArgsConstructor
 public class LettuceConnectionConfig {
-//    @Value("${spring.redis.host}")
-//    String masterHost;
-//
-//    @Value("${redis.replica.host}")
-//    String redisReplica;
-//
-//    @Value("${redis.replica.port}")
-//    int redisReplicaPort;
-//
-//    @Value("${spring.redis.port}")
-//    int port;
-//
-//    @Value("${spring.redis.password}")
-//    String password;
-//
-//
-//    @Value("${spring.redis.ssl}")
-//    boolean useSSL;
-//
-//    @Value("${redis.expire.default}")
-//    private long defaultExpireSecond;
+
     @Value("${spring.redis.cluster.nodes}")
     private String clusterNodes;
     @Value("${spring.redis.cluster.max-redirects}")
     private int maxRedirects;
     @Value("${spring.redis.password}")
     private String password;
-    private final SSEInMemoryRepository sseRepository;
+    private final SSERepository sseRepository;
 
 
 //    private final EntityManagerFactory entityManagerFactory;

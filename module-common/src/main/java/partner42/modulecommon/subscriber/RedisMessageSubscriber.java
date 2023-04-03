@@ -13,20 +13,21 @@ import partner42.modulecommon.domain.model.sse.SseEventName;
 import partner42.modulecommon.domain.model.sse.SseRepositoryKeyRule;
 import partner42.modulecommon.exception.ErrorCode;
 import partner42.modulecommon.exception.SseException;
-import partner42.modulecommon.repository.sse.SSEInMemoryRepository;
+import partner42.modulecommon.repository.sse.SSERepository;
 import partner42.modulecommon.utils.CustomTimeUtils;
 @Slf4j
 @RequiredArgsConstructor
 @Service
 public class RedisMessageSubscriber implements MessageListener {
     private static final String UNDER_SCORE = "_";
-    private final SSEInMemoryRepository sseRepository;
+    private final SSERepository sseRepository;
     /**
      * 여러 서버에서 SSE를 구현하기 위한 Redis Pub/Sub
      * subscribe해두었던 topic에 publish가 일어나면 메서드가 호출된다.
      */
     @Override
     public void onMessage(Message message, byte[] pattern) {
+        log.info("Redis pattern: {}", new String(pattern));
         log.info("Redis Pub/Sub message received: {}", message.toString());
         String[] strings = message.toString().split(UNDER_SCORE);
         Long userId = Long.parseLong(strings[0]);
