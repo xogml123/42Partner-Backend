@@ -119,7 +119,6 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         return necessaryAttributes;
     }
 
-
     private OAuth2User signUpOrUpdateUser(String login, String email, String imageUrl, String username,
         Optional<User> userOptional, Map<String, Object> necessaryAttributes) {
         OAuth2User oAuth2User;
@@ -151,5 +150,4 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         oAuth2User = CustomAuthenticationPrincipal.of(user, necessaryAttributes);
         return oAuth2User;
     }
-
 }
