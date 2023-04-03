@@ -4,10 +4,12 @@ package partner42.moduleapi.controller.alarm;
 import io.swagger.annotations.ApiParam;
 import io.swagger.v3.oas.annotations.Operation;
 import java.time.LocalDateTime;
+import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -41,8 +43,12 @@ public class AlarmController {
     @GetMapping(value = "/alarm/subscribe", produces = "text/event-stream")
     public SseEmitter alarmSubscribe(
         @ApiParam(hidden = true) @AuthenticationPrincipal UserDetails user,
-        @RequestHeader(value = "Last-Event-ID", required = false) String lastEventId) {
+        @RequestHeader(value = "Last-Event-ID", required = false) String lastEventId,
+        HttpServletResponse response) {
         LocalDateTime now = CustomTimeUtils.nowWithoutNano();
+        //nginx리버스 프록시에서 버퍼링 기능으로 인한 오동작 방지
+        response.setHeader("X-Accel-Buffering", "no");
+        response.setHeader(HttpHeaders.CACHE_CONTROL, "no-cache");
         return alarmService.subscribe(user.getUsername(), lastEventId, now);
     }
 }
