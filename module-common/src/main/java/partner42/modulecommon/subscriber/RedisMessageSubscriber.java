@@ -26,7 +26,6 @@ public class RedisMessageSubscriber implements MessageListener {
      */
     @Override
     public void onMessage(Message message, byte[] pattern) {
-        log.info("Redis pattern: {}", new String(pattern));
         log.info("Redis Pub/Sub message received: {}", message.toString());
         String[] strings = message.toString().split(UNDER_SCORE);
         Long userId = Long.parseLong(strings[0]);

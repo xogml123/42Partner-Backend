@@ -131,7 +131,7 @@ class AlarmServiceWithDaoTest {
     }
 
     @Test
-    void send_whenCalled_thenAlarmEntitySaved() {
+    void createAlarm_whenCalled_thenAlarmEntitySaved() {
         //given
         User takim = userRepository.findByUsername("takim").get();
         User sorkim = userRepository.findByUsername("sorkim").get();
@@ -141,7 +141,7 @@ class AlarmServiceWithDaoTest {
         AlarmType alarmType = AlarmType.COMMENT_ON_MY_COMMENT;
 
         //when
-        alarmService.send(takim.getId(), alarmType, alarmArgs, SseEventName.ALARM_LIST);
+        alarmService.createAlarm(takim.getId(), alarmType, alarmArgs);
         //then
         assertThat(alarmRepository.findAll())
             .extracting(Alarm::getAlarmType, Alarm::getAlarmArgs, Alarm::getCalledMember)
@@ -161,7 +161,7 @@ class AlarmServiceWithDaoTest {
         AlarmType alarmType = AlarmType.COMMENT_ON_MY_COMMENT;
 
         //when
-        alarmService.send(takim.getId(), alarmType, alarmArgs, SseEventName.ALARM_LIST);
+        alarmService.send(takim.getId(), SseEventName.ALARM_LIST);
         //then
         verify(redisTemplate).convertAndSend(SseEventName.ALARM_LIST.getValue(),
             takim.getId() + "_" + SseEventName.ALARM_LIST.getValue());

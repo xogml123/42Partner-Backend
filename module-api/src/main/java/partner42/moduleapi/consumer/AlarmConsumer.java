@@ -23,11 +23,19 @@ public class AlarmConsumer {
      * @param alarmEvent
      * @param ack
      */
-    @KafkaListener(topics = "${kafka.topic.alarm.name}", groupId = "${kafka.consumer.alarm.group-id}",
+    @KafkaListener(topics = "${kafka.topic.alarm.name}", groupId = "${kafka.consumer.alarm.rdb-group-id}",
         properties = {AUTO_OFFSET_RESET_CONFIG + ":earliest"})
-    public void consumeNotification(AlarmEvent alarmEvent, Acknowledgment ack) {
-        log.info("Consume the event {}", alarmEvent);
-        alarmService.send(alarmEvent.getUserId(), alarmEvent.getType(), alarmEvent.getArgs(),
+    public void createAlarmInRDBConsumerGroup(AlarmEvent alarmEvent, Acknowledgment ack) {
+        log.info("createAlarmInRDBConsumerGroup");
+        alarmService.createAlarm(alarmEvent.getUserId(), alarmEvent.getType(), alarmEvent.getArgs());
+        ack.acknowledge();
+    }
+
+    @KafkaListener(topics = "${kafka.topic.alarm.name}", groupId = "${kafka.consumer.alarm.redis-group-id}",
+        properties = {AUTO_OFFSET_RESET_CONFIG + ":earliest"})
+    public void redisPublishConsumerGroup(AlarmEvent alarmEvent, Acknowledgment ack) {
+        log.info("redisPublishConsumerGroup");
+        alarmService.send(alarmEvent.getUserId(),
             alarmEvent.getEventName());
         ack.acknowledge();
     }

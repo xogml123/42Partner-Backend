@@ -77,15 +77,16 @@ public class AlarmService {
         return alarmDtos;
     }
 
+    public void send(Long alarmReceiverId,SseEventName sseEventName) {
+        redisTemplate.convertAndSend(sseEventName.getValue(),
+            getRedisPubMessage(alarmReceiverId, sseEventName));
+    }
     @Transactional
-    public void send(Long alarmReceiverId, AlarmType alarmType, AlarmArgs alarmArgs, SseEventName sseEventName) {
+    public void createAlarm(Long alarmReceiverId, AlarmType alarmType, AlarmArgs alarmArgs) {
         User alarmReceiver = userRepository.findById(alarmReceiverId).orElseThrow(() ->
             new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
         Alarm alarm = Alarm.of(alarmType, alarmArgs, alarmReceiver.getMember());
         alarmRepository.save(alarm);
-        redisTemplate.convertAndSend(sseEventName.getValue(),
-            getRedisPubMessage(alarmReceiverId, sseEventName));
-
     }
 
     public SseEmitter subscribe(String username, String lastEventId, LocalDateTime now) {

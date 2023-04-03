@@ -45,8 +45,7 @@ public class LettuceConnectionConfig {
     private int maxRedirects;
     @Value("${spring.redis.password}")
     private String password;
-    private final SSERepository sseRepository;
-
+    private final RedisMessageSubscriber redisMessageSubscriber;
 
 //    private final EntityManagerFactory entityManagerFactory;
 //    private final DataSource dataSource;
@@ -163,7 +162,7 @@ public class LettuceConnectionConfig {
 
     @Bean
     MessageListenerAdapter messageListener() {
-        return new MessageListenerAdapter(new RedisMessageSubscriber(sseRepository));
+        return new MessageListenerAdapter(redisMessageSubscriber);
     }
     @Bean
     public RedisMessageListenerContainer redisMessageListenerContainer() {
