@@ -51,8 +51,6 @@ public class RandomMatchController {
 
     }
 
-
-
     @PreAuthorize("hasAuthority('random-match.delete')")
     @Operation(summary = "랜덤 매칭 취소", description = "랜덤 매칭 취소")
     @PostMapping("/random-matches/mine")
