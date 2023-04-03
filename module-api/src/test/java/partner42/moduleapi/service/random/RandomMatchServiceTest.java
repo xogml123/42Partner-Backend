@@ -63,6 +63,13 @@ class RandomMatchServiceTest {
                 .build())
             .build();
 
+        RandomMatchDto randomMatchDtoEmptyPlace = RandomMatchDto.builder()
+            .contentCategory(ContentCategory.MEAL)
+            .matchConditionRandomMatchDto(MatchConditionRandomMatchDto.builder()
+                .placeList(List.of())
+                .wayOfEatingList(List.of(WayOfEating.DELIVERY))
+                .build())
+            .build();
         RandomMatchDto randomMatchDtoEmptyList = RandomMatchDto.builder()
             .contentCategory(ContentCategory.MEAL)
             .matchConditionRandomMatchDto(MatchConditionRandomMatchDto.builder()
@@ -94,6 +101,8 @@ class RandomMatchServiceTest {
         //when
         List<RandomMatch> randomMatches = randomMatchService.createRandomMatch(username,
             randomMatchDto, now);
+        List<RandomMatch> randomMatchesWithEmptyPlace = randomMatchService.createRandomMatch(
+            username, randomMatchDtoEmptyPlace, now);
         List<RandomMatch> randomMatchesWithEmptyList = randomMatchService.createRandomMatch(
             username, randomMatchDtoEmptyList, now);
 
@@ -113,6 +122,8 @@ class RandomMatchServiceTest {
             .containsExactlyInAnyOrder(
                 tuple(Place.GAEPO, ContentCategory.MEAL, null, WayOfEating.DELIVERY)
             );
+        //Place가 빈 List인 경우 모든 Place로 RandomMatch반환.
+        assertThat(randomMatchesWithEmptyPlace).hasSize(Place.values().length);
         //조건 필드가 빈 List인 경우 모든 조건으로 RandomMatch반환.
         assertThat(randomMatchesWithEmptyList).extracting(RandomMatch::getRandomMatchCondition)
             .extracting(RandomMatchCondition::getWayOfEating)

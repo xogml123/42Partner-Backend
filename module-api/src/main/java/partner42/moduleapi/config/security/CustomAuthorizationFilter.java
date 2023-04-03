@@ -34,10 +34,17 @@ import partner42.moduleapi.dto.user.CustomAuthenticationPrincipal;
 import partner42.moduleapi.error.ErrorResponse;
 import partner42.moduleapi.util.JWTUtil;
 import partner42.moduleapi.util.JWTUtil.JWTInfo;
+import partner42.modulecommon.domain.model.member.Member;
 import partner42.modulecommon.domain.model.user.User;
 import partner42.modulecommon.exception.ErrorCode;
 
 
+/**
+ * 1. OncePerRequestFilter를 활용하는 이유
+ * Servlet이 다른 Servler을 dispatch하는 경우 FilterChain을 여러번 거치게 되는데
+ * OnceOErRequestFilter를 사용하는 경우 무조건 한번만 거치게 된다.
+ * https://stackoverflow.com/questions/13152946/what-is-onceperrequestfilter
+ */
 @Slf4j
 @Component
 public class CustomAuthorizationFilter extends OncePerRequestFilter {
@@ -46,6 +53,16 @@ public class CustomAuthorizationFilter extends OncePerRequestFilter {
     private String secret;
 
     private static final String BEARER = "Bearer ";
+
+    /**
+     * 인증 시 Authorization header에 Bearer 토큰을 담아서 보내기 때문에
+     * 이를 추출하여 토큰 검증을 진행한다.
+     * @param request
+     * @param response
+     * @param filterChain
+     * @throws ServletException
+     * @throws IOException
+     */
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
         FilterChain filterChain) throws ServletException, IOException {
@@ -73,19 +90,20 @@ public class CustomAuthorizationFilter extends OncePerRequestFilter {
             /**
              * Access Token인 경우 authorities가 존재하므로
              * SecurityContextHoler에 정보 저장.
-             * SpringSecurity 에서 Authentication을 등록하지 않아서인지
+             * SpringSecurity 에서 Authentication을 등록하지 않고 Custom Filter를 이용하여 등록해서 인지
              * 세션생성을 방지하는 옵션을 사용하였음에도 세션을 생성하여 반환함.
              * 만료된 토큰임에도 로그인이 풀리지 않아 세션을 생성하지 않도록 설정하려고 하였으나 실패함.
              * https://www.baeldung.com/spring-security-session
              * 이미 생성된 세션은 사용하지 않도록 SessionCreationPolicy NEVER->STATELESS로 변경하여 해결.
              */
             if (jwtInfo != null && jwtInfo.getAuthorities() != null) {
-                setAuthenticationTokenToSecurityContext(jwtInfo);
+                SecurityContextHolder.getContext()
+                    .setAuthentication(getAuthenticationTokenFromDecodedJwtInfo(jwtInfo));
             }
             //JWT 토큰이 없는 경우 일단 통과 시킴.
-            //Security Filter chain에서 인증, 인가 여부 검증.
+            //Security Filter chain에서 인증, 인가 여부가 필요한지에 따라
+            //요청 처리여부가 결정됨..
         }
-        log.debug("Authorization Bearer");
         //access token 만료를 제외 하면 모두 filter chain호출.
         filterChain.doFilter(request, response);
     }
@@ -101,16 +119,18 @@ public class CustomAuthorizationFilter extends OncePerRequestFilter {
         new ObjectMapper().writeValue(response.getOutputStream(), body);
     }
 
-    private void setAuthenticationTokenToSecurityContext(JWTInfo jwtInfo) {
-        UsernamePasswordAuthenticationToken authenticationToken =
-            new UsernamePasswordAuthenticationToken(CustomAuthenticationPrincipal.of(
+    /**
+     * SecurityContextHolder에 Authentication 저장할 Authentication 정보를 저장.
+     * @param jwtInfo
+     */
+    private UsernamePasswordAuthenticationToken getAuthenticationTokenFromDecodedJwtInfo(JWTInfo jwtInfo) {
+        return  new UsernamePasswordAuthenticationToken(CustomAuthenticationPrincipal.of(
                 User.of(jwtInfo.getUsername(),
-                    null, null, null, null, null), null),
+                    null, null, null, null, Member.of("temporal")), null),
                 null,
                 Arrays.stream(jwtInfo.getAuthorities())
                     .map(SimpleGrantedAuthority::new)
                     .collect(Collectors.toList()));
-        SecurityContextHolder.getContext().setAuthentication(authenticationToken);
     }
 
     private String getToken(String authorizationHeader) {

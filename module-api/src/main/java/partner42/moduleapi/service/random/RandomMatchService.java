@@ -195,6 +195,10 @@ public class RandomMatchService {
         List<RandomMatch> randomMatches = new ArrayList<>();
         MatchConditionRandomMatchDto matchConditionRandomMatchDto = randomMatchDto.getMatchConditionRandomMatchDto();
         //matchConditionRandomMatchDto의 필드가 비어있는 경우 모든 조건으로 변환
+        if (matchConditionRandomMatchDto.getPlaceList().isEmpty()){
+            matchConditionRandomMatchDto.setPlaceList(
+                new ArrayList<>(List.of(Place.values())));
+        }
         if (randomMatchDto.getContentCategory().equals(ContentCategory.STUDY) &&
             matchConditionRandomMatchDto.getTypeOfStudyList().isEmpty()) {
             matchConditionRandomMatchDto.setTypeOfStudyList(

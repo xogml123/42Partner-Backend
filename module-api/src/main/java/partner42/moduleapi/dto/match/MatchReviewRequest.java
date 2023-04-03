@@ -22,7 +22,6 @@ public class MatchReviewRequest {
 
     @Schema(name = "matchId", example = "4f3dda35-3739-406c-ad22-eed438831d66", description = "매치 ID")
     @NotBlank
-    @Size(min = 1, max = 100)
     private String matchId;
 
     @Schema(name = "memberReviewDtos", example = "[]", description = "멤버별 리뷰 남길 정보")

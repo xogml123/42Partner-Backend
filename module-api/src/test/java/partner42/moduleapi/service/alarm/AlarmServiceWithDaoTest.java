@@ -16,6 +16,7 @@ import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import partner42.moduleapi.annotation.ServiceWithDaoTest;
 import partner42.moduleapi.config.TestBootstrapConfig;
 import partner42.moduleapi.config.JpaPackage.JpaAndEntityPackagePathConfig;
@@ -37,7 +38,7 @@ import partner42.modulecommon.repository.user.UserRepository;
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Import({AlarmService.class, SSEInMemoryRepository.class,
     Auditor.class, QuerydslConfig.class, JpaAndEntityPackagePathConfig.class,
-    TestBootstrapConfig.class, BootstrapDataLoader.class})
+    TestBootstrapConfig.class, BootstrapDataLoader.class, BCryptPasswordEncoder.class})
 class AlarmServiceWithDaoTest {
 
     @MockBean

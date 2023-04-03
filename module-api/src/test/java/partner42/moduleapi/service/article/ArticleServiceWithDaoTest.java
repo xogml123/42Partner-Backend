@@ -15,6 +15,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.SliceImpl;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import partner42.moduleapi.config.TestBootstrapConfig;
 import partner42.moduleapi.config.JpaPackage.JpaAndEntityPackagePathConfig;
 import partner42.moduleapi.dto.EmailDto;
@@ -65,7 +66,7 @@ import partner42.modulecommon.repository.user.UserRepository;
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Import({ArticleService.class, MemberMapperImpl.class,
     Auditor.class, QuerydslConfig.class, JpaAndEntityPackagePathConfig.class,
-    TestBootstrapConfig.class, BootstrapDataLoader.class})
+    TestBootstrapConfig.class, BootstrapDataLoader.class, BCryptPasswordEncoder.class})
 class ArticleServiceWithDaoTest {
 
     @Autowired

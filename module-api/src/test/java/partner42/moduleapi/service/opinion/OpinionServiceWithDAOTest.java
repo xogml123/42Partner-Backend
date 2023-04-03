@@ -11,6 +11,7 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import partner42.moduleapi.config.TestBootstrapConfig;
 import partner42.moduleapi.config.JpaPackage.JpaAndEntityPackagePathConfig;
 import partner42.moduleapi.dto.ListResponse;
@@ -36,7 +37,7 @@ import partner42.modulecommon.repository.user.UserRepository;
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Import({OpinionService.class, OpinionMapperImpl.class,
     Auditor.class, QuerydslConfig.class, JpaAndEntityPackagePathConfig.class,
-    TestBootstrapConfig.class, BootstrapDataLoader.class})
+    TestBootstrapConfig.class, BootstrapDataLoader.class, BCryptPasswordEncoder.class})
 class OpinionServiceWithDAOTest {
     @Autowired
     private OpinionService opinionService;

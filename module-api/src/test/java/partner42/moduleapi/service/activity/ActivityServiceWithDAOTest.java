@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import partner42.moduleapi.config.TestBootstrapConfig;
 import partner42.moduleapi.config.JpaPackage.JpaAndEntityPackagePathConfig;
 import partner42.moduleapi.dto.activity.ActivityScoreResponse;
@@ -29,7 +30,7 @@ import partner42.modulecommon.repository.user.UserRepository;
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Import({ActivityService.class,
     Auditor.class, QuerydslConfig.class, JpaAndEntityPackagePathConfig.class,
-    TestBootstrapConfig.class, BootstrapDataLoader.class})
+    TestBootstrapConfig.class, BootstrapDataLoader.class, BCryptPasswordEncoder.class})
 class ActivityServiceWithDAOTest {
     @Autowired
     private ActivityService activityService;

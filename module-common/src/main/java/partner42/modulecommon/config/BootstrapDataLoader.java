@@ -8,6 +8,7 @@ import java.util.UUID;
 import javax.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 import partner42.modulecommon.domain.model.match.ConditionCategory;
 import partner42.modulecommon.domain.model.matchcondition.MatchCondition;
@@ -41,6 +42,8 @@ public class BootstrapDataLoader {
     private final RoleRepository roleRepository;
 
     private final MatchConditionRepository matchConditionRepository;
+
+    private final BCryptPasswordEncoder passwordEncoder;
 
     public void createDefaultUsers() {
         createRoleAuthority();
@@ -219,8 +222,6 @@ public class BootstrapDataLoader {
 
     }
 
-
-
     private Role saveNewRole(RoleEnum roleEnum) {
         Role role = Role.of(roleEnum);
         return roleRepository.save(role);
@@ -243,10 +244,9 @@ public class BootstrapDataLoader {
 
             Member member = Member.of(login);
             memberRepository.save(member);
-
             Role role = roleRepository.findByValue(RoleEnum.ROLE_USER).orElseThrow(() ->
                 new EntityNotFoundException(RoleEnum.ROLE_USER + "에 해당하는 Role이 없습니다."));
-            user = User.of(username, UUID.randomUUID().toString(), email, login, imageUrl, member);
+            user = User.of(username, passwordEncoder.encode(username), email, login, imageUrl, member);
             UserRole userRole = UserRole.of(role, user);
 
             userRepository.save(user);

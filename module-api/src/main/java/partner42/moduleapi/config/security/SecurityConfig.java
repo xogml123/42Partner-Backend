@@ -1,11 +1,8 @@
 package partner42.moduleapi.config.security;
 
-import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Duration;
-import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletResponse;
@@ -18,7 +15,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -32,11 +28,9 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import partner42.moduleapi.dto.ErrorResponseDto;
 import partner42.moduleapi.dto.LoginResponseDto;
 import partner42.moduleapi.dto.user.CustomAuthenticationPrincipal;
 import partner42.moduleapi.util.JWTUtil;
-import partner42.modulecommon.domain.model.user.UserRole;
 
 // spring security 필터를 스프링 필터체인에 동록
 @Configuration
@@ -45,10 +39,10 @@ import partner42.modulecommon.domain.model.user.UserRole;
 @EnableGlobalMethodSecurity(securedEnabled = true, prePostEnabled = true, proxyTargetClass = true)
 @RequiredArgsConstructor
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
+
     private final DefaultOAuth2UserService oAuth2UserService;
 
     private final AuthenticationEntryPoint authenticationEntryPoint;
-    private final ObjectMapper objectMapper;
 
     private final CustomAuthorizationFilter customAuthorizationFilter;
 
@@ -128,12 +122,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.GET, "/api/alarms/subscribe").authenticated()
         );
 
-            /*
-                callback(redirect) URI: /login/oauth2/code/authclient - 아예 정해진거라 못바꿈
-                login URI: /oauth2/authorization/authclient - 설정을 하면 바꿀 수 있을 것 같음.
-             */
-
-            http.oauth2Login()
+        /*
+            callback(redirect) URI: /login/oauth2/code/authclient
+            login URI: /oauth2/authorization/authclient - 설정을 하면 바꿀 수 있을 것 같음.
+        */
+        http.oauth2Login()
             .userInfoEndpoint()
             .userService(oAuth2UserService)
             .and()
@@ -163,7 +156,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                             .collect(Collectors.toList()));
                     String refreshToken = JWTUtil.createToken(req.getRequestURL().toString(),
                         user.getUsername(), refreshTokenExpire, algorithm);
-                    ResponseCookie cookie = ResponseCookie.from(JWTUtil.REFRESH_TOKEN, refreshToken) // key & value
+                    ResponseCookie cookie = ResponseCookie.from(JWTUtil.REFRESH_TOKEN,
+                            refreshToken) // key & value
                         .httpOnly(true)
                         .secure(true)
                         .path("/")      // path
@@ -172,7 +166,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         .build();
                     res.setHeader(HttpHeaders.SET_COOKIE, cookie.toString());
                     body.setAccessToken(accessToken);
-                    res.getWriter().write(objectMapper.writeValueAsString(body));
+                    res.getWriter().write(new ObjectMapper().writeValueAsString(body));
                 })
                 .failureHandler((req, res, e) -> {
                     res.setStatus(401);
@@ -205,8 +199,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
-
-
 
     //인증 방식 수동 지정. userDetailsService, passwordEncoder 하나일때는 상관없음.
 //    @Override

@@ -77,7 +77,7 @@ public class RandomMatchController {
     @Operation(summary = "랜덤 매칭 신청 인원 조회", description = "랜덤 매칭 신청 인원 조회")
     @GetMapping("/random-matches/members/count")
     public RandomMatchCountResponse countRandomMatchNotExpired(
-        RandomMatchParam randomMatchCancelRequest) {
+        @Validated RandomMatchParam randomMatchCancelRequest) {
         LocalDateTime now = CustomTimeUtils.nowWithoutNano();
         return randomMatchService.countMemberOfRandomMatchNotExpire(randomMatchCancelRequest, now);
     }
@@ -85,7 +85,7 @@ public class RandomMatchController {
     @PreAuthorize("hasAuthority('random-match.read')")
     @Operation(summary = "랜덤 매칭 신청 조건 조회", description = "랜덤 매칭 신청 조건 조회")
     @GetMapping("/random-matches/condition/mine")
-    public RandomMatchDto readRandomMatchCondition(RandomMatchParam randomMatchCancelRequest,
+    public RandomMatchDto readRandomMatchCondition(@Validated RandomMatchParam randomMatchCancelRequest,
         @ApiParam(hidden = true) @AuthenticationPrincipal UserDetails user) {
         //contentCategory에 따라 필드 검증
         LocalDateTime now = CustomTimeUtils.nowWithoutNano();
@@ -96,10 +96,9 @@ public class RandomMatchController {
     private void verifyRandomMatchDtoHasEmptyField(RandomMatchDto randomMatchDto) {
         ContentCategory contentCategory = randomMatchDto.getContentCategory();
         MatchConditionRandomMatchDto matchConditionRandomMatchDto = randomMatchDto.getMatchConditionRandomMatchDto();
-        if (matchConditionRandomMatchDto.getPlaceList().isEmpty() ||
-            (contentCategory == ContentCategory.MEAL && matchConditionRandomMatchDto.getWayOfEatingList().isEmpty()) ||
-            (contentCategory == ContentCategory.STUDY && matchConditionRandomMatchDto.getTypeOfStudyList().isEmpty())) {
-            throw new InvalidInputException(ErrorCode.MATCH_CONDITION_EMPTY);
+        if ((contentCategory == ContentCategory.MEAL && !matchConditionRandomMatchDto.getTypeOfStudyList().isEmpty()) ||
+            (contentCategory == ContentCategory.STUDY && !matchConditionRandomMatchDto.getWayOfEatingList().isEmpty())) {
+            throw new InvalidInputException(ErrorCode.MATCH_CONDITION_NOT_EMPTY);
         }
     }
 }
