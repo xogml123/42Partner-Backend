@@ -1,4 +1,4 @@
-package partner42.moduleapi.utils;
+package partner42.moduleapi.testutils;
 
 import java.time.Instant;
 import java.util.concurrent.CountDownLatch;

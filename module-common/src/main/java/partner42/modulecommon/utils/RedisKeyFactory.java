@@ -1,4 +1,4 @@
-//package partner42.modulecommon.utils;
+//package partner42.modulecommon.testutils;
 //
 //
 //import lombok.Getter;

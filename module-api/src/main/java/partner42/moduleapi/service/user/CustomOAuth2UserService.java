@@ -7,6 +7,9 @@ import java.util.Optional;
 import java.util.UUID;
 import javax.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
@@ -30,6 +33,28 @@ import partner42.modulecommon.repository.user.UserRoleRepository;
 @Service
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
+    @RequiredArgsConstructor
+    @Configuration
+    static public class CustomOAuth2UserServiceWithDaoTestConfig {
+        private final UserRepository userRepository;
+        private final RoleRepository roleRepository;
+        private final UserRoleRepository userRoleRepository;
+        private final MemberRepository memberRepository;
+        private final BCryptPasswordEncoder passwordEncoder;
+        @Bean
+        @Qualifier("customOAuth2UserService")
+        public CustomOAuth2UserService customOAuth2UserService(
+            DefaultOAuth2UserService defaultOAuth2UserService) {
+            return new CustomOAuth2UserService(userRepository,
+                roleRepository, userRoleRepository, memberRepository, passwordEncoder, defaultOAuth2UserService());
+        }
+
+        @Bean
+        @Qualifier("defaultOAuth2UserService")
+        public DefaultOAuth2UserService defaultOAuth2UserService() {
+            return new DefaultOAuth2UserService();
+        }
+    }
     private static final String ID_ATTRIBUTE = "id";
     private static final String LOGIN_ATTRIBUTE = "login";
     private static final String EMAIL_ATTRIBUTE = "email";
@@ -44,6 +69,14 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     private final BCryptPasswordEncoder passwordEncoder;
 
     /**
+     * ClientRegistration을 가지고 실제 Resource Server로 부터 유저 정보를 받아오는 메소드이기 때문에
+     * Mocking을 해야하는데 defaultOAuth2UserService를 주입받아서 사용하지 않으면
+     * 단위 테스트 시 Mocking을 할 수 없음.
+     */
+    @Qualifier("defaultOAuth2UserService")
+    private final DefaultOAuth2UserService defaultOAuth2UserService;
+
+    /**
      * OAuth2 Code Grant 방식으로 인증을 진행하고, 인증이 완료되고 나서 Resource Server로 부터
      * 유저 정보를 받아오면 OAuth2UserRequest에 담겨 있음.
      * 해당 유저 정보가 DB에 없으면 회원가입을 진행하고 있으면 로그인을 진행.
@@ -54,7 +87,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     @Transactional
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
-        Map<String, Object> attributes = super.loadUser(userRequest).getAttributes();
+        Map<String, Object> attributes = defaultOAuth2UserService.loadUser(userRequest).getAttributes();
         //resource Server로 부터 받아온 정보중 필요한 정보 추출.
         String apiId = ((Integer)attributes.get(ID_ATTRIBUTE)).toString();
         //takim
@@ -68,7 +101,6 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             imageUrl = (String)((Map)(attributes.get(IMAGE_ATTRIBUTE))).get(LINK_ATTRIBUTE) == null ?
                 "" : (String)((Map)(attributes.get(IMAGE_ATTRIBUTE))).get(LINK_ATTRIBUTE);
         }
-
         HashMap<String, Object> necessaryAttributes = createNecessaryAttributes(apiId, login,
             email, imageUrl);
 
@@ -87,7 +119,6 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         return necessaryAttributes;
     }
 
-
     private OAuth2User signUpOrUpdateUser(String login, String email, String imageUrl, String username,
         Optional<User> userOptional, Map<String, Object> necessaryAttributes) {
         OAuth2User oAuth2User;
@@ -95,7 +126,6 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         //회원가입, 중복 회원가입 예외 처리 필요할 것으로 보임.
         if (userOptional.isEmpty()) {
             //회원에 필용한 정보 생성 및 조회
-
             String encodedPassword = passwordEncoder.encode(UUID.randomUUID().toString());
 
             Member member = Member.of(login);
@@ -120,5 +150,4 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         oAuth2User = CustomAuthenticationPrincipal.of(user, necessaryAttributes);
         return oAuth2User;
     }
-
 }
