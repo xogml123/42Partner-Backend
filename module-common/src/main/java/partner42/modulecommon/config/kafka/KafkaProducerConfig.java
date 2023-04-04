@@ -19,6 +19,7 @@ public class KafkaProducerConfig {
     private String bootstrapServers;
 
     /**
+     * ack: all
      * In-Sync-Replica에 모두 event가 저장되었음이 확인 되어야 ack 신호를 보냄 가장 성능은 떨어지지만
      * event produce를 보장할 수 있음.
      */
@@ -27,17 +28,12 @@ public class KafkaProducerConfig {
 
     @Bean
     public ProducerFactory<String, AlarmEvent> producerFactory() {
-        Map<String, Object> configProps = producerFactoryConfig();
-        return new DefaultKafkaProducerFactory<>(configProps);
-    }
-
-    private Map<String, Object> producerFactoryConfig() {
         Map<String, Object> configProps = new HashMap<>();
         configProps.put(ProducerConfig.ACKS_CONFIG, acksConfig);
         configProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         configProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         configProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
-        return configProps;
+        return new DefaultKafkaProducerFactory<>(configProps);
     }
 
     @Bean

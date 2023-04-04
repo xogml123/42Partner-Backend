@@ -24,7 +24,7 @@ public class AlarmConsumer {
      * @param ack
      */
     @KafkaListener(topics = "${kafka.topic.alarm.name}", groupId = "${kafka.consumer.alarm.rdb-group-id}",
-        properties = {AUTO_OFFSET_RESET_CONFIG + ":earliest"})
+        properties = {AUTO_OFFSET_RESET_CONFIG + ":earliest"}, containerFactory = "kafkaListenerContainerFactoryRDB")
     public void createAlarmInRDBConsumerGroup(AlarmEvent alarmEvent, Acknowledgment ack) {
         log.info("createAlarmInRDBConsumerGroup");
         alarmService.createAlarm(alarmEvent.getUserId(), alarmEvent.getType(), alarmEvent.getArgs());
@@ -32,7 +32,7 @@ public class AlarmConsumer {
     }
 
     @KafkaListener(topics = "${kafka.topic.alarm.name}", groupId = "${kafka.consumer.alarm.redis-group-id}",
-        properties = {AUTO_OFFSET_RESET_CONFIG + ":earliest"})
+        properties = {AUTO_OFFSET_RESET_CONFIG + ":earliest"}, containerFactory = "kafkaListenerContainerFactoryRedis")
     public void redisPublishConsumerGroup(AlarmEvent alarmEvent, Acknowledgment ack) {
         log.info("redisPublishConsumerGroup");
         alarmService.send(alarmEvent.getUserId(),

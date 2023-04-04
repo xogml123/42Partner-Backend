@@ -2,6 +2,7 @@ package partner42.modulecommon.config.kafka;
 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,25 +25,48 @@ public class KafkaConsumerConfig {
 
     @Value("${kafka.consumer.autoOffsetResetConfig}")
     private String autoOffsetResetConfig;
-    @Value("${kafka.consumer.alarm.group-id}")
-    private String groupId;
+    @Value("${kafka.consumer.alarm.rdb-group-id}")
+    private String rdbGroupId;
+
+    @Value("${kafka.consumer.alarm.redis-group-id}")
+    private String redisGroupId;
 
     @Bean
-    public ConsumerFactory<String, String> consumerFactory() {
+//    @Qualifier("alarmEventRDBConsumerFactory")
+    public ConsumerFactory<String, AlarmEvent> alarmEventRDBConsumerFactory() {
         Map<String, Object> props = new HashMap<>();
-        props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, rdbGroupId);
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, autoOffsetResetConfig);
-        return new DefaultKafkaConsumerFactory<>(props);
+        return new DefaultKafkaConsumerFactory<>(props,
+            new StringDeserializer(),
+            new JsonDeserializer<>(AlarmEvent.class));
     }
 
     @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, String> kafkaListenerContainerFactory() {
-        ConcurrentKafkaListenerContainerFactory<String, String> factory =
+    public ConsumerFactory<String, AlarmEvent> alarmEventRedisConsumerFactory() {
+        Map<String, Object> props = new HashMap<>();
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, redisGroupId);
+        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, autoOffsetResetConfig);
+        return new DefaultKafkaConsumerFactory<>(props,
+            new StringDeserializer(),
+            new JsonDeserializer<>(AlarmEvent.class));
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, AlarmEvent> kafkaListenerContainerFactoryRDB() {
+        ConcurrentKafkaListenerContainerFactory<String, AlarmEvent> factory =
             new ConcurrentKafkaListenerContainerFactory<>();
-        factory.setConsumerFactory(consumerFactory());
+        factory.setConsumerFactory(alarmEventRDBConsumerFactory());
+        return factory;
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, AlarmEvent> kafkaListenerContainerFactoryRedis() {
+        ConcurrentKafkaListenerContainerFactory<String, AlarmEvent> factory =
+            new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(alarmEventRedisConsumerFactory());
         return factory;
     }
 }
