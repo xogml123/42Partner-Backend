@@ -21,18 +21,20 @@ import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import partner42.moduleapi.config.JpaPackage.JpaAndEntityPackagePathConfig;
+import partner42.moduleapi.config.ServiceWithDAOTestDefaultConfig;
 import partner42.moduleapi.config.TestBootstrapConfig;
 import partner42.moduleapi.config.oauth2userservice.DefaultOAuth2UserServiceConfig;
 import partner42.moduleapi.dto.user.CustomAuthenticationPrincipal;
+import partner42.moduleapi.service.random.RandomMatchService;
 import partner42.modulecommon.config.BootstrapDataLoader;
 import partner42.modulecommon.config.jpa.Auditor;
 import partner42.modulecommon.config.querydsl.QuerydslConfig;
 
+
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Import({CustomOAuth2UserService.class, DefaultOAuth2UserServiceConfig.class,
-    Auditor.class, QuerydslConfig.class, JpaAndEntityPackagePathConfig.class,
-    TestBootstrapConfig.class, BootstrapDataLoader.class, BCryptPasswordEncoder.class
+    ServiceWithDAOTestDefaultConfig.class,
 })
 class CustomOAuth2UserServiceWithDaoTest {
 

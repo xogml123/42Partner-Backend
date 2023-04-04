@@ -14,6 +14,7 @@ import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import partner42.moduleapi.config.ServiceWithDAOTestDefaultConfig;
 import partner42.moduleapi.config.TestBootstrapConfig;
 import partner42.moduleapi.config.JpaPackage.JpaAndEntityPackagePathConfig;
 import partner42.moduleapi.dto.match.MatchDto;
@@ -22,6 +23,7 @@ import partner42.moduleapi.dto.matchcondition.MatchConditionDto;
 import partner42.moduleapi.dto.member.MemberDto;
 import partner42.moduleapi.dto.member.MemberReviewDto;
 import partner42.moduleapi.mapper.MemberMapperImpl;
+import partner42.moduleapi.service.article.ArticleService;
 import partner42.modulecommon.config.BootstrapDataLoader;
 import partner42.modulecommon.config.jpa.Auditor;
 import partner42.modulecommon.config.querydsl.QuerydslConfig;
@@ -41,12 +43,11 @@ import partner42.modulecommon.repository.match.MatchMemberRepository;
 import partner42.modulecommon.repository.match.MatchRepository;
 import partner42.modulecommon.repository.match.MatchSearch;
 import partner42.modulecommon.repository.user.UserRepository;
-
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Import({MatchService.class, MemberMapperImpl.class,
-    Auditor.class, QuerydslConfig.class, JpaAndEntityPackagePathConfig.class,
-    TestBootstrapConfig.class, BootstrapDataLoader.class, BCryptPasswordEncoder.class})
+    ServiceWithDAOTestDefaultConfig.class,
+})
 class MatchServiceWithDAOTest {
     @Autowired
     private MatchService matchService;

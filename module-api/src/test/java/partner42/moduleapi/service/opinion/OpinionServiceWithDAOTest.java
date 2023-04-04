@@ -12,6 +12,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import partner42.moduleapi.config.ServiceWithDAOTestDefaultConfig;
 import partner42.moduleapi.config.TestBootstrapConfig;
 import partner42.moduleapi.config.JpaPackage.JpaAndEntityPackagePathConfig;
 import partner42.moduleapi.dto.ListResponse;
@@ -20,7 +21,9 @@ import partner42.moduleapi.dto.opinion.OpinionDto;
 import partner42.moduleapi.dto.opinion.OpinionOnlyIdResponse;
 import partner42.moduleapi.dto.opinion.OpinionResponse;
 import partner42.moduleapi.dto.opinion.OpinionUpdateRequest;
+import partner42.moduleapi.mapper.MemberMapperImpl;
 import partner42.moduleapi.mapper.OpinionMapperImpl;
+import partner42.moduleapi.service.match.MatchService;
 import partner42.modulecommon.config.BootstrapDataLoader;
 import partner42.modulecommon.config.jpa.Auditor;
 import partner42.modulecommon.config.querydsl.QuerydslConfig;
@@ -37,8 +40,8 @@ import partner42.modulecommon.repository.user.UserRepository;
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Import({OpinionService.class, OpinionMapperImpl.class,
-    Auditor.class, QuerydslConfig.class, JpaAndEntityPackagePathConfig.class,
-    TestBootstrapConfig.class, BootstrapDataLoader.class, BCryptPasswordEncoder.class})
+    ServiceWithDAOTestDefaultConfig.class,
+})
 class OpinionServiceWithDAOTest {
     @Autowired
     private OpinionService opinionService;
