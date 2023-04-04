@@ -23,6 +23,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 import partner42.moduleapi.annotation.WebMvcTestSecurityImport;
+import partner42.moduleapi.config.WebMvcTestWithSecurityDefaultConfig;
 import partner42.moduleapi.config.security.CustomAuthenticationEntryPoint;
 import partner42.moduleapi.config.security.RedirectAuthenticationFailureHandler;
 import partner42.moduleapi.config.security.RedirectAuthenticationSuccessHandler;
@@ -32,7 +33,7 @@ import partner42.moduleapi.service.match.MatchService;
 import partner42.moduleapi.service.user.CustomOAuth2UserService;
 
 @WebMvcTest(MatchController.class)
-@WebMvcTestSecurityImport
+@Import(WebMvcTestWithSecurityDefaultConfig.class)
 class MatchControllerWithSecurityTest {
     @MockBean
     @Qualifier("customOAuth2UserService")

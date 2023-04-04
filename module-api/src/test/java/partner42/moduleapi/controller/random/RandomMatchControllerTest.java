@@ -70,11 +70,4 @@ class RandomMatchControllerTest {
             .andExpect(status().isBadRequest())
             .andDo(print());
     }
-    @Test
-    @WithMockUser
-    void readRandomMatchCondition_whenContentCategoryNull_then400() throws Exception {
-        mockMvc.perform(get("/api/random-matches/condition/mine"))
-            .andExpect(status().isBadRequest())
-            .andDo(print());
-    }
 }

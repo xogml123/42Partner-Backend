@@ -23,6 +23,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 import partner42.moduleapi.annotation.WebMvcTestSecurityImport;
+import partner42.moduleapi.config.WebMvcTestWithSecurityDefaultConfig;
 import partner42.moduleapi.config.security.CustomAuthenticationEntryPoint;
 import partner42.moduleapi.config.security.RedirectAuthenticationFailureHandler;
 import partner42.moduleapi.config.security.RedirectAuthenticationSuccessHandler;
@@ -37,7 +38,7 @@ import partner42.modulecommon.domain.model.matchcondition.TypeOfStudy;
 import partner42.modulecommon.domain.model.matchcondition.WayOfEating;
 
 @WebMvcTest(RandomMatchController.class)
-@WebMvcTestSecurityImport
+@Import(WebMvcTestWithSecurityDefaultConfig.class)
 class RandomMatchControllerWithSecurityTest {
     @MockBean
     @Qualifier("customOAuth2UserService")

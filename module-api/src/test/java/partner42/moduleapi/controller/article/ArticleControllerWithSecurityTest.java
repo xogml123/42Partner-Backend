@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -27,6 +28,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 import partner42.moduleapi.annotation.WebMvcTestSecurityImport;
+import partner42.moduleapi.config.WebMvcTestWithSecurityDefaultConfig;
 import partner42.moduleapi.dto.EmailDto;
 import partner42.moduleapi.dto.alarm.ResponseWithAlarmEventDto;
 import partner42.moduleapi.dto.article.ArticleDto;
@@ -41,7 +43,7 @@ import partner42.modulecommon.producer.AlarmProducer;
 import partner42.modulecommon.utils.slack.SlackBotService;
 
 @WebMvcTest(ArticleController.class)
-@WebMvcTestSecurityImport
+@Import(WebMvcTestWithSecurityDefaultConfig.class)
 public class ArticleControllerWithSecurityTest {
     private MockMvc mockMvc;
     @MockBean

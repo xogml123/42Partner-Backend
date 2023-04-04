@@ -19,6 +19,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 import partner42.moduleapi.annotation.WebMvcTestSecurityImport;
+import partner42.moduleapi.config.WebMvcTestWithSecurityDefaultConfig;
 import partner42.moduleapi.config.security.CustomAuthenticationEntryPoint;
 import partner42.moduleapi.config.security.RedirectAuthenticationFailureHandler;
 import partner42.moduleapi.config.security.RedirectAuthenticationSuccessHandler;
@@ -27,7 +28,7 @@ import partner42.moduleapi.service.alarm.AlarmService;
 import partner42.moduleapi.service.user.CustomOAuth2UserService;
 
 @WebMvcTest(AlarmController.class)
-@WebMvcTestSecurityImport
+@Import(WebMvcTestWithSecurityDefaultConfig.class)
 class AlarmControllerWithSecurityTest {
     @MockBean
     @Qualifier("customOAuth2UserService")

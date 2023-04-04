@@ -35,8 +35,7 @@ class MatchRepositoryCustomImplTest {
 
     @Autowired
     UserRepository userRepository;
-    @Autowired
-    BootstrapDataLoader bootstrapDataLoader;
+
     @Autowired
     ArticleRepository articleRepository;
 
