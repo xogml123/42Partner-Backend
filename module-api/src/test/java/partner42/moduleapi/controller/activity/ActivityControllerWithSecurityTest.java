@@ -19,6 +19,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
+import partner42.moduleapi.annotation.WebMvcTestSecurityImport;
 import partner42.moduleapi.config.security.CustomAuthenticationEntryPoint;
 import partner42.moduleapi.config.security.RedirectAuthenticationFailureHandler;
 import partner42.moduleapi.config.security.RedirectAuthenticationSuccessHandler;
@@ -31,6 +32,7 @@ import partner42.modulecommon.domain.model.activity.Activity;
 @WebMvcTest(ActivityController.class)
 @Import({DefaultOAuth2UserService.class, CustomAuthenticationEntryPoint.class,
     RedirectAuthenticationSuccessHandler.class, RedirectAuthenticationFailureHandler.class})
+@WebMvcTestSecurityImport
 public class ActivityControllerWithSecurityTest {
 
     private MockMvc mockMvc;
@@ -39,7 +41,6 @@ public class ActivityControllerWithSecurityTest {
     private WebApplicationContext context;
     @MockBean
     private ActivityService activityService;
-
 
     @BeforeEach
     private void setUp() {

@@ -29,15 +29,18 @@ import partner42.moduleapi.controller.match.MatchController;
 import partner42.moduleapi.dto.opinion.OpinionDto;
 import partner42.moduleapi.dto.opinion.OpinionUpdateRequest;
 import partner42.moduleapi.service.opinion.OpinionService;
+import partner42.modulecommon.producer.AlarmProducer;
 
 @WebMvcTest(OpinionController.class)
 @Import({DefaultOAuth2UserService.class, CustomAuthenticationEntryPoint.class,
     RedirectAuthenticationSuccessHandler.class, RedirectAuthenticationFailureHandler.class})
 class OpinionControllerWithSecurityTest {
-    @MockBean
-    private OpinionService opinionService;
     private MockMvc mockMvc;
 
+    @MockBean
+    private OpinionService opinionService;
+    @MockBean
+    private AlarmProducer alarmProducer;
     @Autowired
     private WebApplicationContext context;
     @BeforeEach

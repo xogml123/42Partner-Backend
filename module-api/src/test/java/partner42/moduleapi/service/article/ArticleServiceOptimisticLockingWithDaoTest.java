@@ -29,9 +29,6 @@ class ArticleServiceOptimisticLockingWithDaoTest {
     private ArticleService articleService;
     @Autowired
     private MemberRepository memberRepository;
-    @MockBean
-    private AlarmProducer alarmProducer;
-    //Mocking 하지 않으면 SpringBootTest진행되지 않음.
     @Autowired
     private ArticleRepository articleRepository;
 

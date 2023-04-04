@@ -19,11 +19,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import partner42.moduleapi.dto.ListResponse;
+import partner42.moduleapi.dto.alarm.ResponseWithAlarmEventDto;
 import partner42.moduleapi.dto.opinion.OpinionDto;
 import partner42.moduleapi.dto.opinion.OpinionOnlyIdResponse;
 import partner42.moduleapi.dto.opinion.OpinionResponse;
 import partner42.moduleapi.dto.opinion.OpinionUpdateRequest;
 import partner42.moduleapi.service.opinion.OpinionService;
+import partner42.modulecommon.producer.AlarmProducer;
 
 @Slf4j
 @RestController
@@ -32,12 +34,19 @@ import partner42.moduleapi.service.opinion.OpinionService;
 public class OpinionController {
 
     private final OpinionService opinionService;
+    private final AlarmProducer alarmProducer;
+
     @PreAuthorize("hasAuthority('opinion.create')")
     @Operation(summary = "댓글 생성", description = "댓글 생성")
     @PostMapping("/opinions")
     public OpinionOnlyIdResponse createOpinion(@Validated @Parameter @RequestBody OpinionDto request,
         @Parameter(hidden = true) @AuthenticationPrincipal UserDetails user) {
-        return opinionService.createOpinion(request, user.getUsername());
+        ResponseWithAlarmEventDto<OpinionOnlyIdResponse> dto = opinionService.createOpinion(
+            request, user.getUsername());
+        if (dto.getAlarmEvent() != null){
+            alarmProducer.send(dto.getAlarmEvent());
+        }
+        return dto.getResponse();
     }
     @PreAuthorize("hasAuthority('opinion.update')")
     @Operation(summary = "댓글 수정", description = "댓글 수정")

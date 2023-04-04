@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -40,7 +41,8 @@ import partner42.moduleapi.util.JWTUtil;
 @RequiredArgsConstructor
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
-    private final DefaultOAuth2UserService oAuth2UserService;
+    @Qualifier("customOAuth2UserService")
+    private final DefaultOAuth2UserService customOAuth2UserService;
 
     private final AuthenticationEntryPoint authenticationEntryPoint;
 
@@ -128,7 +130,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         */
         http.oauth2Login()
             .userInfoEndpoint()
-            .userService(oAuth2UserService)
+            .userService(customOAuth2UserService)
             .and()
             .successHandler(authenticationSuccessHandler)
             .failureHandler(authenticationFailureHandler)

@@ -18,9 +18,7 @@ public class AlarmProducer {
     private String topicName;
 
     public void send(AlarmEvent alarmEvent) {
-        kafkaTemplate.executeInTransaction(producer ->
-            producer.send(topicName, alarmEvent));
-
+            kafkaTemplate.send(topicName, alarmEvent);
             log.debug("alarm kafka produce");
     }
 

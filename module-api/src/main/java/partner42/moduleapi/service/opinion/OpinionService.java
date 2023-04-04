@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import partner42.moduleapi.dto.ListResponse;
+import partner42.moduleapi.dto.alarm.ResponseWithAlarmEventDto;
 import partner42.moduleapi.dto.opinion.OpinionDto;
 import partner42.moduleapi.dto.opinion.OpinionOnlyIdResponse;
 import partner42.moduleapi.dto.opinion.OpinionResponse;
@@ -42,12 +43,11 @@ public class OpinionService {
     private final UserRepository userRepository;
     private final MemberRepository memberRepository;
     private final ArticleRepository articleRepository;
-    private final AlarmProducer alarmProducer;
     private final OpinionMapper opinionMapper;
 
 
     @Transactional
-    public OpinionOnlyIdResponse createOpinion(OpinionDto request, String username) {
+    public ResponseWithAlarmEventDto<OpinionOnlyIdResponse> createOpinion(OpinionDto request, String username) {
         User user = getUserByUsernameOrException(username);
         Article article = articleRepository.findByApiIdAndIsDeletedIsFalse(request.getArticleId())
             .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
@@ -61,17 +61,24 @@ public class OpinionService {
             parentOpinion
         );
         opinionRepository.save(opinion);
-
+        AlarmEvent alarmEvent = null;
         //부모 댓글이 있는 경우 알람 생성
         if (parentOpinionId != null) {
-            alarmProducer.send(new AlarmEvent(AlarmType.COMMENT_ON_MY_COMMENT, AlarmArgs.builder()
-                .opinionId(parentOpinionId)
-                .articleId(request.getArticleId())
-                .callingMemberNickname(user.getMember().getNickname())
-                .build(), parentOpinion.getMemberAuthor().getUser().getId(), SseEventName.ALARM_LIST));
+            alarmEvent = new AlarmEvent(AlarmType.COMMENT_ON_MY_COMMENT,
+                AlarmArgs.builder()
+                    .opinionId(parentOpinionId)
+                    .articleId(request.getArticleId())
+                    .callingMemberNickname(user.getMember().getNickname())
+                    .build(), parentOpinion.getMemberAuthor().getUser().getId(),
+                SseEventName.ALARM_LIST);
+//            alarmProducer.send(alarmEvent);
         }
-
-        return opinionMapper.entityToOpinionOnlyIdResponse(opinion);
+        OpinionOnlyIdResponse opinionOnlyIdResponse = opinionMapper.entityToOpinionOnlyIdResponse(
+            opinion);
+        return ResponseWithAlarmEventDto.<OpinionOnlyIdResponse>builder()
+            .response(opinionOnlyIdResponse)
+            .alarmEvent(alarmEvent)
+            .build();
     }
 
 
