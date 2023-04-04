@@ -17,9 +17,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -32,18 +34,19 @@ import partner42.moduleapi.dto.article.ArticleOnlyIdResponse;
 import partner42.moduleapi.dto.match.MatchOnlyIdResponse;
 import partner42.moduleapi.dto.matchcondition.MatchConditionDto;
 import partner42.moduleapi.service.article.ArticleService;
+import partner42.moduleapi.service.user.CustomOAuth2UserService;
 import partner42.modulecommon.config.kafka.AlarmEvent;
 import partner42.modulecommon.domain.model.match.ContentCategory;
 import partner42.modulecommon.producer.AlarmProducer;
 import partner42.modulecommon.utils.slack.SlackBotService;
 
 @WebMvcTest(ArticleController.class)
-//@Import({DefaultOAuth2UserService.class, CustomAuthenticationEntryPoint.class,
-//    RedirectAuthenticationSuccessHandler.class, RedirectAuthenticationFailureHandler.class})
 @WebMvcTestSecurityImport
 public class ArticleControllerWithSecurityTest {
     private MockMvc mockMvc;
-
+    @MockBean
+    @Qualifier("customOAuth2UserService")
+    private DefaultOAuth2UserService customOAuth2UserService;
     @Autowired
     private WebApplicationContext context;
     @MockBean

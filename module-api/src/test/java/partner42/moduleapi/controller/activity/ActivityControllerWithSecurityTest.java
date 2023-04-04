@@ -11,6 +11,7 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
@@ -20,6 +21,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 import partner42.moduleapi.annotation.WebMvcTestSecurityImport;
+import partner42.moduleapi.config.oauth2userservice.DefaultOAuth2UserServiceConfig;
 import partner42.moduleapi.config.security.CustomAuthenticationEntryPoint;
 import partner42.moduleapi.config.security.RedirectAuthenticationFailureHandler;
 import partner42.moduleapi.config.security.RedirectAuthenticationSuccessHandler;
@@ -27,14 +29,15 @@ import partner42.moduleapi.controller.article.ArticleController;
 import partner42.moduleapi.dto.EmailDto;
 import partner42.moduleapi.dto.match.MatchOnlyIdResponse;
 import partner42.moduleapi.service.activity.ActivityService;
+import partner42.moduleapi.service.user.CustomOAuth2UserService;
 import partner42.modulecommon.domain.model.activity.Activity;
 
 @WebMvcTest(ActivityController.class)
-@Import({DefaultOAuth2UserService.class, CustomAuthenticationEntryPoint.class,
-    RedirectAuthenticationSuccessHandler.class, RedirectAuthenticationFailureHandler.class})
 @WebMvcTestSecurityImport
 public class ActivityControllerWithSecurityTest {
-
+    @MockBean
+    @Qualifier("customOAuth2UserService")
+    private DefaultOAuth2UserService customOAuth2UserService;
     private MockMvc mockMvc;
 
     @Autowired

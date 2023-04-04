@@ -75,7 +75,7 @@ public class RandomMatchController {
     @Operation(summary = "랜덤 매칭 신청 인원 조회", description = "랜덤 매칭 신청 인원 조회")
     @GetMapping("/random-matches/members/count")
     public RandomMatchCountResponse countRandomMatchNotExpired(
-        @Validated RandomMatchParam randomMatchCancelRequest) {
+        RandomMatchParam randomMatchCancelRequest) {
         LocalDateTime now = CustomTimeUtils.nowWithoutNano();
         return randomMatchService.countMemberOfRandomMatchNotExpire(randomMatchCancelRequest, now);
     }
@@ -83,7 +83,7 @@ public class RandomMatchController {
     @PreAuthorize("hasAuthority('random-match.read')")
     @Operation(summary = "랜덤 매칭 신청 조건 조회", description = "랜덤 매칭 신청 조건 조회")
     @GetMapping("/random-matches/condition/mine")
-    public RandomMatchDto readRandomMatchCondition(@Validated RandomMatchParam randomMatchCancelRequest,
+    public RandomMatchDto readRandomMatchCondition(RandomMatchParam randomMatchCancelRequest,
         @ApiParam(hidden = true) @AuthenticationPrincipal UserDetails user) {
         //contentCategory에 따라 필드 검증
         LocalDateTime now = CustomTimeUtils.nowWithoutNano();

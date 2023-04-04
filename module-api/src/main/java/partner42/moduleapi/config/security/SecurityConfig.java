@@ -118,10 +118,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.POST, "/api/articles/*/complete").authenticated()
                 //ActivityController
                 .antMatchers(HttpMethod.GET, "/api/activities/score").authenticated()
-                .antMatchers("/**").permitAll()
                 //AlarmController
                 .antMatchers(HttpMethod.GET, "/api/alarms").authenticated()
-                .antMatchers(HttpMethod.GET, "/api/alarms/subscribe").authenticated()
+                .antMatchers(HttpMethod.GET, "/api/alarm/subscribe").authenticated()
+
+                .antMatchers("/**").permitAll()
+
         );
 
         /*

@@ -37,7 +37,6 @@ import partner42.modulecommon.utils.slack.SlackBotService;
 )
 @AutoConfigureMockMvc(addFilters = false)
 class ArticleControllerTest {
-
     @Autowired
     private MockMvc mockMvc;
 
