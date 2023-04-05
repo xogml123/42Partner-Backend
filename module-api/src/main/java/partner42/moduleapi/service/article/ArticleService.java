@@ -11,6 +11,7 @@ import org.springframework.data.domain.SliceImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import partner42.moduleapi.dto.EmailDto;
+import partner42.moduleapi.dto.alarm.ResponseWithAlarmEventDto;
 import partner42.moduleapi.dto.article.ArticleDto;
 import partner42.moduleapi.dto.article.ArticleOnlyIdResponse;
 import partner42.moduleapi.dto.article.ArticleReadOneResponse;
@@ -69,7 +70,6 @@ public class ArticleService {
     private final MatchMemberRepository matchMemberRepository;
     private final ActivityRepository activityRepository;
     private final MemberMapper memberMapper;
-    private final AlarmProducer alarmProducer;
 
     @Transactional
     public ArticleOnlyIdResponse createArticle(String username, ArticleDto articleRequest) {
@@ -208,7 +208,7 @@ public class ArticleService {
     //OptimisticLockException
     //이미 참여중인 경우 방지.
     @Transactional
-    public ArticleOnlyIdResponse participateArticle(String username, String articleId) {
+    public ResponseWithAlarmEventDto<ArticleOnlyIdResponse> participateArticle(String username, String articleId) {
         Article article = articleRepository.findEntityGraphArticleMembersByApiIdAndIsDeletedIsFalse(
                 articleId)
             .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
@@ -218,17 +218,21 @@ public class ArticleService {
         ArticleMember participateMember = article.participateMember(member);
         articleMemberRepository.save(participateMember);
         // 알림 생성
-        alarmProducer.send(new AlarmEvent(AlarmType.PARTICIPATION_ON_MY_POST, AlarmArgs.builder()
-            .opinionId(null)
-            .articleId(articleId)
-            .callingMemberNickname(member.getNickname())
-            .build(), article.getAuthorMember().getUser().getId(), SseEventName.ALARM_LIST));
-        return ArticleOnlyIdResponse.of(article.getApiId());
+        AlarmEvent alarmEvent = new AlarmEvent(AlarmType.PARTICIPATION_ON_MY_POST,
+            AlarmArgs.builder()
+                .opinionId(null)
+                .articleId(articleId)
+                .callingMemberNickname(member.getNickname())
+                .build(), article.getAuthorMember().getUser().getId(), SseEventName.ALARM_LIST);
+        return ResponseWithAlarmEventDto.<ArticleOnlyIdResponse>builder()
+            .response(ArticleOnlyIdResponse.of(articleId))
+            .alarmEvent(alarmEvent)
+            .build();
     }
 
     //OptimisticLockException
     @Transactional
-    public ArticleOnlyIdResponse participateCancelArticle(String username, String articleId) {
+    public ResponseWithAlarmEventDto<ArticleOnlyIdResponse> participateCancelArticle(String username, String articleId) {
 
         Article article = articleRepository.findEntityGraphArticleMembersByApiIdAndIsDeletedIsFalse(
                 articleId)
@@ -240,16 +244,19 @@ public class ArticleService {
         ArticleMember participateMember = article.participateCancelMember(member);
         articleMemberRepository.delete(participateMember);
 
-        // 알림 생성
-        //sse
-        alarmProducer.send(
-            new AlarmEvent(AlarmType.PARTICIPATION_CANCEL_ON_MY_POST, AlarmArgs.builder()
+        AlarmEvent alarmEvent = new AlarmEvent(AlarmType.PARTICIPATION_CANCEL_ON_MY_POST,
+            AlarmArgs.builder()
                 .opinionId(null)
                 .articleId(articleId)
                 .callingMemberNickname(member.getNickname())
-                .build(), article.getAuthorMember().getUser().getId(), SseEventName.ALARM_LIST));
+                .build(), article.getAuthorMember().getUser().getId(), SseEventName.ALARM_LIST);
 
-        return ArticleOnlyIdResponse.of(article.getApiId());
+        ResponseWithAlarmEventDto<ArticleOnlyIdResponse> responseWithAlarmEventDto =
+            ResponseWithAlarmEventDto.<ArticleOnlyIdResponse>builder()
+                .response(ArticleOnlyIdResponse.of(articleId))
+                .alarmEvent(alarmEvent)
+                .build();
+        return responseWithAlarmEventDto;
     }
 
     //OptimisticLockException
@@ -269,13 +276,14 @@ public class ArticleService {
         // 알림 생성
         //sse
         Member authorMember = article.getAuthorMember();
-        article.getArticleMembers()
-            .forEach(am ->
-                alarmProducer.send(new AlarmEvent(AlarmType.MATCH_CONFIRMED, AlarmArgs.builder()
+        List<AlarmEvent> alarmEventList = article.getArticleMembers().stream()
+            .map(am ->
+                new AlarmEvent(AlarmType.MATCH_CONFIRMED, AlarmArgs.builder()
                     .opinionId(null)
                     .articleId(articleId)
                     .callingMemberNickname(authorMember.getNickname())
-                    .build(), am.getMember().getUser().getId(), SseEventName.ALARM_LIST)));
+                    .build(), am.getMember().getUser().getId(), SseEventName.ALARM_LIST))
+            .collect(Collectors.toList());
 
         return EmailDto.<MatchOnlyIdResponse>builder()
             .emails(article.getArticleMembers().stream()
@@ -284,6 +292,7 @@ public class ArticleService {
             .response(MatchOnlyIdResponse.builder()
                 .matchId(match.getApiId())
                 .build())
+            .alarmEventList(alarmEventList)
             .build();
     }
 

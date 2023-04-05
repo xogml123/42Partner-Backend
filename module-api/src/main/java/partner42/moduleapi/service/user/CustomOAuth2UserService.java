@@ -1,15 +1,12 @@
 package partner42.moduleapi.service.user;
 
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import javax.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
@@ -31,30 +28,9 @@ import partner42.modulecommon.repository.user.UserRoleRepository;
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 @Service
+@Qualifier("customOAuth2UserService")
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
-    @RequiredArgsConstructor
-    @Configuration
-    static public class CustomOAuth2UserServiceWithDaoTestConfig {
-        private final UserRepository userRepository;
-        private final RoleRepository roleRepository;
-        private final UserRoleRepository userRoleRepository;
-        private final MemberRepository memberRepository;
-        private final BCryptPasswordEncoder passwordEncoder;
-        @Bean
-        @Qualifier("customOAuth2UserService")
-        public CustomOAuth2UserService customOAuth2UserService(
-            DefaultOAuth2UserService defaultOAuth2UserService) {
-            return new CustomOAuth2UserService(userRepository,
-                roleRepository, userRoleRepository, memberRepository, passwordEncoder, defaultOAuth2UserService());
-        }
-
-        @Bean
-        @Qualifier("defaultOAuth2UserService")
-        public DefaultOAuth2UserService defaultOAuth2UserService() {
-            return new DefaultOAuth2UserService();
-        }
-    }
     private static final String ID_ATTRIBUTE = "id";
     private static final String LOGIN_ATTRIBUTE = "login";
     private static final String EMAIL_ATTRIBUTE = "email";

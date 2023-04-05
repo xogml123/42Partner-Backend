@@ -7,12 +7,16 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import partner42.moduleapi.config.TestBootstrapConfig;
 import partner42.moduleapi.config.JpaPackage.JpaAndEntityPackagePathConfig;
+import partner42.moduleapi.config.ServiceWithDAOTestDefaultConfig;
+import partner42.moduleapi.config.TestBootstrapConfig;
 import partner42.moduleapi.dto.activity.ActivityScoreResponse;
 import partner42.modulecommon.config.BootstrapDataLoader;
 import partner42.modulecommon.config.jpa.Auditor;
@@ -28,10 +32,12 @@ import partner42.modulecommon.repository.user.UserRepository;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Import({ActivityService.class,
-    Auditor.class, QuerydslConfig.class, JpaAndEntityPackagePathConfig.class,
-    TestBootstrapConfig.class, BootstrapDataLoader.class, BCryptPasswordEncoder.class})
+@Import({
+    ActivityService.class,
+    ServiceWithDAOTestDefaultConfig.class,
+})
 class ActivityServiceWithDAOTest {
+
     @Autowired
     private ActivityService activityService;
 
@@ -39,6 +45,7 @@ class ActivityServiceWithDAOTest {
     private UserRepository userRepository;
     @Autowired
     private ActivityRepository activityRepository;
+
     @BeforeEach
     void setUp() {
 

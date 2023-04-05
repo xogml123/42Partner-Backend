@@ -14,6 +14,7 @@ import partner42.modulecommon.repository.activity.ActivityRepository;
 import partner42.modulecommon.repository.activity.ActivitySearch;
 import partner42.modulecommon.repository.user.UserRepository;
 
+
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 @Service

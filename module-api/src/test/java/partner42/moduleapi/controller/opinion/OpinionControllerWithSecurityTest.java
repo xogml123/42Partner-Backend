@@ -1,6 +1,7 @@
 package partner42.moduleapi.controller.opinion;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.BDDMockito.*;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -12,7 +13,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.BDDMockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
@@ -22,22 +25,31 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
+import partner42.moduleapi.annotation.WebMvcTestSecurityImport;
+import partner42.moduleapi.config.WebMvcTestWithSecurityDefaultConfig;
 import partner42.moduleapi.config.security.CustomAuthenticationEntryPoint;
 import partner42.moduleapi.config.security.RedirectAuthenticationFailureHandler;
 import partner42.moduleapi.config.security.RedirectAuthenticationSuccessHandler;
 import partner42.moduleapi.controller.match.MatchController;
+import partner42.moduleapi.dto.alarm.ResponseWithAlarmEventDto;
 import partner42.moduleapi.dto.opinion.OpinionDto;
+import partner42.moduleapi.dto.opinion.OpinionOnlyIdResponse;
 import partner42.moduleapi.dto.opinion.OpinionUpdateRequest;
 import partner42.moduleapi.service.opinion.OpinionService;
+import partner42.modulecommon.producer.AlarmProducer;
 
 @WebMvcTest(OpinionController.class)
-@Import({DefaultOAuth2UserService.class, CustomAuthenticationEntryPoint.class,
-    RedirectAuthenticationSuccessHandler.class, RedirectAuthenticationFailureHandler.class})
+@Import(WebMvcTestWithSecurityDefaultConfig.class)
 class OpinionControllerWithSecurityTest {
     @MockBean
-    private OpinionService opinionService;
+    @Qualifier("customOAuth2UserService")
+    private DefaultOAuth2UserService customOAuth2UserService;
     private MockMvc mockMvc;
 
+    @MockBean
+    private OpinionService opinionService;
+    @MockBean
+    private AlarmProducer alarmProducer;
     @Autowired
     private WebApplicationContext context;
     @BeforeEach
@@ -71,6 +83,10 @@ class OpinionControllerWithSecurityTest {
             .content("content")
             .articleId("articleId")
             .build();
+        //mock
+        given(opinionService.createOpinion(any(), any())).willReturn(
+            ResponseWithAlarmEventDto.<OpinionOnlyIdResponse>builder()
+                .build());
         mockMvc.perform(post("/api/opinions")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(new ObjectMapper().writeValueAsString(opinionDto)))

@@ -24,6 +24,7 @@ import partner42.moduleapi.dto.article.ArticleDto;
 import partner42.moduleapi.dto.matchcondition.MatchConditionDto;
 import partner42.moduleapi.service.article.ArticleService;
 import partner42.modulecommon.domain.model.match.ContentCategory;
+import partner42.modulecommon.producer.AlarmProducer;
 import partner42.modulecommon.utils.slack.SlackBotService;
 
 /**
@@ -36,7 +37,6 @@ import partner42.modulecommon.utils.slack.SlackBotService;
 )
 @AutoConfigureMockMvc(addFilters = false)
 class ArticleControllerTest {
-
     @Autowired
     private MockMvc mockMvc;
 
@@ -45,6 +45,8 @@ class ArticleControllerTest {
 
     @MockBean
     private SlackBotService slackBotService;
+    @MockBean
+    private AlarmProducer alarmProducer;
 
     @Test
     void readAllArticle_pageable_paramPerformWell() throws Exception {

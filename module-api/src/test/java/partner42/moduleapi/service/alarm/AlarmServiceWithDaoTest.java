@@ -18,10 +18,12 @@ import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import partner42.moduleapi.annotation.ServiceWithDaoTest;
+import partner42.moduleapi.config.ServiceWithDAOTestDefaultConfig;
 import partner42.moduleapi.config.TestBootstrapConfig;
 import partner42.moduleapi.config.JpaPackage.JpaAndEntityPackagePathConfig;
 import partner42.moduleapi.dto.alarm.AlarmArgsDto;
 import partner42.moduleapi.dto.alarm.AlarmDto;
+import partner42.moduleapi.service.activity.ActivityService;
 import partner42.modulecommon.config.BootstrapDataLoader;
 import partner42.modulecommon.config.jpa.Auditor;
 import partner42.modulecommon.config.querydsl.QuerydslConfig;
@@ -36,9 +38,10 @@ import partner42.modulecommon.repository.user.UserRepository;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Import({AlarmService.class, SSEInMemoryRepository.class,
-    Auditor.class, QuerydslConfig.class, JpaAndEntityPackagePathConfig.class,
-    TestBootstrapConfig.class, BootstrapDataLoader.class, BCryptPasswordEncoder.class})
+@Import({
+    AlarmService.class, SSEInMemoryRepository.class,
+    ServiceWithDAOTestDefaultConfig.class,
+})
 class AlarmServiceWithDaoTest {
 
     @MockBean
@@ -131,7 +134,7 @@ class AlarmServiceWithDaoTest {
     }
 
     @Test
-    void send_whenCalled_thenAlarmEntitySaved() {
+    void createAlarm_whenCalled_thenAlarmEntitySaved() {
         //given
         User takim = userRepository.findByUsername("takim").get();
         User sorkim = userRepository.findByUsername("sorkim").get();
@@ -141,7 +144,7 @@ class AlarmServiceWithDaoTest {
         AlarmType alarmType = AlarmType.COMMENT_ON_MY_COMMENT;
 
         //when
-        alarmService.send(takim.getId(), alarmType, alarmArgs, SseEventName.ALARM_LIST);
+        alarmService.createAlarm(takim.getId(), alarmType, alarmArgs);
         //then
         assertThat(alarmRepository.findAll())
             .extracting(Alarm::getAlarmType, Alarm::getAlarmArgs, Alarm::getCalledMember)
@@ -161,7 +164,7 @@ class AlarmServiceWithDaoTest {
         AlarmType alarmType = AlarmType.COMMENT_ON_MY_COMMENT;
 
         //when
-        alarmService.send(takim.getId(), alarmType, alarmArgs, SseEventName.ALARM_LIST);
+        alarmService.send(takim.getId(), SseEventName.ALARM_LIST);
         //then
         verify(redisTemplate).convertAndSend(SseEventName.ALARM_LIST.getValue(),
             takim.getId() + "_" + SseEventName.ALARM_LIST.getValue());

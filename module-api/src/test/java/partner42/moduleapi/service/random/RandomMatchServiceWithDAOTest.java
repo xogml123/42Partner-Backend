@@ -15,6 +15,7 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import partner42.moduleapi.config.ServiceWithDAOTestDefaultConfig;
 import partner42.moduleapi.config.TestBootstrapConfig;
 import partner42.moduleapi.config.JpaPackage.JpaAndEntityPackagePathConfig;
 import partner42.moduleapi.dto.matchcondition.MatchConditionRandomMatchDto;
@@ -23,6 +24,8 @@ import partner42.moduleapi.dto.random.RandomMatchCountResponse;
 import partner42.moduleapi.dto.random.RandomMatchDto;
 import partner42.moduleapi.dto.random.RandomMatchExistDto;
 import partner42.moduleapi.dto.random.RandomMatchParam;
+import partner42.moduleapi.mapper.OpinionMapperImpl;
+import partner42.moduleapi.service.opinion.OpinionService;
 import partner42.modulecommon.config.BootstrapDataLoader;
 import partner42.modulecommon.config.jpa.Auditor;
 import partner42.modulecommon.config.querydsl.QuerydslConfig;
@@ -38,12 +41,10 @@ import partner42.modulecommon.repository.random.RandomMatchRepository;
 import partner42.modulecommon.repository.user.UserRepository;
 import partner42.modulecommon.utils.CustomTimeUtils;
 
-
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Import({RandomMatchService.class,
-    Auditor.class, QuerydslConfig.class, JpaAndEntityPackagePathConfig.class,
-    TestBootstrapConfig.class, BootstrapDataLoader.class, BCryptPasswordEncoder.class
+    ServiceWithDAOTestDefaultConfig.class,
 })
 class RandomMatchServiceWithDAOTest {
 

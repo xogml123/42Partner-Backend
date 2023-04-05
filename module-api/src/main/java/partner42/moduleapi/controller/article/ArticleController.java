@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import partner42.moduleapi.dto.EmailDto;
+import partner42.moduleapi.dto.alarm.ResponseWithAlarmEventDto;
 import partner42.moduleapi.dto.article.ArticleDto;
 import partner42.moduleapi.dto.article.ArticleOnlyIdResponse;
 import partner42.moduleapi.dto.article.ArticleReadOneResponse;
@@ -30,6 +31,7 @@ import partner42.moduleapi.dto.match.MatchOnlyIdResponse;
 import partner42.moduleapi.service.article.ArticleService;
 import partner42.modulecommon.exception.ErrorCode;
 import partner42.modulecommon.exception.InvalidInputException;
+import partner42.modulecommon.producer.AlarmProducer;
 import partner42.modulecommon.repository.article.ArticleSearch;
 import partner42.modulecommon.utils.slack.SlackBotService;
 
@@ -41,6 +43,8 @@ public class ArticleController {
 
     private final ArticleService articleService;
     private final SlackBotService slackBotService;
+    private final AlarmProducer alarmProducer;
+
 
     @Operation(summary = "방 하나 상세조회", description = "방 상세페이지")
     @GetMapping("/articles/{articleId}")
@@ -101,7 +105,10 @@ public class ArticleController {
     public ArticleOnlyIdResponse participateArticle(@PathVariable String articleId,
         @Parameter(hidden = true) @AuthenticationPrincipal UserDetails user
     ) {
-        return articleService.participateArticle(user.getUsername(), articleId);
+        ResponseWithAlarmEventDto<ArticleOnlyIdResponse> dto = articleService.participateArticle(
+            user.getUsername(), articleId);
+        alarmProducer.send(dto.getAlarmEvent());
+        return dto.getResponse();
     }
 
     @PreAuthorize("hasAuthority('article.update')")
@@ -110,7 +117,10 @@ public class ArticleController {
     public ArticleOnlyIdResponse participateCancelArticle(@PathVariable String articleId,
         @Parameter(hidden = true) @AuthenticationPrincipal UserDetails user
     ) {
-        return articleService.participateCancelArticle(user.getUsername(), articleId);
+        ResponseWithAlarmEventDto<ArticleOnlyIdResponse> dto = articleService.participateCancelArticle(
+            user.getUsername(), articleId);
+        alarmProducer.send(dto.getAlarmEvent());
+        return dto.getResponse();
     }
 
     @PreAuthorize("hasAuthority('article.update')")
@@ -125,6 +135,7 @@ public class ArticleController {
         //따로 분리.
         List<String> participantsEmails = emailDto.getEmails();
         slackBotService.createSlackMIIM(participantsEmails);
+        emailDto.getAlarmEventList().forEach(alarmProducer::send);
         return emailDto.getResponse();
     }
 

@@ -16,9 +16,11 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.SliceImpl;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import partner42.moduleapi.config.ServiceWithDAOTestDefaultConfig;
 import partner42.moduleapi.config.TestBootstrapConfig;
 import partner42.moduleapi.config.JpaPackage.JpaAndEntityPackagePathConfig;
 import partner42.moduleapi.dto.EmailDto;
+import partner42.moduleapi.dto.alarm.ResponseWithAlarmEventDto;
 import partner42.moduleapi.dto.article.ArticleDto;
 import partner42.moduleapi.dto.article.ArticleOnlyIdResponse;
 import partner42.moduleapi.dto.article.ArticleReadOneResponse;
@@ -27,6 +29,7 @@ import partner42.moduleapi.dto.match.MatchOnlyIdResponse;
 import partner42.moduleapi.dto.matchcondition.MatchConditionDto;
 import partner42.moduleapi.dto.member.MemberDto;
 import partner42.moduleapi.mapper.MemberMapperImpl;
+import partner42.moduleapi.service.alarm.AlarmService;
 import partner42.modulecommon.config.BootstrapDataLoader;
 import partner42.modulecommon.config.jpa.Auditor;
 import partner42.modulecommon.config.kafka.AlarmEvent;
@@ -60,19 +63,18 @@ import partner42.modulecommon.repository.articlemember.ArticleMemberRepository;
 import partner42.modulecommon.repository.match.MatchRepository;
 import partner42.modulecommon.repository.matchcondition.ArticleMatchConditionRepository;
 import partner42.modulecommon.repository.matchcondition.MatchConditionRepository;
+import partner42.modulecommon.repository.sse.SSEInMemoryRepository;
 import partner42.modulecommon.repository.user.UserRepository;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Import({ArticleService.class, MemberMapperImpl.class,
-    Auditor.class, QuerydslConfig.class, JpaAndEntityPackagePathConfig.class,
-    TestBootstrapConfig.class, BootstrapDataLoader.class, BCryptPasswordEncoder.class})
+    ServiceWithDAOTestDefaultConfig.class,
+})
 class ArticleServiceWithDaoTest {
 
     @Autowired
     private UserRepository userRepository;
-    @MockBean
-    private AlarmProducer alarmProducer;
     @Autowired
     private ArticleRepository articleRepository;
     @Autowired
@@ -612,10 +614,10 @@ class ArticleServiceWithDaoTest {
         ArticleMatchCondition.of(
             matchConditionRepository.findByValue(WayOfEating.TAKEOUT.name()).get(), article);
 
-        ArticleOnlyIdResponse articleOnlyIdResponse = articleService.participateArticle(
+        ResponseWithAlarmEventDto<ArticleOnlyIdResponse> dto = articleService.participateArticle(
             sorkim.getUsername(), article.getApiId());
         Article participatedArticle = articleRepository.findByApiId(
-                articleOnlyIdResponse.getArticleId()).get();
+                dto.getResponse().getArticleId()).get();
         //then
 
         assertThat(participatedArticle).extracting(Article::getParticipantNum)
@@ -624,40 +626,6 @@ class ArticleServiceWithDaoTest {
             .extracting(ArticleMember::getIsAuthor, ArticleMember::getMember)
             .containsExactlyInAnyOrder(tuple(true, takim.getMember()),
                 tuple(false, sorkim.getMember()));
-    }
-
-    @Test
-    void participateArticle_verifyAlarmProducer_SendIsCalled() {
-        //given
-        User takim = userRepository.findByUsername("takim").get();
-        User sorkim = userRepository.findByUsername("sorkim").get();
-
-        LocalDate date = LocalDate.now().plusDays(1);
-        //when
-        Article article = articleRepository.save(
-            Article.of(date, "a", "a", false, 3, ContentCategory.MEAL));
-        ArticleMember.of(takim.getMember(), true, article);
-
-        ArticleMatchCondition.of(matchConditionRepository.findByValue(Place.GAEPO.name()).get(),
-            article);
-        ArticleMatchCondition.of(
-            matchConditionRepository.findByValue(TimeOfEating.MIDNIGHT.name()).get(), article);
-        ArticleMatchCondition.of(
-            matchConditionRepository.findByValue(TimeOfEating.BREAKFAST.name()).get(), article);
-        ArticleMatchCondition.of(
-            matchConditionRepository.findByValue(WayOfEating.TAKEOUT.name()).get(), article);
-
-        ArticleOnlyIdResponse articleOnlyIdResponse = articleService.participateArticle(
-            sorkim.getUsername(), article.getApiId());
-        Article participatedArticle = articleRepository.findByApiId(
-            articleOnlyIdResponse.getArticleId()).get();
-        //then
-        verify(alarmProducer).send(
-            new AlarmEvent(AlarmType.PARTICIPATION_ON_MY_POST, AlarmArgs.builder()
-                .opinionId(null)
-                .articleId(articleOnlyIdResponse.getArticleId())
-                .callingMemberNickname(sorkim.getMember().getNickname())
-                .build(), article.getAuthorMember().getUser().getId(), SseEventName.ALARM_LIST));
     }
 
     @Test
@@ -682,11 +650,9 @@ class ArticleServiceWithDaoTest {
         ArticleMatchCondition.of(
             matchConditionRepository.findByValue(WayOfEating.TAKEOUT.name()).get(), article);
 
-        ArticleOnlyIdResponse articleOnlyIdResponse = articleService.participateArticle(
+        ResponseWithAlarmEventDto<ArticleOnlyIdResponse> dto = articleService.participateArticle(
             sorkim.getUsername(), article.getApiId());
         //then
-
-
         assertThatThrownBy(() -> articleService.participateArticle(sorkim.getUsername(), article.getApiId()))
             .isInstanceOf(InvalidInputException.class);
 
@@ -716,12 +682,12 @@ class ArticleServiceWithDaoTest {
         ArticleMatchCondition.of(
             matchConditionRepository.findByValue(WayOfEating.TAKEOUT.name()).get(), article);
 
-        ArticleOnlyIdResponse articleOnlyIdResponse = articleService.participateArticle(
+        ResponseWithAlarmEventDto<ArticleOnlyIdResponse> dtoParticipate = articleService.participateArticle(
             sorkim.getUsername(), article.getApiId());
-        ArticleOnlyIdResponse articleOnlyIdResponseCancel = articleService.participateCancelArticle(
+        ResponseWithAlarmEventDto<ArticleOnlyIdResponse> dtoParticipateCancel = articleService.participateCancelArticle(
             sorkim.getUsername(), article.getApiId());
         Article participatedArticle = articleRepository.findByApiId(
-            articleOnlyIdResponse.getArticleId()).get();
+            dtoParticipate.getResponse().getArticleId()).get();
         //then
 
         assertThat(participatedArticle).extracting(Article::getParticipantNum)
@@ -733,40 +699,6 @@ class ArticleServiceWithDaoTest {
 
     }
 
-    @Test
-    void participateCancelArticle_verifyAlarmProducer_sendIsCalled() {
-        User takim = userRepository.findByUsername("takim").get();
-        User sorkim = userRepository.findByUsername("sorkim").get();
-
-        LocalDate date = LocalDate.now().plusDays(1);
-        int participantNumMax = 2;
-
-        //when
-        Article article = articleRepository.save(
-            Article.of(date, "a", "a", false, participantNumMax, ContentCategory.MEAL));
-        ArticleMember.of(takim.getMember(), true, article);
-        ArticleMatchCondition.of(matchConditionRepository.findByValue(Place.GAEPO.name()).get(),
-            article);
-        ArticleMatchCondition.of(
-            matchConditionRepository.findByValue(TimeOfEating.MIDNIGHT.name()).get(), article);
-        ArticleMatchCondition.of(
-            matchConditionRepository.findByValue(TimeOfEating.BREAKFAST.name()).get(), article);
-        ArticleMatchCondition.of(
-            matchConditionRepository.findByValue(WayOfEating.TAKEOUT.name()).get(), article);
-
-        ArticleOnlyIdResponse articleOnlyIdResponse = articleService.participateArticle(
-            sorkim.getUsername(), article.getApiId());
-        ArticleOnlyIdResponse articleOnlyIdResponseCancel = articleService.participateCancelArticle(
-            sorkim.getUsername(), article.getApiId());
-
-        //then
-        verify(alarmProducer).send(
-            new AlarmEvent(AlarmType.PARTICIPATION_CANCEL_ON_MY_POST, AlarmArgs.builder()
-                .opinionId(null)
-                .articleId(articleOnlyIdResponse.getArticleId())
-                .callingMemberNickname(sorkim.getMember().getNickname())
-                .build(), article.getAuthorMember().getUser().getId(), SseEventName.ALARM_LIST));
-    }
 
     @Test
     void participateCancelArticle_whenNotParticipatedUserCancel_thenThrow() {

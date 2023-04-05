@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
+import partner42.modulecommon.config.RepositoryTestDefaultconfig;
 import partner42.modulecommon.config.jpa.Auditor;
 import partner42.modulecommon.config.querydsl.QuerydslConfig;
 import partner42.modulecommon.domain.model.article.Article;
@@ -23,14 +24,11 @@ import partner42.modulecommon.config.BootstrapDataLoader;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Import({QuerydslConfig.class, Auditor.class})
+@Import({Auditor.class, QuerydslConfig.class})
 class ArticleRepositoryTest {
 
     @Autowired
     private ArticleRepository articleRepository;
-
-    @Autowired
-    private BootstrapDataLoader bootstrapDataLoader;
 
     @Autowired
     private MemberRepository memberRepository;

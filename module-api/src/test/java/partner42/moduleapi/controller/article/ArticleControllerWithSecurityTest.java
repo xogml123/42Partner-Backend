@@ -15,49 +15,48 @@ import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.BDDMockito;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureWebMvc;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
-import partner42.moduleapi.config.security.CustomAuthenticationEntryPoint;
-import partner42.moduleapi.config.security.RedirectAuthenticationFailureHandler;
-import partner42.moduleapi.config.security.RedirectAuthenticationSuccessHandler;
-import partner42.moduleapi.config.security.SecurityConfig;
+import partner42.moduleapi.annotation.WebMvcTestSecurityImport;
+import partner42.moduleapi.config.WebMvcTestWithSecurityDefaultConfig;
 import partner42.moduleapi.dto.EmailDto;
+import partner42.moduleapi.dto.alarm.ResponseWithAlarmEventDto;
 import partner42.moduleapi.dto.article.ArticleDto;
+import partner42.moduleapi.dto.article.ArticleOnlyIdResponse;
 import partner42.moduleapi.dto.match.MatchOnlyIdResponse;
 import partner42.moduleapi.dto.matchcondition.MatchConditionDto;
 import partner42.moduleapi.service.article.ArticleService;
+import partner42.moduleapi.service.user.CustomOAuth2UserService;
+import partner42.modulecommon.config.kafka.AlarmEvent;
 import partner42.modulecommon.domain.model.match.ContentCategory;
+import partner42.modulecommon.producer.AlarmProducer;
 import partner42.modulecommon.utils.slack.SlackBotService;
 
 @WebMvcTest(ArticleController.class)
-@Import({DefaultOAuth2UserService.class, CustomAuthenticationEntryPoint.class,
-    RedirectAuthenticationSuccessHandler.class, RedirectAuthenticationFailureHandler.class})
+@Import(WebMvcTestWithSecurityDefaultConfig.class)
 public class ArticleControllerWithSecurityTest {
-
     private MockMvc mockMvc;
-
+    @MockBean
+    @Qualifier("customOAuth2UserService")
+    private DefaultOAuth2UserService customOAuth2UserService;
     @Autowired
     private WebApplicationContext context;
-
     @MockBean
     private ArticleService articleService;
     @MockBean
     private SlackBotService slackBotService;
+    @MockBean
+    private AlarmProducer alarmProducer;
 
     @BeforeEach
     private void setUp() {
@@ -308,9 +307,13 @@ public class ArticleControllerWithSecurityTest {
     @WithMockUser(username = "username", authorities = {"article.update"})
     void participateArticle_whenHasAuthority_then200() throws Exception {
 
+        given(articleService.participateArticle(any(), any())).willReturn(
+            ResponseWithAlarmEventDto.<ArticleOnlyIdResponse>builder()
+                .alarmEvent(new AlarmEvent()).build());
         mockMvc.perform(post("/api/articles/**/participate"))
             .andDo(print())
             .andExpect(status().isOk());
+
     }
 
     @Test
@@ -333,6 +336,10 @@ public class ArticleControllerWithSecurityTest {
     @Test
     @WithMockUser(username = "username", authorities = {"article.update"})
     void participateCancelArticle_whenHasAuthority_then200() throws Exception {
+
+        given(articleService.participateCancelArticle(any(), any())).willReturn(
+            ResponseWithAlarmEventDto.<ArticleOnlyIdResponse>builder()
+                .alarmEvent(new AlarmEvent()).build());
 
         mockMvc.perform(post("/api/articles/**/participate-cancel"))
             .andDo(print())
@@ -361,6 +368,7 @@ public class ArticleControllerWithSecurityTest {
     void completeArticle_whenHasAuthority_then200() throws Exception {
         given(articleService.completeArticle(anyString(), anyString())).willReturn(
             EmailDto.<MatchOnlyIdResponse>builder()
+                .alarmEventList(List.of())
                 .emails(List.of()).build());
         mockMvc.perform(post("/api/articles/**/complete"))
             .andDo(print())

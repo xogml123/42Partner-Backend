@@ -5,7 +5,6 @@ import static org.mockito.BDDMockito.*;
 
 import java.time.Instant;
 import java.util.Map;
-import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -22,18 +21,20 @@ import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import partner42.moduleapi.config.JpaPackage.JpaAndEntityPackagePathConfig;
+import partner42.moduleapi.config.ServiceWithDAOTestDefaultConfig;
 import partner42.moduleapi.config.TestBootstrapConfig;
+import partner42.moduleapi.config.oauth2userservice.DefaultOAuth2UserServiceConfig;
 import partner42.moduleapi.dto.user.CustomAuthenticationPrincipal;
-import partner42.moduleapi.service.user.CustomOAuth2UserService.CustomOAuth2UserServiceWithDaoTestConfig;
+import partner42.moduleapi.service.random.RandomMatchService;
 import partner42.modulecommon.config.BootstrapDataLoader;
 import partner42.modulecommon.config.jpa.Auditor;
 import partner42.modulecommon.config.querydsl.QuerydslConfig;
 
+
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Import({CustomOAuth2UserServiceWithDaoTestConfig.class,
-    Auditor.class, QuerydslConfig.class, JpaAndEntityPackagePathConfig.class,
-    TestBootstrapConfig.class, BootstrapDataLoader.class, BCryptPasswordEncoder.class
+@Import({CustomOAuth2UserService.class, DefaultOAuth2UserServiceConfig.class,
+    ServiceWithDAOTestDefaultConfig.class,
 })
 class CustomOAuth2UserServiceWithDaoTest {
 
@@ -42,7 +43,7 @@ class CustomOAuth2UserServiceWithDaoTest {
     private DefaultOAuth2UserService defaultOAuth2UserService;
     @Autowired
     @Qualifier("customOAuth2UserService")
-    private CustomOAuth2UserService customOAuth2UserService;
+    private DefaultOAuth2UserService customOAuth2UserService;
 
     private ClientRegistration clientRegistration = ClientRegistration
         .withRegistrationId("test-client")
@@ -78,7 +79,6 @@ class CustomOAuth2UserServiceWithDaoTest {
         //when
         OAuth2User oAuth2User = customOAuth2UserService.loadUser(userRequest);
         //then
-
         CustomAuthenticationPrincipal principal = (CustomAuthenticationPrincipal) oAuth2User;
         assertThat(principal.getAttributes()).containsOnly(entry("id", "3"),
             entry("login", "test-login"), entry("email", "test-email"),
@@ -86,7 +86,7 @@ class CustomOAuth2UserServiceWithDaoTest {
         assertThat(principal).extracting(
             CustomAuthenticationPrincipal::getUsername
         ).isEqualTo(
-            "test-login"
+            "test-email"
         );
     }
 
