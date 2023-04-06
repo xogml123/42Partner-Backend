@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 import partner42.moduleapi.service.alarm.AlarmService;
 import partner42.modulecommon.config.kafka.AlarmEvent;
@@ -24,16 +25,16 @@ public class AlarmConsumer {
      * @param ack
      */
     @KafkaListener(topics = "${kafka.topic.alarm.name}", groupId = "${kafka.consumer.alarm.rdb-group-id}",
-        properties = {AUTO_OFFSET_RESET_CONFIG + ":earliest"}, containerFactory = "kafkaListenerContainerFactoryRDB")
-    public void createAlarmInRDBConsumerGroup(AlarmEvent alarmEvent, Acknowledgment ack) {
+         containerFactory = "kafkaListenerContainerFactoryRDB")
+    public void createAlarmInRDBConsumerGroup(@Payload AlarmEvent alarmEvent, Acknowledgment ack) {
         log.info("createAlarmInRDBConsumerGroup");
         alarmService.createAlarm(alarmEvent.getUserId(), alarmEvent.getType(), alarmEvent.getArgs());
         ack.acknowledge();
     }
 
     @KafkaListener(topics = "${kafka.topic.alarm.name}", groupId = "${kafka.consumer.alarm.redis-group-id}",
-        properties = {AUTO_OFFSET_RESET_CONFIG + ":earliest"}, containerFactory = "kafkaListenerContainerFactoryRedis")
-    public void redisPublishConsumerGroup(AlarmEvent alarmEvent, Acknowledgment ack) {
+         containerFactory = "kafkaListenerContainerFactoryRedis")
+    public void redisPublishConsumerGroup(@Payload AlarmEvent alarmEvent, Acknowledgment ack) {
         log.info("redisPublishConsumerGroup");
         alarmService.send(alarmEvent.getUserId(),
             alarmEvent.getEventName());

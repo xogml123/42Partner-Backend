@@ -52,9 +52,9 @@ public class OpinionService {
         Article article = articleRepository.findByApiIdAndIsDeletedIsFalse(request.getArticleId())
             .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
         String parentOpinionId = request.getParentId();
-        Opinion parentOpinion = parentOpinionId == null ? null :
+        Opinion parentOpinion = (parentOpinionId == null || parentOpinionId.equals("")) ? null :
             opinionRepository.findByApiId(parentOpinionId)
-            .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));;
+            .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
         Opinion opinion = Opinion.of(request.getContent(),
             user.getMember(),
             article,
@@ -63,7 +63,7 @@ public class OpinionService {
         opinionRepository.save(opinion);
         AlarmEvent alarmEvent = null;
         //부모 댓글이 있는 경우 알람 생성
-        if (parentOpinionId != null) {
+        if (parentOpinion != null) {
             alarmEvent = new AlarmEvent(AlarmType.COMMENT_ON_MY_COMMENT,
                 AlarmArgs.builder()
                     .opinionId(parentOpinionId)

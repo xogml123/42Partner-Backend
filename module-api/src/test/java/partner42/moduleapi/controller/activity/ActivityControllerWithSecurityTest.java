@@ -20,18 +20,8 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
-import partner42.moduleapi.annotation.WebMvcTestSecurityImport;
 import partner42.moduleapi.config.WebMvcTestWithSecurityDefaultConfig;
-import partner42.moduleapi.config.oauth2userservice.DefaultOAuth2UserServiceConfig;
-import partner42.moduleapi.config.security.CustomAuthenticationEntryPoint;
-import partner42.moduleapi.config.security.RedirectAuthenticationFailureHandler;
-import partner42.moduleapi.config.security.RedirectAuthenticationSuccessHandler;
-import partner42.moduleapi.controller.article.ArticleController;
-import partner42.moduleapi.dto.EmailDto;
-import partner42.moduleapi.dto.match.MatchOnlyIdResponse;
 import partner42.moduleapi.service.activity.ActivityService;
-import partner42.moduleapi.service.user.CustomOAuth2UserService;
-import partner42.modulecommon.domain.model.activity.Activity;
 
 @WebMvcTest(ActivityController.class)
 @Import(WebMvcTestWithSecurityDefaultConfig.class)
