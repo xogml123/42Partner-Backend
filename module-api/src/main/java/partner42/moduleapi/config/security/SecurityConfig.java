@@ -29,6 +29,7 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import partner42.moduleapi.config.security.filter.CustomAuthorizationFilter;
 import partner42.moduleapi.dto.LoginResponseDto;
 import partner42.moduleapi.dto.user.CustomAuthenticationPrincipal;
 import partner42.moduleapi.util.JWTUtil;

@@ -1,4 +1,4 @@
-package partner42.moduleapi.config.security;
+package partner42.moduleapi.config.security.filter;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import javax.servlet.FilterChain;
@@ -51,7 +52,7 @@ public class CustomAuthorizationFilter extends OncePerRequestFilter {
 
     @Value("${jwt.secret}")
     private String secret;
-
+    private final static List<String> TOKEN_IN_PARAM_URLS = List.of("/api/alarm/subscribe");
     private static final String BEARER = "Bearer ";
 
     /**
@@ -66,17 +67,21 @@ public class CustomAuthorizationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
         FilterChain filterChain) throws ServletException, IOException {
+        String token = null;
         String authorizationHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
-
-        if (authorizationHeader != null && authorizationHeader.startsWith(BEARER)) {
-            String token = getToken(authorizationHeader);
+        if (TOKEN_IN_PARAM_URLS.contains(request.getRequestURI())) {
+            log.info("Request with {} check the query param", request.getRequestURI());
+            token = request.getQueryString().split("=")[1].trim();
+        }else if (authorizationHeader != null && authorizationHeader.startsWith(BEARER)) {
+            token = getToken(authorizationHeader);
+        }
+        if (token != null) {
             Algorithm algorithm = Algorithm.HMAC256(secret.getBytes());
             JWTInfo jwtInfo = null;
             try {
                 //JWT 토큰 검증 실패하면 JWTVerificationException 발생
                 jwtInfo = JWTUtil.decodeToken(algorithm, token);
                 log.debug(jwtInfo.toString());
-
                 //access token이 만료된 경우 403과 응답 코드를 전달
             } catch(TokenExpiredException tokenExpiredException){
                 log.debug(tokenExpiredException.getMessage());

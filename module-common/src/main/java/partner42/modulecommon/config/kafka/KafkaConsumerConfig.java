@@ -14,6 +14,7 @@ import org.springframework.kafka.core.ConsumerFactory;
 import java.util.HashMap;
 import java.util.Map;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import org.springframework.kafka.listener.ContainerProperties.AckMode;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.kafka.support.serializer.JsonSerializer;
 
@@ -59,6 +60,7 @@ public class KafkaConsumerConfig {
         ConcurrentKafkaListenerContainerFactory<String, AlarmEvent> factory =
             new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(alarmEventRDBConsumerFactory());
+        factory.getContainerProperties().setAckMode(AckMode.MANUAL);
         return factory;
     }
 
@@ -67,6 +69,7 @@ public class KafkaConsumerConfig {
         ConcurrentKafkaListenerContainerFactory<String, AlarmEvent> factory =
             new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(alarmEventRedisConsumerFactory());
+        factory.getContainerProperties().setAckMode(AckMode.MANUAL);
         return factory;
     }
 }
