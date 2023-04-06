@@ -1,6 +1,5 @@
 package partner42.moduleapi.controller.match;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -22,15 +21,9 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
-import partner42.moduleapi.annotation.WebMvcTestSecurityImport;
 import partner42.moduleapi.config.WebMvcTestWithSecurityDefaultConfig;
-import partner42.moduleapi.config.security.CustomAuthenticationEntryPoint;
-import partner42.moduleapi.config.security.RedirectAuthenticationFailureHandler;
-import partner42.moduleapi.config.security.RedirectAuthenticationSuccessHandler;
-import partner42.moduleapi.controller.alarm.AlarmController;
 import partner42.moduleapi.dto.match.MatchReviewRequest;
 import partner42.moduleapi.service.match.MatchService;
-import partner42.moduleapi.service.user.CustomOAuth2UserService;
 
 @WebMvcTest(MatchController.class)
 @Import(WebMvcTestWithSecurityDefaultConfig.class)
