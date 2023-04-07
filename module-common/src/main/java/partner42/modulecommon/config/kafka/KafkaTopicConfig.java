@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.core.KafkaAdmin;
+import org.springframework.kafka.listener.ContainerProperties;
 
 @Configuration
 public class KafkaTopicConfig {
@@ -22,14 +23,11 @@ public class KafkaTopicConfig {
     @Value("${kafka.topic.alarm.replicationFactor}")
     private String replicationFactor;
 
-    @Value("${kafka.admin.properties.min-in-sync-replicas}")
-    private Integer minInSyncReplicas;
 
     @Bean
     public KafkaAdmin kafkaAdmin() {
         Map<String, Object> configs = new HashMap<>();
         configs.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapAddress);
-        configs.put("spring.kafka.admin.properties.min.insync.replicas", minInSyncReplicas);
         return new KafkaAdmin(configs);
     }
 

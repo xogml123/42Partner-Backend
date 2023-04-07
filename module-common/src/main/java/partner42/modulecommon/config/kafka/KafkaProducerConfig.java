@@ -26,6 +26,19 @@ public class KafkaProducerConfig {
     @Value("${kafka.producer.acksConfig}")
     private String acksConfig;
 
+    @Value("${kafka.producer.retry}")
+    private Integer retry;
+
+    @Value("${kafka.producer.enable-idempotence}")
+    private Boolean enableIdempotence;
+    @Value("${kafka.producer.max-in-flight-requests-per-connection}")
+    private Integer maxInFlightRequestsPerConnection;
+
+    /**
+     * enable.idempotence true를 위해서는 retry가 0이상,
+     * max.in.flight.requests.per.connection 은 5이하여야한다.
+     * @return
+     */
     @Bean
     public ProducerFactory<String, AlarmEvent> producerFactory() {
         Map<String, Object> configProps = new HashMap<>();
@@ -33,6 +46,10 @@ public class KafkaProducerConfig {
         configProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         configProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         configProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
+        configProps.put(ProducerConfig.RETRIES_CONFIG, retry);
+        configProps.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, enableIdempotence);
+        configProps.put(ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION, maxInFlightRequestsPerConnection);
+
         return new DefaultKafkaProducerFactory<>(configProps);
     }
 

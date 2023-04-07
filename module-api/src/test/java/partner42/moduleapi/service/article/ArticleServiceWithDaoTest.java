@@ -23,6 +23,7 @@ import partner42.moduleapi.dto.article.ArticleReadResponse;
 import partner42.moduleapi.dto.match.MatchOnlyIdResponse;
 import partner42.moduleapi.dto.matchcondition.MatchConditionDto;
 import partner42.moduleapi.dto.member.MemberDto;
+import partner42.moduleapi.mapper.MemberMapperImpl;
 import partner42.modulecommon.domain.model.article.Article;
 import partner42.modulecommon.domain.model.article.ArticleMember;
 import partner42.modulecommon.domain.model.match.ConditionCategory;
