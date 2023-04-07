@@ -71,7 +71,6 @@ public class OpinionService {
                     .callingMemberNickname(user.getMember().getNickname())
                     .build(), parentOpinion.getMemberAuthor().getUser().getId(),
                 SseEventName.ALARM_LIST);
-//            alarmProducer.send(alarmEvent);
         }
         OpinionOnlyIdResponse opinionOnlyIdResponse = opinionMapper.entityToOpinionOnlyIdResponse(
             opinion);
