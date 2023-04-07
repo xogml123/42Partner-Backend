@@ -1,7 +1,6 @@
 package partner42.moduleapi.service.article;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.mockito.BDDMockito.*;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -11,14 +10,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.SliceImpl;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import partner42.moduleapi.config.ServiceWithDAOTestDefaultConfig;
-import partner42.moduleapi.config.TestBootstrapConfig;
-import partner42.moduleapi.config.JpaPackage.JpaAndEntityPackagePathConfig;
 import partner42.moduleapi.dto.EmailDto;
 import partner42.moduleapi.dto.alarm.ResponseWithAlarmEventDto;
 import partner42.moduleapi.dto.article.ArticleDto;
@@ -28,14 +23,6 @@ import partner42.moduleapi.dto.article.ArticleReadResponse;
 import partner42.moduleapi.dto.match.MatchOnlyIdResponse;
 import partner42.moduleapi.dto.matchcondition.MatchConditionDto;
 import partner42.moduleapi.dto.member.MemberDto;
-import partner42.moduleapi.mapper.MemberMapperImpl;
-import partner42.moduleapi.service.alarm.AlarmService;
-import partner42.modulecommon.config.BootstrapDataLoader;
-import partner42.modulecommon.config.jpa.Auditor;
-import partner42.modulecommon.config.kafka.AlarmEvent;
-import partner42.modulecommon.config.querydsl.QuerydslConfig;
-import partner42.modulecommon.domain.model.alarm.AlarmArgs;
-import partner42.modulecommon.domain.model.alarm.AlarmType;
 import partner42.modulecommon.domain.model.article.Article;
 import partner42.modulecommon.domain.model.article.ArticleMember;
 import partner42.modulecommon.domain.model.match.ConditionCategory;
@@ -51,19 +38,16 @@ import partner42.modulecommon.domain.model.matchcondition.Place;
 import partner42.modulecommon.domain.model.matchcondition.TimeOfEating;
 import partner42.modulecommon.domain.model.matchcondition.TypeOfStudy;
 import partner42.modulecommon.domain.model.matchcondition.WayOfEating;
-import partner42.modulecommon.domain.model.sse.SseEventName;
 import partner42.modulecommon.domain.model.user.User;
 import partner42.modulecommon.exception.BusinessException;
 import partner42.modulecommon.exception.ErrorCode;
 import partner42.modulecommon.exception.InvalidInputException;
-import partner42.modulecommon.producer.AlarmProducer;
 import partner42.modulecommon.repository.article.ArticleRepository;
 import partner42.modulecommon.repository.article.ArticleSearch;
 import partner42.modulecommon.repository.articlemember.ArticleMemberRepository;
 import partner42.modulecommon.repository.match.MatchRepository;
 import partner42.modulecommon.repository.matchcondition.ArticleMatchConditionRepository;
 import partner42.modulecommon.repository.matchcondition.MatchConditionRepository;
-import partner42.modulecommon.repository.sse.SSEInMemoryRepository;
 import partner42.modulecommon.repository.user.UserRepository;
 
 @DataJpaTest

@@ -22,10 +22,14 @@ public class KafkaTopicConfig {
     @Value("${kafka.topic.alarm.replicationFactor}")
     private String replicationFactor;
 
+    @Value("${kafka.admin.properties.min-in-sync-replicas}")
+    private Integer minInSyncReplicas;
+
     @Bean
     public KafkaAdmin kafkaAdmin() {
         Map<String, Object> configs = new HashMap<>();
         configs.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapAddress);
+        configs.put("spring.kafka.admin.properties.min.insync.replicas", minInSyncReplicas);
         return new KafkaAdmin(configs);
     }
 
