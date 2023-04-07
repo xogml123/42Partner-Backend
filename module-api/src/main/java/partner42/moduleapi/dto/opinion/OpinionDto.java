@@ -16,7 +16,7 @@ import lombok.Setter;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class OpinionDto{
+public class    OpinionDto{
 
     @Schema(name= "articleId" , example = "4f3dda35-3739-406c-ad22-eed438831d66", description = "댓글을 단 글의 id")
     @NotBlank

@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.core.KafkaAdmin;
+import org.springframework.kafka.listener.ContainerProperties;
 
 @Configuration
 public class KafkaTopicConfig {
@@ -21,6 +22,7 @@ public class KafkaTopicConfig {
     private String numPartitions;
     @Value("${kafka.topic.alarm.replicationFactor}")
     private String replicationFactor;
+
 
     @Bean
     public KafkaAdmin kafkaAdmin() {
