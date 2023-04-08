@@ -1,5 +1,7 @@
 package partner42.moduleapi.controller.random;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -28,6 +30,8 @@ import partner42.moduleapi.dto.random.RandomMatchDto;
 import partner42.moduleapi.service.random.RandomMatchService;
 import partner42.modulecommon.domain.model.match.ContentCategory;
 import partner42.modulecommon.domain.model.matchcondition.TypeOfStudy;
+import partner42.modulecommon.domain.model.random.RandomMatch;
+import partner42.modulecommon.domain.model.random.RandomMatchCondition;
 import partner42.modulecommon.producer.MatchMakingEvent;
 import partner42.modulecommon.producer.random.RandomMatchProducer;
 
@@ -52,6 +56,9 @@ class RandomMatchControllerWithSecurityTest {
         mockMvc = MockMvcBuilders.webAppContextSetup(context)
             .apply(springSecurity())
             .build();
+        given(randomMatchService.createRandomMatch(any(), any(), any())).willReturn(List.of(
+            RandomMatch.of(RandomMatchCondition.of(null, TypeOfStudy.INNER_CIRCLE), null)));
+
     }
 
     @Test

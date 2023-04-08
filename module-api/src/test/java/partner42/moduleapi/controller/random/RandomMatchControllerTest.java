@@ -1,5 +1,6 @@
 package partner42.moduleapi.controller.random;
 
+import static org.mockito.BDDMockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -7,6 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.mockito.BDDMockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -22,6 +24,8 @@ import partner42.moduleapi.service.random.RandomMatchService;
 import partner42.modulecommon.domain.model.match.ContentCategory;
 import partner42.modulecommon.domain.model.matchcondition.TypeOfStudy;
 import partner42.modulecommon.domain.model.matchcondition.WayOfEating;
+import partner42.modulecommon.domain.model.random.RandomMatch;
+import partner42.modulecommon.domain.model.random.RandomMatchCondition;
 import partner42.modulecommon.producer.random.RandomMatchProducer;
 
 @WebMvcTest(value = {RandomMatchController.class},
@@ -40,6 +44,29 @@ class RandomMatchControllerTest {
     @MockBean
     private RandomMatchProducer randomMatchProducer;
 
+
+    @Test
+    @WithMockUser
+    void applyRandomMatch() throws Exception {
+        RandomMatchDto randomMatchDto = RandomMatchDto.builder()
+            .contentCategory(ContentCategory.MEAL)
+            .matchConditionRandomMatchDto(MatchConditionRandomMatchDto.builder()
+                .placeList(List.of())
+                .typeOfStudyList(List.of())
+                .wayOfEatingList(List.of(WayOfEating.EATOUT))
+                .build())
+            .build();
+
+        //mock
+        given(randomMatchService.createRandomMatch(any(), any(), any())).willReturn(List.of(RandomMatch.of(RandomMatchCondition.of(null, TypeOfStudy.INNER_CIRCLE), null)));
+        //then
+        mockMvc.perform(post("/api/random-matches")
+                .contentType("application/json")
+                .content(new ObjectMapper().writeValueAsString(randomMatchDto)))
+            .andExpect(status().isCreated())
+            .andDo(print());
+
+    }
     @Test
     @WithMockUser
     void applyRandomMatch_whenMatchConditionRandomMatchDtoFieldExistNotCorrespondContentCategory_then400() throws Exception {
@@ -60,6 +87,8 @@ class RandomMatchControllerTest {
                 .wayOfEatingList(List.of(WayOfEating.EATOUT))
                 .build())
             .build();
+        //mock
+//        given()
         //then
         mockMvc.perform(post("/api/random-matches")
                 .contentType("application/json")

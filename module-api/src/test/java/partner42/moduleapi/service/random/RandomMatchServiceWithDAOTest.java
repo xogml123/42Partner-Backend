@@ -27,6 +27,7 @@ import partner42.modulecommon.domain.model.matchcondition.Place;
 import partner42.modulecommon.domain.model.matchcondition.TypeOfStudy;
 import partner42.modulecommon.domain.model.matchcondition.WayOfEating;
 import partner42.modulecommon.domain.model.random.RandomMatch;
+import partner42.modulecommon.domain.model.random.RandomMatchCondition;
 import partner42.modulecommon.domain.model.user.User;
 import partner42.modulecommon.exception.InvalidInputException;
 import partner42.modulecommon.exception.RandomMatchAlreadyExistException;
@@ -43,9 +44,6 @@ class RandomMatchServiceWithDAOTest {
 
     @Autowired
     private RandomMatchService randomMatchService;
-
-    @Autowired
-    private BootstrapDataLoader bootstrapDataLoader;
 
     @Autowired
     private RandomMatchRepository randomMatchRepository;
@@ -73,8 +71,6 @@ class RandomMatchServiceWithDAOTest {
                 .wayOfEatingList(List.of(WayOfEating.DELIVERY))
                 .build())
             .build();
-
-
 
         RandomMatchDto randomMatchDtoEmptyList = RandomMatchDto.builder()
             .contentCategory(ContentCategory.MEAL)
@@ -344,6 +340,14 @@ class RandomMatchServiceWithDAOTest {
         //then
         assertThat(randomMatchCountResponseMeal.getRandomMatchCount()).isEqualTo(3);
         assertThat(randomMatchCountResponseStudy.getRandomMatchCount()).isEqualTo(1);
+    }
+
+    @Test
+    void getValidRandomMatchesSortedByMatchCondition(){
+        //given
+
+        RandomMatch.of(RandomMatchCondition.of())
+        randomMatchRepository.save()
     }
 
 }

@@ -4,6 +4,7 @@ import io.swagger.annotations.ApiParam;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import java.time.LocalDateTime;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -25,6 +26,7 @@ import partner42.moduleapi.dto.random.RandomMatchDto;
 import partner42.moduleapi.dto.random.RandomMatchParam;
 import partner42.moduleapi.service.random.RandomMatchService;
 import partner42.modulecommon.domain.model.match.ContentCategory;
+import partner42.modulecommon.domain.model.random.RandomMatch;
 import partner42.modulecommon.exception.ErrorCode;
 import partner42.modulecommon.exception.InvalidInputException;
 import partner42.modulecommon.producer.MatchMakingEvent;
@@ -48,8 +50,10 @@ public class RandomMatchController {
         //contentCategory에 따라 필드 검증
         verifyRandomMatchDtoHasEmptyField(randomMatchDto);
         LocalDateTime now = CustomTimeUtils.nowWithoutNano();
-        randomMatchService.createRandomMatch(user.getUsername(), randomMatchDto, now);
-        randomMatchProducer.send(new MatchMakingEvent(now, null));
+        List<RandomMatch> randomMatch = randomMatchService.createRandomMatch(user.getUsername(),
+            randomMatchDto, now);
+
+        randomMatchProducer.send(new MatchMakingEvent(now, randomMatch.get(0).getRandomMatchCondition()));
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
