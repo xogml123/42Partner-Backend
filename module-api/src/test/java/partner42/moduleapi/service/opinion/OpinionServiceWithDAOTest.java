@@ -17,6 +17,7 @@ import partner42.moduleapi.dto.opinion.OpinionDto;
 import partner42.moduleapi.dto.opinion.OpinionOnlyIdResponse;
 import partner42.moduleapi.dto.opinion.OpinionResponse;
 import partner42.moduleapi.dto.opinion.OpinionUpdateRequest;
+import partner42.moduleapi.mapper.OpinionMapperImpl;
 import partner42.modulecommon.domain.model.article.Article;
 import partner42.modulecommon.domain.model.match.ContentCategory;
 import partner42.modulecommon.domain.model.opinion.Opinion;

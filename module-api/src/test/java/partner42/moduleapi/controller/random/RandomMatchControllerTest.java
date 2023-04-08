@@ -22,6 +22,7 @@ import partner42.moduleapi.service.random.RandomMatchService;
 import partner42.modulecommon.domain.model.match.ContentCategory;
 import partner42.modulecommon.domain.model.matchcondition.TypeOfStudy;
 import partner42.modulecommon.domain.model.matchcondition.WayOfEating;
+import partner42.modulecommon.producer.random.RandomMatchProducer;
 
 @WebMvcTest(value = {RandomMatchController.class},
     excludeFilters = {
@@ -36,6 +37,8 @@ class RandomMatchControllerTest {
 
     @MockBean
     private RandomMatchService randomMatchService;
+    @MockBean
+    private RandomMatchProducer randomMatchProducer;
 
     @Test
     @WithMockUser

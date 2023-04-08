@@ -19,6 +19,7 @@ import partner42.moduleapi.dto.match.MatchReviewRequest;
 import partner42.moduleapi.dto.matchcondition.MatchConditionDto;
 import partner42.moduleapi.dto.member.MemberDto;
 import partner42.moduleapi.dto.member.MemberReviewDto;
+import partner42.moduleapi.mapper.MemberMapperImpl;
 import partner42.modulecommon.domain.model.activity.ActivityMatchScore;
 import partner42.modulecommon.domain.model.match.ContentCategory;
 import partner42.modulecommon.domain.model.match.Match;

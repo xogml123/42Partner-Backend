@@ -44,7 +44,6 @@ public class KafkaTopicConfig {
     public NewTopic newTopic() {
         return new NewTopic(topicName, Integer.parseInt(numPartitions), Short.parseShort(replicationFactor));
     }
-
     /**
      * Partition의 경우 어처피 순서 보장을 위해 key 값을 지정하여 특정 파티션에서만 생성되기 때문에 1로 설정
      * @return

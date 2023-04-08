@@ -28,6 +28,8 @@ import partner42.moduleapi.dto.random.RandomMatchDto;
 import partner42.moduleapi.service.random.RandomMatchService;
 import partner42.modulecommon.domain.model.match.ContentCategory;
 import partner42.modulecommon.domain.model.matchcondition.TypeOfStudy;
+import partner42.modulecommon.producer.MatchMakingEvent;
+import partner42.modulecommon.producer.random.RandomMatchProducer;
 
 @WebMvcTest(RandomMatchController.class)
 @Import(WebMvcTestWithSecurityDefaultConfig.class)
@@ -37,6 +39,10 @@ class RandomMatchControllerWithSecurityTest {
     private DefaultOAuth2UserService customOAuth2UserService;
     @MockBean
     private RandomMatchService randomMatchService;
+
+    @MockBean
+    private RandomMatchProducer randomMatchProducer;
+
     private MockMvc mockMvc;
 
     @Autowired
