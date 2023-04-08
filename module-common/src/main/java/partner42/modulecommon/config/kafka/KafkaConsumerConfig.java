@@ -19,6 +19,7 @@ import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.ContainerProperties.AckMode;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.kafka.support.serializer.JsonSerializer;
+import partner42.modulecommon.producer.MatchMakingEvent;
 
 @EnableKafka
 @Configuration
@@ -58,6 +59,17 @@ public class KafkaConsumerConfig {
     }
 
     @Bean
+    public ConsumerFactory<String, MatchMakingEvent> matchMakingEventRedisConsumerFactory() {
+        Map<String, Object> props = new HashMap<>();
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, redisGroupId);
+        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, autoOffsetResetConfig);
+        return new DefaultKafkaConsumerFactory<>(props,
+            new StringDeserializer(),
+            new JsonDeserializer<>(MatchMakingEvent.class));
+    }
+
+    @Bean
     public ConcurrentKafkaListenerContainerFactory<String, AlarmEvent> kafkaListenerContainerFactoryRDB() {
         ConcurrentKafkaListenerContainerFactory<String, AlarmEvent> factory =
             new ConcurrentKafkaListenerContainerFactory<>();
@@ -72,6 +84,15 @@ public class KafkaConsumerConfig {
         ConcurrentKafkaListenerContainerFactory<String, AlarmEvent> factory =
             new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(alarmEventRedisConsumerFactory());
+        factory.getContainerProperties().setAckMode(AckMode.MANUAL);
+        return factory;
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, MatchMakingEvent> kafkaListenerContainerFactoryMatchMakingEvent() {
+        ConcurrentKafkaListenerContainerFactory<String, MatchMakingEvent> factory =
+            new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(matchMakingEventRedisConsumerFactory());
         factory.getContainerProperties().setAckMode(AckMode.MANUAL);
         return factory;
     }
