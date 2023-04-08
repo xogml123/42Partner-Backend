@@ -35,7 +35,7 @@ import partner42.moduleapi.dto.matchcondition.MatchConditionDto;
 import partner42.moduleapi.service.article.ArticleService;
 import partner42.modulecommon.config.kafka.AlarmEvent;
 import partner42.modulecommon.domain.model.match.ContentCategory;
-import partner42.modulecommon.producer.AlarmProducer;
+import partner42.modulecommon.producer.alarm.AlarmProducer;
 import partner42.modulecommon.utils.slack.SlackBotService;
 
 @WebMvcTest(ArticleController.class)

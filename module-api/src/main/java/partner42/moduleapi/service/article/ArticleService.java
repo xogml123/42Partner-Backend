@@ -40,7 +40,6 @@ import partner42.modulecommon.domain.model.user.User;
 import partner42.modulecommon.exception.ErrorCode;
 import partner42.modulecommon.exception.InvalidInputException;
 import partner42.modulecommon.exception.NoEntityException;
-import partner42.modulecommon.producer.AlarmProducer;
 import partner42.modulecommon.repository.activity.ActivityRepository;
 import partner42.modulecommon.repository.article.ArticleRepository;
 import partner42.modulecommon.repository.article.ArticleSearch;

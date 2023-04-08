@@ -25,7 +25,7 @@ import partner42.moduleapi.dto.opinion.OpinionOnlyIdResponse;
 import partner42.moduleapi.dto.opinion.OpinionResponse;
 import partner42.moduleapi.dto.opinion.OpinionUpdateRequest;
 import partner42.moduleapi.service.opinion.OpinionService;
-import partner42.modulecommon.producer.AlarmProducer;
+import partner42.modulecommon.producer.alarm.AlarmProducer;
 
 @Slf4j
 @RestController

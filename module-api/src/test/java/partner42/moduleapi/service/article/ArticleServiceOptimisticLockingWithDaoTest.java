@@ -10,7 +10,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import partner42.moduleapi.config.TestBootstrapConfig;
 import partner42.moduleapi.dto.article.ArticleDto;
@@ -18,7 +17,6 @@ import partner42.moduleapi.dto.article.ArticleOnlyIdResponse;
 import partner42.moduleapi.dto.matchcondition.MatchConditionDto;
 import partner42.moduleapi.testutils.WorkerWithCountDownLatch;
 import partner42.modulecommon.domain.model.match.ContentCategory;
-import partner42.modulecommon.producer.AlarmProducer;
 import partner42.modulecommon.repository.article.ArticleRepository;
 import partner42.modulecommon.repository.member.MemberRepository;
 

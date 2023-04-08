@@ -11,6 +11,7 @@ import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.support.serializer.JsonSerializer;
+import partner42.modulecommon.producer.MatchMakingEvent;
 
 @Configuration
 public class KafkaProducerConfig {
@@ -40,7 +41,7 @@ public class KafkaProducerConfig {
      * @return
      */
     @Bean
-    public ProducerFactory<String, AlarmEvent> producerFactory() {
+    public ProducerFactory<String, AlarmEvent> alarmEventProducerFactory() {
         Map<String, Object> configProps = new HashMap<>();
         configProps.put(ProducerConfig.ACKS_CONFIG, acksConfig);
         configProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
@@ -52,10 +53,28 @@ public class KafkaProducerConfig {
 
         return new DefaultKafkaProducerFactory<>(configProps);
     }
+    @Bean
+    public KafkaTemplate<String, AlarmEvent> alarmEventKafkaTemplate() {
+        return new KafkaTemplate<>(alarmEventProducerFactory());
+    }
 
     @Bean
-    public KafkaTemplate<String, AlarmEvent> kafkaTemplate() {
-        return new KafkaTemplate<>(producerFactory());
+    public ProducerFactory<String, MatchMakingEvent> matchMakingEventProducerFactory() {
+        Map<String, Object> configProps = new HashMap<>();
+        configProps.put(ProducerConfig.ACKS_CONFIG, acksConfig);
+        configProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+        configProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        configProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
+        configProps.put(ProducerConfig.RETRIES_CONFIG, retry);
+        configProps.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, enableIdempotence);
+        configProps.put(ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION, maxInFlightRequestsPerConnection);
+
+        return new DefaultKafkaProducerFactory<>(configProps);
     }
+    @Bean
+    public KafkaTemplate<String, MatchMakingEvent> matchMakingEventKafkaTemplate() {
+        return new KafkaTemplate<>(matchMakingEventProducerFactory());
+    }
+
 
 }

@@ -31,7 +31,7 @@ import partner42.moduleapi.dto.match.MatchOnlyIdResponse;
 import partner42.moduleapi.service.article.ArticleService;
 import partner42.modulecommon.exception.ErrorCode;
 import partner42.modulecommon.exception.InvalidInputException;
-import partner42.modulecommon.producer.AlarmProducer;
+import partner42.modulecommon.producer.alarm.AlarmProducer;
 import partner42.modulecommon.repository.article.ArticleSearch;
 import partner42.modulecommon.utils.slack.SlackBotService;
 
