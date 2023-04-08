@@ -1,4 +1,4 @@
-package partner42.moduleapi.consumer;
+package partner42.moduleapi.consumer.alarm;
 
 import static org.apache.kafka.clients.consumer.ConsumerConfig.AUTO_OFFSET_RESET_CONFIG;
 

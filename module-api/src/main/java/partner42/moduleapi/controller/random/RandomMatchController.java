@@ -27,6 +27,8 @@ import partner42.moduleapi.service.random.RandomMatchService;
 import partner42.modulecommon.domain.model.match.ContentCategory;
 import partner42.modulecommon.exception.ErrorCode;
 import partner42.modulecommon.exception.InvalidInputException;
+import partner42.modulecommon.producer.MatchMakingEvent;
+import partner42.modulecommon.producer.random.RandomMatchProducer;
 import partner42.modulecommon.utils.CustomTimeUtils;
 
 @Slf4j
@@ -36,7 +38,7 @@ import partner42.modulecommon.utils.CustomTimeUtils;
 public class RandomMatchController {
 
     private final RandomMatchService randomMatchService;
-
+    private final RandomMatchProducer randomMatchProducer;
     @PreAuthorize("hasAuthority('random-match.create')")
     @Operation(summary = "랜덤 매칭 신청", description = "랜덤 매칭 신청")
     @PostMapping("/random-matches")
@@ -47,8 +49,8 @@ public class RandomMatchController {
         verifyRandomMatchDtoHasEmptyField(randomMatchDto);
         LocalDateTime now = CustomTimeUtils.nowWithoutNano();
         randomMatchService.createRandomMatch(user.getUsername(), randomMatchDto, now);
+        randomMatchProducer.send(new MatchMakingEvent(now, null));
         return ResponseEntity.status(HttpStatus.CREATED).build();
-
     }
 
     @PreAuthorize("hasAuthority('random-match.delete')")

@@ -53,10 +53,7 @@ public class MatchMakingService {
                 log.error("해당 매칭이 실패했습니다.");
                 throw e;
             }
-            /**
-             *  slack 알림 보내기. 비동기.
-             *  트랜잭션안에 포함시키면 안됨.
-             */
+
         });
     }
 
@@ -69,7 +66,6 @@ public class MatchMakingService {
     private List<List<RandomMatch>> getMatchedGroupList(
         LocalDateTime now) {
         //1. 랜덤 매칭 테이블에서 매칭 대기중인 데이터를 가져온다.
-
         List<RandomMatch> validAndSortedByRandomMatchConditionRandomMatches = randomMatchService.getValidRandomMatchesSortedByMatchCondition(
             now);
 

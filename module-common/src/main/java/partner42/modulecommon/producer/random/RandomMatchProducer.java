@@ -17,8 +17,12 @@ public class RandomMatchProducer {
     @Value("${kafka.topic.match-making.name}")
     private String topicName;
 
+    /**
+     * 여러 consumer에서 동시에 consume될 경우 Exception이 발생할 수 있기 때문에 key 값 설정.
+     * @param matchMakingEvent
+     */
     public void send(MatchMakingEvent matchMakingEvent) {
-        kafkaTemplate.send(topicName, matchMakingEvent);
+        kafkaTemplate.send(topicName, topicName, matchMakingEvent);
         log.debug("matchMaking kafka produce");
     }
 }
