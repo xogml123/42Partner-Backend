@@ -9,8 +9,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import partner42.moduleapi.dto.matchcondition.MatchConditionRandomMatchDto;
-import partner42.modulecommon.domain.model.match.ContentCategory;
 
 @Getter
 @Setter

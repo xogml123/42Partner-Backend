@@ -10,10 +10,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import partner42.moduleapi.dto.matchcondition.MatchConditionRandomMatchDto;
 import partner42.moduleapi.dto.random.RandomMatchCancelRequest;
 import partner42.moduleapi.dto.random.RandomMatchCountResponse;
 import partner42.moduleapi.dto.random.RandomMatchDto;
+import partner42.moduleapi.dto.random.RandomMatchDtoFactory;
 import partner42.moduleapi.dto.random.RandomMatchExistDto;
 import partner42.moduleapi.dto.random.RandomMatchParam;
 import partner42.modulecommon.domain.model.match.Match;
@@ -28,7 +28,6 @@ import partner42.modulecommon.repository.match.MatchMemberRepository;
 import partner42.modulecommon.repository.match.MatchRepository;
 import partner42.modulecommon.repository.matchcondition.MatchConditionMatchRepository;
 import partner42.modulecommon.repository.matchcondition.MatchConditionRepository;
-import partner42.modulecommon.repository.member.MemberRepository;
 import partner42.modulecommon.repository.random.RandomMatchBulkUpdateDto;
 import partner42.modulecommon.repository.random.RandomMatchSearch;
 import partner42.modulecommon.domain.model.match.ContentCategory;
@@ -43,8 +42,6 @@ import partner42.modulecommon.exception.NoEntityException;
 import partner42.modulecommon.exception.RandomMatchAlreadyExistException;
 import partner42.modulecommon.repository.random.RandomMatchRepository;
 import partner42.modulecommon.repository.user.UserRepository;
-import partner42.modulecommon.utils.CustomTimeUtils;
-import partner42.modulecommon.utils.slack.SlackBotService;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -58,6 +55,7 @@ public class RandomMatchService {
     private final MatchRepository matchRepository;
     private final MatchConditionRepository matchConditionRepository;
     private final MatchConditionMatchRepository matchConditionMatchRepository;
+    private final RandomMatchDtoFactory randomMatchDtoFactory;
 
     @Transactional
     public List<RandomMatch> createRandomMatch(String username,
@@ -68,8 +66,7 @@ public class RandomMatchService {
         verifyAlreadyApplied(randomMatchDto.getContentCategory(), member, now);
 
         //요청 dto로 부터 랜덤 매칭 모든 경우의 수 만들어서 RandomMatch 여러개로 변환
-        List<RandomMatch> randomMatches = makeAllAvailRandomMatchesFromRandomMatchDto(
-            randomMatchDto, member, now);
+        List<RandomMatch> randomMatches = randomMatchDto.makeAllAvailRandomMatchesFromRandomMatchDto(member);
 
         //랜덤 매칭 신청한 것 DB에 기록.
         randomMatchRepository.saveAll(randomMatches);
@@ -132,29 +129,8 @@ public class RandomMatchService {
                 .isExpired(false)
                 .createdAt(RandomMatch.getValidTime(now))
                 .build());
-
-        Set<WayOfEating> wayOfEatings = randomMatches.stream()
-            .map(RandomMatch::getRandomMatchCondition)
-            .map(RandomMatchCondition::getWayOfEating)
-            .collect(Collectors.toSet());
-        wayOfEatings.remove(null);
-        Set<TypeOfStudy> typeOfStudies = randomMatches.stream()
-            .map(RandomMatch::getRandomMatchCondition)
-            .map(RandomMatchCondition::getTypeOfStudy)
-            .collect(Collectors.toSet());
-        typeOfStudies.remove(null);
-
-        return RandomMatchDto.builder()
-            .contentCategory(randomMatchCancelRequest.getContentCategory())
-            .matchConditionRandomMatchDto(MatchConditionRandomMatchDto.builder()
-                .placeList(new ArrayList<>(randomMatches.stream()
-                    .map(RandomMatch::getRandomMatchCondition)
-                    .map(RandomMatchCondition::getPlace)
-                    .collect(Collectors.toSet())))
-                .wayOfEatingList(new ArrayList<>(wayOfEatings))
-                .typeOfStudyList(new ArrayList<>(typeOfStudies))
-                .build())
-            .build();
+        return randomMatchDtoFactory.createRandomMatchDto(
+            randomMatchCancelRequest.getContentCategory(), randomMatches);
     }
 
     public RandomMatchCountResponse countMemberOfRandomMatchNotExpire(
@@ -177,52 +153,6 @@ public class RandomMatchService {
             .build();
     }
 
-
-    /**
-     * 요청 dto로 부터 랜덤 매칭 모든 경우의 수 만들어서 RandomMatch 여러개로 변환
-     *
-     * @param randomMatchDto
-     * @return
-     */
-    private List<RandomMatch> makeAllAvailRandomMatchesFromRandomMatchDto(
-        RandomMatchDto randomMatchDto, Member member, LocalDateTime now) {
-
-        //아무 matchCondition필드에 값이 없는 경우 모든 조건으로 변환.
-        List<RandomMatch> randomMatches = new ArrayList<>();
-        MatchConditionRandomMatchDto matchConditionRandomMatchDto = randomMatchDto.getMatchConditionRandomMatchDto();
-        //matchConditionRandomMatchDto의 필드가 비어있는 경우 모든 조건으로 변환
-        if (matchConditionRandomMatchDto.getPlaceList().isEmpty()){
-            matchConditionRandomMatchDto.setPlaceList(
-                new ArrayList<>(List.of(Place.values())));
-        }
-        if (randomMatchDto.getContentCategory().equals(ContentCategory.STUDY) &&
-            matchConditionRandomMatchDto.getTypeOfStudyList().isEmpty()) {
-            matchConditionRandomMatchDto.setTypeOfStudyList(
-                new ArrayList<>(List.of(TypeOfStudy.values())));
-        } else if (randomMatchDto.getContentCategory().equals(ContentCategory.MEAL) &&
-            matchConditionRandomMatchDto.getWayOfEatingList().isEmpty()) {
-            matchConditionRandomMatchDto.setWayOfEatingList(
-                new ArrayList<>(List.of(WayOfEating.values())));
-        }
-        // 조건에 따라 모든 경우의 수 RandomMatch 생성
-        for (Place place : matchConditionRandomMatchDto.getPlaceList()) {
-            if (randomMatchDto.getContentCategory().equals(ContentCategory.STUDY)) {
-                for (TypeOfStudy typeOfStudy : matchConditionRandomMatchDto.getTypeOfStudyList()) {
-                    randomMatches.add(
-                        RandomMatch.of(RandomMatchCondition.of(
-                            place, typeOfStudy), member));
-                }
-            } else if (randomMatchDto.getContentCategory().equals(ContentCategory.MEAL)) {
-                for (WayOfEating wayOfEating : matchConditionRandomMatchDto.getWayOfEatingList()) {
-                    randomMatches.add(
-                        RandomMatch.of(RandomMatchCondition.of(
-                            place, wayOfEating), member));
-                }
-            }
-        }
-        return randomMatches;
-    }
-
     private User getUserByUsernameOrException(String username) {
         return userRepository.findByUsername(username)
             .orElseThrow(() -> new NoEntityException(
@@ -243,8 +173,6 @@ public class RandomMatchService {
             throw new RandomMatchAlreadyExistException(ErrorCode.RANDOM_MATCH_ALREADY_EXIST);
         }
     }
-
-
     /**
      * 테스트 케이스 1. 여러 조건이 들어오는 경우 매칭이 하나의 조건으로 채결되면 다른 신청 무효화 - 안됨 2. Meal 만 매칭이 가능. 3. 만료시간 제대로 되는지
      * 확인. 4. 매칭 조건 다른 것들 섞여서 생성해도 잘 되는지 체크 5. 같은 조건 먼저 신청한사람이 먼저 매칭되도록

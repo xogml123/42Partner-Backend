@@ -20,7 +20,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import partner42.moduleapi.dto.random.RandomMatchCountResponse;
 import partner42.moduleapi.dto.random.RandomMatchExistDto;
-import partner42.moduleapi.dto.matchcondition.MatchConditionRandomMatchDto;
 import partner42.moduleapi.dto.random.RandomMatchCancelRequest;
 import partner42.moduleapi.dto.random.RandomMatchDto;
 import partner42.moduleapi.dto.random.RandomMatchParam;
@@ -47,8 +46,6 @@ public class RandomMatchController {
     public ResponseEntity<Void> applyRandomMatch(
         @ApiParam(hidden = true) @AuthenticationPrincipal UserDetails user,
         @Validated @Parameter @RequestBody RandomMatchDto randomMatchDto) {
-        //contentCategory에 따라 필드 검증
-        verifyRandomMatchDtoHasEmptyField(randomMatchDto);
         LocalDateTime now = CustomTimeUtils.nowWithoutNano();
         List<RandomMatch> randomMatch = randomMatchService.createRandomMatch(user.getUsername(),
             randomMatchDto, now);
@@ -97,12 +94,4 @@ public class RandomMatchController {
         return randomMatchService.readRandomMatchCondition(user.getUsername(), randomMatchCancelRequest, now);
     }
 
-    private void verifyRandomMatchDtoHasEmptyField(RandomMatchDto randomMatchDto) {
-        ContentCategory contentCategory = randomMatchDto.getContentCategory();
-        MatchConditionRandomMatchDto matchConditionRandomMatchDto = randomMatchDto.getMatchConditionRandomMatchDto();
-        if ((contentCategory == ContentCategory.MEAL && !matchConditionRandomMatchDto.getTypeOfStudyList().isEmpty()) ||
-            (contentCategory == ContentCategory.STUDY && !matchConditionRandomMatchDto.getWayOfEatingList().isEmpty())) {
-            throw new InvalidInputException(ErrorCode.MATCH_CONDITION_NOT_EMPTY);
-        }
-    }
 }

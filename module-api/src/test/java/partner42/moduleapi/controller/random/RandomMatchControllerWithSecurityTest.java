@@ -10,6 +10,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,20 +25,20 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 import partner42.moduleapi.config.WebMvcTestWithSecurityDefaultConfig;
-import partner42.moduleapi.dto.matchcondition.MatchConditionRandomMatchDto;
+import partner42.moduleapi.dto.random.MealRandomMatchDto;
 import partner42.moduleapi.dto.random.RandomMatchCancelRequest;
-import partner42.moduleapi.dto.random.RandomMatchDto;
 import partner42.moduleapi.service.random.RandomMatchService;
 import partner42.modulecommon.domain.model.match.ContentCategory;
 import partner42.modulecommon.domain.model.matchcondition.TypeOfStudy;
 import partner42.modulecommon.domain.model.random.RandomMatch;
 import partner42.modulecommon.domain.model.random.RandomMatchCondition;
-import partner42.modulecommon.producer.MatchMakingEvent;
 import partner42.modulecommon.producer.random.RandomMatchProducer;
 
 @WebMvcTest(RandomMatchController.class)
 @Import(WebMvcTestWithSecurityDefaultConfig.class)
+@Slf4j
 class RandomMatchControllerWithSecurityTest {
+
     @MockBean
     @Qualifier("customOAuth2UserService")
     private DefaultOAuth2UserService customOAuth2UserService;
@@ -51,6 +52,7 @@ class RandomMatchControllerWithSecurityTest {
 
     @Autowired
     private WebApplicationContext context;
+
     @BeforeEach
     private void setUp() {
         mockMvc = MockMvcBuilders.webAppContextSetup(context)
@@ -63,12 +65,13 @@ class RandomMatchControllerWithSecurityTest {
 
     @Test
     void applyRandomMatch_whenNotAuthenticated_then401() throws Exception {
-        RandomMatchDto randomMatchDto = RandomMatchDto.builder()
+        new MealRandomMatchDto();
+        MealRandomMatchDto randomMatchDto = MealRandomMatchDto.builder()
             .contentCategory(ContentCategory.MEAL)
-            .matchConditionRandomMatchDto(MatchConditionRandomMatchDto.builder()
-                .wayOfEatingList(List.of())
-                .placeList(List.of()).build())
-            .build();
+            .wayOfEatingList(List.of())
+            .placeList(List.of()).
+            build();
+
         mockMvc.perform(post("/api/random-matches")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(new ObjectMapper().writeValueAsString(randomMatchDto)))
@@ -79,12 +82,11 @@ class RandomMatchControllerWithSecurityTest {
     @Test
     @WithMockUser(username = "username", authorities = {"random-match.create"})
     void applyRandomMatch_whenHasAuthority_then201() throws Exception {
-        RandomMatchDto randomMatchDto = RandomMatchDto.builder()
+        MealRandomMatchDto randomMatchDto = MealRandomMatchDto.builder()
             .contentCategory(ContentCategory.MEAL)
-            .matchConditionRandomMatchDto(MatchConditionRandomMatchDto.builder()
-                .wayOfEatingList(List.of())
-                .placeList(List.of()).build())
-            .build();
+            .wayOfEatingList(List.of())
+            .placeList(List.of()).
+            build();
         mockMvc.perform(post("/api/random-matches")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(new ObjectMapper().writeValueAsString(randomMatchDto)))
@@ -96,12 +98,10 @@ class RandomMatchControllerWithSecurityTest {
     @WithMockUser(username = "username")
     void applyRandomMatch_whenNotHasAuthority_then403() throws Exception {
 
-        RandomMatchDto randomMatchDto = RandomMatchDto.builder()
+        MealRandomMatchDto randomMatchDto = MealRandomMatchDto.builder()
+            .placeList(List.of())
             .contentCategory(ContentCategory.MEAL)
-            .matchConditionRandomMatchDto(MatchConditionRandomMatchDto.builder()
-                .wayOfEatingList(List.of())
-                .typeOfStudyList(List.of(TypeOfStudy.INNER_CIRCLE))
-                .placeList(List.of()).build())
+            .wayOfEatingList(List.of())
             .build();
         mockMvc.perform(post("/api/random-matches")
                 .contentType(MediaType.APPLICATION_JSON)
