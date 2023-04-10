@@ -24,12 +24,9 @@ import partner42.moduleapi.dto.random.RandomMatchCancelRequest;
 import partner42.moduleapi.dto.random.RandomMatchDto;
 import partner42.moduleapi.dto.random.RandomMatchParam;
 import partner42.moduleapi.service.random.RandomMatchService;
-import partner42.modulecommon.domain.model.match.ContentCategory;
 import partner42.modulecommon.domain.model.random.RandomMatch;
-import partner42.modulecommon.exception.ErrorCode;
-import partner42.modulecommon.exception.InvalidInputException;
-import partner42.modulecommon.producer.MatchMakingEvent;
-import partner42.modulecommon.producer.random.RandomMatchProducer;
+import partner42.moduleapi.producer.random.MatchMakingEvent;
+import partner42.moduleapi.producer.random.RandomMatchProducer;
 import partner42.modulecommon.utils.CustomTimeUtils;
 
 @Slf4j
@@ -49,8 +46,7 @@ public class RandomMatchController {
         LocalDateTime now = CustomTimeUtils.nowWithoutNano();
         List<RandomMatch> randomMatch = randomMatchService.createRandomMatch(user.getUsername(),
             randomMatchDto, now);
-
-        randomMatchProducer.send(new MatchMakingEvent(now, randomMatch.get(0).getRandomMatchCondition()));
+        randomMatchProducer.send(randomMatchDto.createMatchMakingEvent(now));
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 

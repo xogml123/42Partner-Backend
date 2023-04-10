@@ -3,6 +3,7 @@ package partner42.modulecommon.repository.random;
 import static partner42.modulecommon.domain.model.member.QMember.member;
 import static partner42.modulecommon.domain.model.random.QRandomMatch.*;
 
+import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.time.LocalDateTime;
@@ -17,7 +18,11 @@ import javax.persistence.OptimisticLockException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import partner42.modulecommon.domain.model.match.ContentCategory;
+import partner42.modulecommon.domain.model.matchcondition.Place;
+import partner42.modulecommon.domain.model.matchcondition.TypeOfStudy;
+import partner42.modulecommon.domain.model.matchcondition.WayOfEating;
 import partner42.modulecommon.domain.model.random.RandomMatch;
+import partner42.modulecommon.domain.model.random.RandomMatchCondition;
 
 @RequiredArgsConstructor
 @Repository
@@ -51,6 +56,26 @@ public class RandomMatchRepositoryCustomImpl implements RandomMatchRepositoryCus
                 isContentCategory(randomMatchSearch.getContentCategory()))
             .fetch();
     }
+    @Override
+    public List<RandomMatch> findForUpdateByCreatedAtAfterAndIsExpiredAndRandomMatchConditionAndSortedByCreatedAtASC(
+        LocalDateTime createdAt,
+        Boolean isExpired,
+        RandomMatchConditionSearch randomMatchConditionSearch){
+        return queryFactory.select(randomMatch)
+            .from(randomMatch)
+            .where(isCreatedAtAfter(createdAt),
+                isExpired(isExpired),
+                isContentCategory(randomMatchConditionSearch.getContentCategory()),
+                isPlaceIn(randomMatchConditionSearch.getPlaceList()),
+                isWayOfEatingIn(randomMatchConditionSearch.getWayOfEatingList()),
+                isTypeOfStudyIn(randomMatchConditionSearch.getTypeOfStudyList())
+            )
+            .orderBy(randomMatch.createdAt.asc())
+            .setLockMode(LockModeType.PESSIMISTIC_WRITE)
+            .fetch();
+    }
+
+
 
     /**
      * 1. OptimisticLock을 통해 Lost Update가 발생하지 않도록함.
@@ -69,6 +94,8 @@ public class RandomMatchRepositoryCustomImpl implements RandomMatchRepositoryCus
         List<Long> idList = randomMatchBulkUpdateDtos.stream().map(RandomMatchBulkUpdateDto::getId)
             .collect(
                 Collectors.toList());
+        //verifyversion하기 이전에 randomMatches가 변경 될 경우를 막기 위해
+        // findWithPessimisticLockByIds를 통해 Write_Lock을 건다.
         List<RandomMatch> randomMatches = findWithPessimisticLockByIds(
             idList);
 
@@ -128,5 +155,17 @@ public class RandomMatchRepositoryCustomImpl implements RandomMatchRepositoryCus
 
     private BooleanExpression isContentCategory(ContentCategory contentCategory) {
         return contentCategory == null ? null : randomMatch.randomMatchCondition.contentCategory.eq(contentCategory);
+    }
+
+    private BooleanExpression isTypeOfStudyIn(List<TypeOfStudy> typeOfStudyList) {
+        return typeOfStudyList == null ? null: randomMatch.randomMatchCondition.typeOfStudy.in(typeOfStudyList);
+    }
+
+    private BooleanExpression isWayOfEatingIn(List<WayOfEating> wayOfEatingList) {
+        return wayOfEatingList == null ? null: randomMatch.randomMatchCondition.wayOfEating.in(wayOfEatingList);
+    }
+
+    private BooleanExpression isPlaceIn(List<Place> placeList) {
+        return placeList == null ? null: randomMatch.randomMatchCondition.place.in(placeList);
     }
 }

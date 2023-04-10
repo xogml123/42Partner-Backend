@@ -1,6 +1,7 @@
 package partner42.moduleapi.dto.random;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import javax.validation.constraints.NotNull;
@@ -10,6 +11,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import partner42.moduleapi.producer.random.MatchMakingEvent;
 import partner42.modulecommon.domain.model.match.ContentCategory;
 import partner42.modulecommon.domain.model.matchcondition.Place;
 import partner42.modulecommon.domain.model.matchcondition.TypeOfStudy;
@@ -53,5 +55,10 @@ public class StudyRandomMatchDto extends RandomMatchDto {
             }
         }
         return randomMatches;
+    }
+
+    @Override
+    public final MatchMakingEvent createMatchMakingEvent(LocalDateTime now){
+        return new MatchMakingEvent(now, contentCategory, placeList, null, typeOfStudyList);
     }
 }

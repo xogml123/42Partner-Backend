@@ -8,54 +8,62 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import partner42.moduleapi.dto.match.MatchMakingDto;
+import partner42.moduleapi.producer.random.MatchMakingEvent;
+import partner42.modulecommon.config.kafka.AlarmEvent;
+import partner42.modulecommon.domain.model.alarm.AlarmArgs;
+import partner42.modulecommon.domain.model.alarm.AlarmType;
 import partner42.modulecommon.domain.model.match.Match;
 import partner42.modulecommon.domain.model.match.MatchMember;
-import partner42.modulecommon.domain.model.match.MatchStatus;
-import partner42.modulecommon.domain.model.match.MethodCategory;
-import partner42.modulecommon.domain.model.matchcondition.MatchCondition;
-import partner42.modulecommon.domain.model.matchcondition.MatchConditionMatch;
 import partner42.modulecommon.domain.model.member.Member;
 import partner42.modulecommon.domain.model.random.RandomMatch;
+import partner42.modulecommon.domain.model.sse.SseEventName;
 import partner42.modulecommon.domain.model.user.User;
-import partner42.modulecommon.repository.match.MatchMemberRepository;
-import partner42.modulecommon.repository.match.MatchRepository;
-import partner42.modulecommon.repository.matchcondition.MatchConditionMatchRepository;
-import partner42.modulecommon.repository.matchcondition.MatchConditionRepository;
-import partner42.modulecommon.repository.member.MemberRepository;
-import partner42.modulecommon.repository.random.RandomMatchBulkUpdateDto;
+import partner42.modulecommon.repository.random.RandomMatchConditionSearch;
 import partner42.modulecommon.repository.random.RandomMatchRepository;
-import partner42.modulecommon.repository.random.RandomMatchSearch;
-import partner42.modulecommon.utils.CustomTimeUtils;
 import partner42.modulecommon.utils.slack.SlackBotService;
 
 @Slf4j
 @RequiredArgsConstructor
 @Service
 public class MatchMakingService {
+    private final static String SYSTEM = "system";
 
 
     private final RandomMatchService randomMatchService;
-    private final SlackBotService slackBotService;
+    private final RandomMatchRepository randomMatchRepository;
 
-    public void matchMaking(LocalDateTime now) {
+    public MatchMakingDto matchMaking(LocalDateTime now) {
 
+        MatchMakingDto matchMakingDto = new MatchMakingDto();
         getMatchedGroupList(now).forEach((matchedRandomMatches) -> {
-            //3. 매칭이 완료된 데이터를 트랜잭션을 걸고 DB에 저장한다, 반영 중 취소등의 변경이 발생했을 경우 예외가 발생한다..
+            //3. 매칭이 완료된 데이터를 트랜잭션을 걸고 DB에 저장한다, 반영 중 취소등의 사유로 RandomMatch Entity에
+            // 변경이 발생했을 경우 예외가 발생한다.
             try {
                 Match match = randomMatchService.makeMatchInRDB(matchedRandomMatches, now);
-                slackBotService.createSlackMIIM(match.getMatchMembers().stream()
+                matchMakingDto.getEmails().addAll(match.getMatchMembers().stream()
                     .map(MatchMember::getMember)
                     .map(Member::getUser)
                     .map(User::getEmail)
                     .collect(Collectors.toList()));
+                matchMakingDto.getAlarmEvents().addAll(match.getMatchMembers().stream()
+                    .map(MatchMember::getMember)
+                    .map(member -> new AlarmEvent(AlarmType.MATCH_CONFIRMED,
+                        AlarmArgs.builder()
+                            .opinionId(null)
+                            .articleId(null)
+                            .callingMemberNickname(SYSTEM)
+                            .build(), member.getId(), SseEventName.ALARM_LIST))
+                    .collect(Collectors.toList()));
             } catch (RuntimeException e) {
                 log.error("해당 매칭이 실패했습니다.");
-                throw e;
             }
-
         });
+        return matchMakingDto;
     }
+
 
     /**
      * 정렬된 매칭 리스트를 매칭 조건에 따라 그룹화한다.
@@ -134,4 +142,6 @@ public class MatchMakingService {
                     .getContentCategory()))
             .forEach(RandomMatch::expire);
     }
+
+
 }

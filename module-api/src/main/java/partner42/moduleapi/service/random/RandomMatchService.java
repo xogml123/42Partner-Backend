@@ -57,6 +57,14 @@ public class RandomMatchService {
     private final MatchConditionMatchRepository matchConditionMatchRepository;
     private final RandomMatchDtoFactory randomMatchDtoFactory;
 
+    /**
+     * DB와 상관없이 DAO를 Mocking하는 테스트를 구행해보기 위해서 List<RandomMatch>라는 Entity자체를 return 하도록 구성하였다.
+     * 하지만 Controller로 Entity자체를 반환하는 형태는 좋은 방식이 아니며 CQRS관점에서도 좋지 않은 방식이다.
+     * @param username
+     * @param randomMatchDto
+     * @param now
+     * @return
+     */
     @Transactional
     public List<RandomMatch> createRandomMatch(String username,
         RandomMatchDto randomMatchDto, LocalDateTime now) {
@@ -79,7 +87,6 @@ public class RandomMatchService {
         RandomMatchCancelRequest request, LocalDateTime now) {
         Long memberId = getUserByUsernameOrException(username).getMember().getId();
         //생성된 지 RandomMatch.MAX_WAITING_TIME분 이내 + 취소되지 않은 신청 내역 있는지 확인.
-        //취소 하는 도중 매칭이 잡힐 경우를 대비하여 for update
         List<RandomMatch> randomMatches = randomMatchRepository.findByCreatedAtAfterAndIsExpiredAndMemberIdAndContentCategory(
             RandomMatchSearch.builder()
                 .contentCategory(request.getContentCategory())
@@ -91,9 +98,6 @@ public class RandomMatchService {
         if (randomMatches.isEmpty()) {
             throw new InvalidInputException(ErrorCode.ALREADY_CANCELED_RANDOM_MATCH);
         }
-        //변경 감지 이용하는 쿼리 수 증가
-//        randomMatches
-//            .forEach(RandomMatch::expire);
         randomMatchRepository.bulkUpdateOptimisticLockIsExpiredToTrueByIds(randomMatches.stream()
             .map(rm -> RandomMatchBulkUpdateDto.builder()
                 .id(rm.getId())

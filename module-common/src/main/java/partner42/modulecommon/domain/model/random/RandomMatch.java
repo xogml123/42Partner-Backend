@@ -103,4 +103,5 @@ public class RandomMatch extends BaseEntity implements Serializable {
     public static LocalDateTime getValidTime(LocalDateTime now) {
         return now.minusMinutes(RandomMatch.MAX_WAITING_TIME);
     }
+
 }

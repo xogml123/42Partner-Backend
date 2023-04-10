@@ -32,7 +32,7 @@ import partner42.modulecommon.domain.model.match.ContentCategory;
 import partner42.modulecommon.domain.model.matchcondition.TypeOfStudy;
 import partner42.modulecommon.domain.model.random.RandomMatch;
 import partner42.modulecommon.domain.model.random.RandomMatchCondition;
-import partner42.modulecommon.producer.random.RandomMatchProducer;
+import partner42.moduleapi.producer.random.RandomMatchProducer;
 
 @WebMvcTest(RandomMatchController.class)
 @Import(WebMvcTestWithSecurityDefaultConfig.class)

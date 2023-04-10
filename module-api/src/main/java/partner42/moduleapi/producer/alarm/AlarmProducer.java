@@ -1,4 +1,4 @@
-package partner42.modulecommon.producer.alarm;
+package partner42.moduleapi.producer.alarm;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

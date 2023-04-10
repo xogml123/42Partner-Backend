@@ -24,7 +24,7 @@ import partner42.moduleapi.dto.article.ArticleDto;
 import partner42.moduleapi.dto.matchcondition.MatchConditionDto;
 import partner42.moduleapi.service.article.ArticleService;
 import partner42.modulecommon.domain.model.match.ContentCategory;
-import partner42.modulecommon.producer.alarm.AlarmProducer;
+import partner42.moduleapi.producer.alarm.AlarmProducer;
 import partner42.modulecommon.utils.slack.SlackBotService;
 
 /**
