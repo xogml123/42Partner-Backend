@@ -18,6 +18,7 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.orm.jpa.JpaOptimisticLockingFailureException;
+import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import partner42.moduleapi.config.ServiceWithDAOTestDefaultConfig;
@@ -443,7 +444,7 @@ class RandomMatchServiceWithDAOTest {
     }
 
     @Test
-    @Transactional(propagation = Propagation.NEVER)
+
     void 매칭_알고리즘_실행도중_매칭취소등으로인해_RandomMatch에_변경이일어날경우_makeMatchInDB실패(){
         User takim = userRepository.findByUsername("takim").get();
         User sorkim = userRepository.findByUsername("sorkim").get();

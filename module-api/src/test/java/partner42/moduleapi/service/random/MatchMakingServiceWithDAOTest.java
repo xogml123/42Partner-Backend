@@ -62,7 +62,7 @@ class MatchMakingServiceWithDAOTest {
     }
 
     @Test
-    @Transactional(propagation = Propagation.NEVER)
+//    @Transactional(propagation = Propagation.NEVER)
     void matchMaking_whenMatchNotExpected_thenReturnDtoFieldAllEmptyList() {
         //given
         LocalDateTime now = LocalDateTime.now();
@@ -90,7 +90,7 @@ class MatchMakingServiceWithDAOTest {
     }
 
     @Test
-    @Transactional(propagation = Propagation.NEVER)
+//    @Transactional(propagation = Propagation.NEVER)
     void matchMaking_whenMatchExpected_thenAssertDtoField() {
         //given
         User takim = userRepository.findByUsername("takim").get();
