@@ -15,7 +15,7 @@ public interface OpinionMapper {
     @Mapping(target="opinionId", source = "apiId")
     @Mapping(target="userId", source = "memberAuthor.user.apiId")
     @Mapping(target="nickname", source = "memberAuthor.nickname")
-    @Mapping(target="parentId", source = "parentApiId")
+    @Mapping(target="parentId", source = "parentOpinion.apiId")
     @Mapping(target="createdAt", source = "createdAt")
     @Mapping(target="updatedAt", source = "updatedAt")
     OpinionResponse entityToOpinionResponse(Opinion opinion);

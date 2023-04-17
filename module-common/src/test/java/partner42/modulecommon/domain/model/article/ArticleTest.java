@@ -9,9 +9,8 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import partner42.modulecommon.domain.model.match.ContentCategory;
 import partner42.modulecommon.domain.model.matchcondition.ArticleMatchCondition;
+import partner42.modulecommon.domain.model.matchcondition.MatchCondition;
 import partner42.modulecommon.domain.model.member.Member;
-import partner42.modulecommon.domain.model.tryjudge.MatchTryAvailabilityJudge;
-import partner42.modulecommon.exception.ErrorCode;
 import partner42.modulecommon.exception.InvalidInputException;
 
 class ArticleTest {
@@ -35,48 +34,66 @@ class ArticleTest {
             () -> assertEquals(3, article.getParticipantNumMax()),
             () -> assertEquals(ContentCategory.MEAL, article.getContentCategory())
         );
-
     }
 
 
     @Test
     void update() {
         //given
-        LocalDate localDate = LocalDate.of(2022, 10, 10);
-        Article article1 = Article.of(localDate, "title", "content", false, 3,
+        Article article1 = Article.of(LocalDate.of(2022, 10, 10), "title", "content", false, 3,
             ContentCategory.MEAL);
         List<ArticleMatchCondition> articleMatchConditionsBefore = List.of(
             ArticleMatchCondition.of(null, article1));
-        String title = "titleChange";
-        String content = "contentChange";
-        Integer participantNumMax = 4;
-        List<ArticleMatchCondition> articleMatchConditionsAfter = List.of(
+
+        LocalDate changedDate = LocalDate.now();
+        String titleChanged = "titleChange";
+        String contentChanged = "contentChange";
+        ContentCategory changedCC = ContentCategory.STUDY;
+        Integer changedParticipantNumMax = 4;
+        List<ArticleMatchCondition> changedArticleMatchConditions = List.of(
             ArticleMatchCondition.of(null, article1),
             ArticleMatchCondition.of(null, article1)
-
         );
         //when
-        article1.update(localDate, title
-            , content, participantNumMax, articleMatchConditionsAfter);
+        article1.update(changedDate, titleChanged, contentChanged, true, changedParticipantNumMax,
+            changedCC, changedArticleMatchConditions);
+
         //then
-        assertAll(
-            () -> assertEquals(4, article1.getParticipantNumMax()),
-            () -> assertFalse(article1.getIsComplete()),
-            () -> assertFalse(article1.getIsDeleted()),
-            () -> assertEquals(1, article1.getParticipantNum()),
-            () -> assertEquals(localDate, article1.getDate()),
-            () -> assertEquals(title, article1.getTitle()),
-            () -> assertEquals(content, article1.getContent()),
-            () -> assertFalse(article1.getAnonymity()),
-            () -> assertEquals(4, article1.getParticipantNumMax()),
-            () -> assertEquals(ContentCategory.MEAL, article1.getContentCategory()),
-            () -> assertEquals(2, article1.getArticleMatchConditions().size())
-        );
-        assertThatThrownBy(() ->
-            article1.update(localDate, title
-                , content, 1, articleMatchConditionsAfter));
+        assertThat(article1)
+            .extracting(Article::getDate, Article::getTitle, Article::getContent,
+                Article::getAnonymity, Article::getParticipantNumMax, Article::getContentCategory,
+                Article::getArticleMatchConditions, Article::getIsDeleted, Article::getIsComplete)
+            .containsExactly(changedDate, titleChanged, contentChanged, true,
+                changedParticipantNumMax, changedCC, changedArticleMatchConditions, false, false);
+        assertThat(article1.getArticleMatchConditions()).hasSize(2);
+
     }
 
+    @Test
+    void update_whenUpdateParticipantMaxNumWithLowValue_thenThrow() {
+        //given
+        Article article1 = Article.of(LocalDate.of(2022, 10, 10), "title", "content", false, 3,
+            ContentCategory.MEAL);
+        List<ArticleMatchCondition> articleMatchConditionsBefore = List.of(
+            ArticleMatchCondition.of(null, article1));
+
+        LocalDate changedDate = LocalDate.now();
+        String titleChanged = "titleChange";
+        String contentChanged = "contentChange";
+        ContentCategory changedCC = ContentCategory.STUDY;
+        Integer changedParticipantNumMax = 4;
+        List<ArticleMatchCondition> changedArticleMatchConditions = List.of(
+            ArticleMatchCondition.of(null, article1),
+            ArticleMatchCondition.of(null, article1)
+        );
+        //when
+        //then
+        assertThatThrownBy(() ->
+            article1.update(changedDate, titleChanged, contentChanged, true,
+                0,
+                changedCC, changedArticleMatchConditions))
+            .isInstanceOf(InvalidInputException.class);
+    }
 
     @Test
     void participateMember() {
@@ -93,9 +110,9 @@ class ArticleTest {
         Article articleOverParticipantNum = Article.of(localDate, "title", "content", false, 2,
             ContentCategory.MEAL);
 
-        Member takim = Member.of("takim", MatchTryAvailabilityJudge.of());
-        Member sorkim = Member.of("sorkim", MatchTryAvailabilityJudge.of());
-        Member dum = Member.of("dum", MatchTryAvailabilityJudge.of());
+        Member takim = Member.of("takim");
+        Member sorkim = Member.of("sorkim");
+        Member dum = Member.of("dum");
 
         ArticleMember.of(takim, true, article1);
         ArticleMember.of(takim, true, articleDelete);
@@ -106,12 +123,11 @@ class ArticleTest {
         //when
         ArticleMember articleMember = article1.participateMember(sorkim);
         articleDelete.recoverableDelete();
-        articleComplete.complete();
+        articleComplete.completeArticleWhenMatchDecided();
         articleParticipatedMember.participateMember(sorkim);
         articleOverParticipantNum.participateMember(sorkim);
 
         //then
-
         assertAll(
             () -> assertThatThrownBy(() ->
                 articleDelete.participateMember(sorkim)),
@@ -134,8 +150,6 @@ class ArticleTest {
 
     @Test
     void participateCancelMember() {
-
-
         //given
         LocalDate localDate = LocalDate.of(2022, 10, 10);
         Article articleUnParticipated = Article.of(localDate, "title", "content", false, 3,
@@ -148,8 +162,8 @@ class ArticleTest {
             ContentCategory.MEAL);
 
 
-        Member takim = Member.of("takim", MatchTryAvailabilityJudge.of());
-        Member sorkim = Member.of("sorkim", MatchTryAvailabilityJudge.of());
+        Member takim = Member.of("takim");
+        Member sorkim = Member.of("sorkim");
         ArticleMember.of(takim, true, articleUnParticipated);
         ArticleMember.of(takim, true, articleDelete);
         ArticleMember.of(takim, true, articleComplete);
@@ -157,7 +171,7 @@ class ArticleTest {
 
         //when
         articleDelete.recoverableDelete();
-        articleComplete.complete();
+        articleComplete.completeArticleWhenMatchDecided();
         articleParticipatedMember.participateMember(sorkim);
         ArticleMember articleMember = articleParticipatedMember.participateCancelMember(sorkim);
 
@@ -173,7 +187,6 @@ class ArticleTest {
             () -> assertThat(articleParticipatedMember.getParticipatedMembers().size()).isEqualTo(0),
             () -> assertThat(articleParticipatedMember.getAuthorMember().getNickname()).isEqualTo(takim.getNickname()),
             () -> assertThat(articleParticipatedMember.getParticipantNum()).isEqualTo(1),
-
             () -> assertThat(articleMember.getMember().getNickname()).isEqualTo(sorkim.getNickname())
 
         );

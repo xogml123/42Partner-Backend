@@ -12,8 +12,8 @@
 //import org.springframework.stereotype.Component;
 //import partner42.modulecommon.domain.model.random.RandomMatch;
 //import partner42.modulecommon.repository.random.RandomMatchRedisRepository;
-//import partner42.modulecommon.utils.CustomTimeUtils;
-//import partner42.modulecommon.utils.RandomUtils;
+//import partner42.modulecommon.testutils.CustomTimeUtils;
+//import partner42.modulecommon.testutils.RandomUtils;
 //
 //@Slf4j
 //@RequiredArgsConstructor

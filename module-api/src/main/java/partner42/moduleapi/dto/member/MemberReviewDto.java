@@ -24,14 +24,12 @@ public class MemberReviewDto {
     @Size(min = 1, max = 100)
     private String nickname;
 
-    @Schema(name = "activityMatchScore", example = "MATCH_REVIEW_1(\"매치 리뷰 1점\", -10),\n"
-        + "    MATCH_REVIEW_2(\"매치 리뷰 2점\", 0),\n"
-        + "    MATCH_REVIEW_3(\"매치 리뷰 3점\", 10),\n"
-        + "    MATCH_REVIEW_4(\"매치 리뷰 4점\", 20),\n"
-        + "    MATCH_REVIEW_5(\"매치 리뷰 5점\", 42),\n"
-        + "    MATCH_ABSENT(\"매치 불참\", -200),", description = "왼쪽 영어 하나 입력")
+    @Schema(name = "activityMatchScore", example = "MATCH_REVIEW_1", description = "MATCH_REVIEW_1(\"매치 리뷰 1점\"),\n"
+        + "    MATCH_REVIEW_2(\"매치 리뷰 2점\"),\n"
+        + "    MATCH_REVIEW_3(\"매치 리뷰 3점\"),\n"
+        + "    MATCH_REVIEW_4(\"매치 리뷰 4점\"),\n"
+        + "    MATCH_REVIEW_5(\"매치 리뷰 5점\"),\n"
+        + "    MATCH_ABSENT(\"매치 불참\"),")
     @NotNull
     private ActivityMatchScore activityMatchScore;
-
-
 }

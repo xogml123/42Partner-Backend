@@ -32,11 +32,6 @@ import partner42.modulecommon.domain.model.member.Member;
 public class Activity extends BaseEntity {
     //********************************* static final 상수 필드 *********************************/
 
-    /**
-     * email 뒤에 붙는 문자열
-     */
-
-
     /********************************* PK 필드 *********************************/
 
     /**
@@ -47,13 +42,8 @@ public class Activity extends BaseEntity {
     @Column(name = "ACTIVITY_ID")
     private Long id;
 
-
     /********************************* PK가 아닌 필드 *********************************/
 
-
-
-    @Column(nullable = false, updatable = false)
-    private Integer score;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, updatable = false)
@@ -61,7 +51,7 @@ public class Activity extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, updatable = false)
-    private ActivityType activityType;
+    private ActivityMatchScore activityMatchScore;
 
 
     /********************************* 비영속 필드 *********************************/
@@ -72,22 +62,16 @@ public class Activity extends BaseEntity {
     @JoinColumn(name = "MEMBER_ID", nullable = false, updatable = false)
     private Member member;
 
-
-
-
-
-
     /********************************* 연관관계 편의 메서드 *********************************/
 
     /********************************* 생성 메서드 *********************************/
 
-    public static Activity of(Member member, Integer score, ContentCategory contentCategory,
-        ActivityType activityType) {
+    public static Activity of(Member member, ContentCategory contentCategory,
+        ActivityMatchScore activityMatchScore) {
         return Activity.builder()
             .member(member)
-            .score(score)
             .contentCategory(contentCategory)
-            .activityType(activityType)
+            .activityMatchScore(activityMatchScore)
             .build();
     }
 

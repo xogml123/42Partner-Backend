@@ -48,7 +48,7 @@ public class UserService {
 
 
     public UserDto findById(String userId, String username) {
-        verifyUserIsNotMe(userId, username);
+        verifyUserIsMe(userId, username);
         User user = userRepository.findByApiId(userId).orElseThrow(() ->
             new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
 
@@ -58,7 +58,7 @@ public class UserService {
     @Transactional
     public UserOnlyIdResponse updateEmail(String userId, UserUpdateRequest userUpdateRequest,
         String username) {
-        verifyUserIsNotMe(userId, username);
+        verifyUserIsMe(userId, username);
 
         User user = userRepository.findByApiId(userId).orElseThrow(() ->
             new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
@@ -66,25 +66,29 @@ public class UserService {
         return userMapper.entityToUserOnlyIdResponse(user);
     }
 
-    private void verifyUserIsNotMe(String userId, String username) {
-        User user = userRepository.findByUsername(username)
-            .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
+    private void verifyUserIsMe(String userId, String username) {
+        User user = getUserByUsernameOrException(username);
         User userTarget = userRepository.findByApiId(userId).orElseThrow(() ->
             new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
-        if (!user.getUserRoles().stream()
-            .map(UserRole::getRole)
-            .map(Role::getValue)
-            .collect(Collectors.toSet())
-            .contains(RoleEnum.ROLE_ADMIN) &&
-            !userTarget.equals(user)) {
+        if (user.hasRole(RoleEnum.ROLE_ADMIN)){
+            return ;
+        }
+        if (!userTarget.equals(user)) {
             throw new InvalidInputException(ErrorCode.NOT_MINE);
         }
     }
 
+    private User getUserByUsernameOrException(String username) {
+        return userRepository.findByUsername(username)
+            .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
+    }
+
     /**
-     * 1. refreshToken 해독 하면서 유효성 및  token 만료 인지 검사(access_token과 다르게 만료이거나 유효성 없거나 동등하게 401로 처리) 2.
-     * subject로 유저 찾아서 isAvailable 값 true인지 확인. 3. 1, 2중 하나라도 걸리면 401 4. 1, 2 모두 통과하면 access_token
-     * 재발급
+     * 1. refreshToken 해독 하면서 유효성 및  token 만료 인지 검사 기본
+     * access_token과 다르게 만료인 경우와 유효성 없는 경우 동등하게 401로 처리)
+     * 2.subject로 유저 찾아서 isAvailable 값 true인지 확인.
+     * 3. 1, 2중 하나라도 걸리면 401
+     * 4. 1, 2 모두 통과하면 access_token 재발급
      *
      * @param refreshToken
      * @return
@@ -97,8 +101,6 @@ public class UserService {
             //JWT 토큰 검증 실패하면 JWTVerificationException 발생
             jwtInfo = JWTUtil.decodeToken(algorithm, refreshToken);
             log.debug(jwtInfo.toString());
-
-            //refresh token 이 만료되었거나 적절하지 않은 경우 401
         } catch (JWTVerificationException jwtException) {
             log.debug("JWT Verification Failure : {}", jwtException.getMessage());
             throw new InvalidInputException(ErrorCode.INVALID_REFRESH_TOKEN);
@@ -118,8 +120,7 @@ public class UserService {
     }
 
     private User getUserFromJWTInfo(JWTInfo jwtInfo) {
-        User user = userRepository.findByUsername(jwtInfo.getUsername())
-            .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
+        User user = getUserByUsernameOrException(jwtInfo.getUsername());
         if (!user.getIsAvailable()) {
             throw new InvalidInputException(ErrorCode.USER_TOKEN_NOT_AVAILABLE);
         }

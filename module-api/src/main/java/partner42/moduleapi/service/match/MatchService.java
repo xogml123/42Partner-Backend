@@ -1,42 +1,32 @@
 package partner42.moduleapi.service.match;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import partner42.moduleapi.dto.match.MatchDto;
 import partner42.moduleapi.dto.match.MatchReviewRequest;
 import partner42.moduleapi.dto.matchcondition.MatchConditionDto;
-import partner42.moduleapi.dto.member.MemberDto;
 import partner42.moduleapi.dto.member.MemberReviewDto;
 import partner42.moduleapi.mapper.MemberMapper;
 import partner42.modulecommon.domain.model.activity.Activity;
 import partner42.modulecommon.domain.model.activity.ActivityMatchScore;
-import partner42.modulecommon.domain.model.activity.ActivityType;
-import partner42.modulecommon.domain.model.article.Article;
 import partner42.modulecommon.domain.model.match.Match;
-import partner42.modulecommon.domain.model.match.MatchMember;
 import partner42.modulecommon.domain.model.matchcondition.MatchCondition;
 import partner42.modulecommon.domain.model.matchcondition.Place;
 import partner42.modulecommon.domain.model.matchcondition.TimeOfEating;
 import partner42.modulecommon.domain.model.matchcondition.TypeOfStudy;
 import partner42.modulecommon.domain.model.matchcondition.WayOfEating;
 import partner42.modulecommon.domain.model.member.Member;
-import partner42.modulecommon.domain.model.user.Role;
-import partner42.modulecommon.domain.model.user.RoleEnum;
 import partner42.modulecommon.domain.model.user.User;
-import partner42.modulecommon.domain.model.user.UserRole;
-import partner42.modulecommon.exception.BusinessException;
 import partner42.modulecommon.exception.ErrorCode;
 import partner42.modulecommon.exception.NoEntityException;
-import partner42.modulecommon.exception.NotAuthorException;
 import partner42.modulecommon.repository.activity.ActivityRepository;
 import partner42.modulecommon.repository.match.MatchRepository;
 import partner42.modulecommon.repository.match.MatchSearch;
@@ -58,11 +48,9 @@ public class MatchService {
 
     public SliceImpl<MatchDto> readMyMatches(String username, MatchSearch matchSearch,
         Pageable pageable) {
-        Member member = userRepository.findByUsername(username)
-            .orElseThrow(() ->
-                new NoEntityException(ErrorCode.ENTITY_NOT_FOUND))
+        Member member = getUserByUsernameOrException(username)
             .getMember();
-        Slice<Match> matchSlices = matchRepository.findAllFetchJoinMatchMemberId(
+        Slice<Match> matchSlices = matchRepository.findAllMatchByMemberIdAndByMatchSearch(
             member.getId(), matchSearch, pageable);
         List<MatchDto> content = matchSlices
             .getContent()
@@ -85,13 +73,7 @@ public class MatchService {
                                 member.equals(matchMember.getMember()))
                         )
                         .collect(Collectors.toList()),
-                    match.getMatchMembers().stream()
-                        .filter((matchMember) ->
-                            member.equals(matchMember.getMember())
-                        ).findFirst()
-                        .orElseThrow(() ->
-                            new NoEntityException(ErrorCode.ENTITY_NOT_FOUND))
-                        .getIsReviewed()
+                    match.isMemberReviewingBefore(member)
                 );
             })
             .collect(Collectors.toList());
@@ -99,18 +81,20 @@ public class MatchService {
         return new SliceImpl<MatchDto>(content, matchSlices.getPageable(), matchSlices.hasNext());
     }
 
+    private User getUserByUsernameOrException(String username) {
+        return userRepository.findByUsername(username)
+            .orElseThrow(() ->
+                new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
+    }
+
     public MatchDto readOneMatch(String username, String matchId) {
         //자기 매치인지 확인
-        verifyNotMatchParticipated(username, matchId);
-
-        Member member = userRepository.findByUsername(username)
-            .orElseThrow(() ->
-                new NoEntityException(ErrorCode.ENTITY_NOT_FOUND))
-            .getMember();
-
+        Member member = getUserByUsernameOrException(username).getMember();
         Match match = matchRepository.findByApiId(matchId)
             .orElseThrow(() ->
                 new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
+        match.verifyMemberParticipatedInMatchOrAdmin(member);
+
         List<MatchCondition> matchConditions = match.getMatchConditionMatches().stream()
             .map((matchConditionMatch) ->
                 matchConditionMatch.getMatchCondition()
@@ -127,96 +111,32 @@ public class MatchService {
                         member.equals(matchMember.getMember()))
                 )
                 .collect(Collectors.toList()),
-            match.getMatchMembers().stream()
-                .filter((matchMember) ->
-                    member.equals(matchMember.getMember())
-                ).findFirst()
-                .orElseThrow(() ->
-                    new NoEntityException(ErrorCode.ENTITY_NOT_FOUND))
-                .getIsReviewed()
+            match.isMemberReviewingBefore(member)
         );
     }
 
 
-    public ResponseEntity<Void> makeReview(String username, String matchId,
+    @Transactional
+    public List<Activity> makeReview(String username, String matchId,
         MatchReviewRequest request) {
-        verifyNotMatchParticipated(username, matchId);
-
-        verifyReviewedMemberNotInMatch(matchId, request.getMemberReviewDtos().stream()
-            .map(MemberReviewDto::getNickname)
-            .collect(Collectors.toList()));
-
         Match match = matchRepository.findByApiId(matchId)
             .orElseThrow(() ->
                 new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
-        //uesrname에 해당하는 matchMember의 매칭상태 true로 변경.
-        match.getMatchMembers().stream()
-            .filter(mm ->
-                mm.getMember().getUser().getUsername().equals(username))
-            .findAny()
-            .orElseThrow(() ->
-                new NoEntityException(ErrorCode.ENTITY_NOT_FOUND))
-            .updateReviewStatusTrue();
-        //리뷰 작성자 참여 점수 추가.
-        Member memberReviewAuthor = memberRepository.findByNickname(username)
-            .orElseThrow(() ->
-                new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
-        activityRepository.save(
-            Activity.of(memberReviewAuthor, ActivityMatchScore.MATCH_REVIEW.getScore(),
-                match.getContentCategory(),
-                ActivityType.MATCH));
-        /**
-         * 리뷰에 따라 점수 추가
-         */
-        List<Activity> activities = request.getMemberReviewDtos().stream()
-            .map((memberReviewDto) -> {
-                Member member = memberRepository.findByNickname(memberReviewDto.getNickname())
-                    .orElseThrow(() ->
-                        new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
-                return Activity.of(member, memberReviewDto.getActivityMatchScore().getScore(),
-                    match.getContentCategory(), ActivityType.MATCH);
-            })
-            .collect(Collectors.toList());
-        activityRepository.saveAll(activities);
-        return ResponseEntity.ok().build();
-    }
-
-    private void verifyReviewedMemberNotInMatch(String matchId, List<String> nicknames) {
-        Match match = matchRepository.findByApiId(matchId)
-            .orElseThrow(() ->
-                new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
-        Set<Member> memberSet = match.getMatchMembers()
-            .stream()
-            .map(MatchMember::getMember)
-            .collect(Collectors.toSet());
-        memberRepository.findAllByNicknameIn(nicknames)
-            .forEach((member) -> {
-                if (!memberSet.contains(member)) {
-                    throw new BusinessException(ErrorCode.REVIEWED_MEMBER_NOT_IN_MATCH);
-                }
-            });
-
-    }
-
-    //자기 매치인지 확인
-    private void verifyNotMatchParticipated(String username, String matchId) {
-
-        User user = userRepository.findByUsername(username)
-            .orElseThrow(() ->
-                new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
-        Match match = matchRepository.findByApiId(matchId)
-            .orElseThrow(() ->
-                new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
-        if (!user.getUserRoles().stream()
-            .map(UserRole::getRole)
-            .map(Role::getValue)
-            .collect(Collectors.toSet())
-            .contains(RoleEnum.ROLE_ADMIN) &&
-            !match.getMatchMembers().stream()
-                .map(MatchMember::getMember)
-                .collect(Collectors.toSet())
-                .contains(user.getMember())) {
-            throw new BusinessException(ErrorCode.NOT_MATCH_PARTICIPATED);
+        User reviewingUser = getUserByUsernameOrException(username);
+        Map<String, ActivityMatchScore> nicknameActivityScoreMap = request.getMemberReviewDtos().stream()
+            .collect(Collectors.toMap(MemberReviewDto::getNickname,
+                MemberReviewDto::getActivityMatchScore));
+        List<Member> reviewedTargets = memberRepository.findAllByNicknameIn(
+            new ArrayList<>(nicknameActivityScoreMap.keySet()));
+        // request의 nickname이 member에 없는 경우
+        if (reviewedTargets.size() != nicknameActivityScoreMap.size()) {
+            throw new NoEntityException(ErrorCode.ENTITY_NOT_FOUND);
         }
+        List<Activity> createdActivities = match.makeReview(reviewingUser.getMember(),
+            reviewedTargets.stream()
+                .collect(Collectors.toMap(m -> m,
+                    m -> nicknameActivityScoreMap.get(m.getNickname()))));
+        return activityRepository.saveAll(createdActivities);
     }
+
 }

@@ -4,7 +4,10 @@ package partner42.modulecommon.domain.model.match;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -15,7 +18,6 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
@@ -26,11 +28,12 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import partner42.modulecommon.domain.model.BaseEntity;
+import partner42.modulecommon.domain.model.activity.Activity;
+import partner42.modulecommon.domain.model.activity.ActivityMatchScore;
 import partner42.modulecommon.domain.model.article.Article;
-import partner42.modulecommon.domain.model.article.ArticleMember;
 import partner42.modulecommon.domain.model.matchcondition.MatchConditionMatch;
 import partner42.modulecommon.domain.model.member.Member;
-import partner42.modulecommon.domain.model.random.RandomMatch;
+import partner42.modulecommon.domain.model.user.RoleEnum;
 import partner42.modulecommon.exception.BusinessException;
 import partner42.modulecommon.exception.ErrorCode;
 
@@ -47,10 +50,8 @@ import partner42.modulecommon.exception.ErrorCode;
 public class Match extends BaseEntity {
     //********************************* static final 상수 필드 *********************************/
 
-    /**
-     * email 뒤에 붙는 문자열
-     */
 
+    private static final int REVIEW_AVAILABLE_MINUTE = 30;
 
     /********************************* PK 필드 *********************************/
 
@@ -73,9 +74,10 @@ public class Match extends BaseEntity {
     @Column(nullable = false, updatable = false, length = 50)
     private final String apiId = UUID.randomUUID().toString();
 
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, updatable = false)
-    private MatchStatus matchStatus;
+    private MatchStatus matchStatus = MatchStatus.MATCHED;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, updatable = false)
@@ -88,8 +90,6 @@ public class Match extends BaseEntity {
     @Column(nullable = false)
     private Integer participantNum;
 
-
-
     /********************************* 비영속 필드 *********************************/
 
     /********************************* 연관관계 매핑 *********************************/
@@ -101,20 +101,12 @@ public class Match extends BaseEntity {
     @JoinColumn(name = "ARTICLE_ID", updatable = false)
     private Article article;
 
-    /**
-     * Random으로 매칭이 맺어지는 경우
-     */
     @Builder.Default
-    @OneToMany(mappedBy = "match", fetch = FetchType.LAZY)
-    private List<RandomMatch> randomMatches = new ArrayList<>();
-
-
-    @Builder.Default
-    @OneToMany(mappedBy = "match", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "match", fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
     private List<MatchMember> matchMembers = new ArrayList<>();
 
     @Builder.Default
-    @OneToMany(mappedBy = "match", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "match", fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
     private List<MatchConditionMatch> matchConditionMatches = new ArrayList<>();
 
     /********************************* 연관관계 편의 메서드 *********************************/
@@ -134,16 +126,89 @@ public class Match extends BaseEntity {
     }
 
     /**
-     * 한시간 뒤에 매칭 리뷰 남길 수 있음.
+     * 30분 뒤에 매칭 리뷰 남길 수 있음.
      * @return
      */
     public LocalDateTime getReviewAvailableTime() {
-        return this.getCreatedAt().plusHours(1);
+        return this.getCreatedAt().plusMinutes(REVIEW_AVAILABLE_MINUTE);
     }
 
-
-
     /********************************* 비니지스 로직 *********************************/
+    public List<Activity> makeReview(Member reviewer, Map<Member, ActivityMatchScore> reviewedMemberScoreMap) {
 
+        verifyMemberParticipatedInMatchOrAdmin(reviewer);
+        verifyReviewedMemberIsInMatchAndNotReviewer(reviewer, reviewedMemberScoreMap.keySet());
+        //리뷰 작성자 매칭 참여 여부 true로 변경
+        matchMembers.stream()
+            .filter(mm ->
+                mm.getMember().equals(reviewer))
+            .findAny()
+            .orElseThrow(() ->
+                new IllegalArgumentException("해당 매치에 참여한 멤버가 아닙니다."))
+            .updateisReviewedToTrue();
+
+        List<Activity> activities = new ArrayList<>();
+        //리뷰 작성자 참여 점수 추가.
+        Activity reviewerActivity = Activity.of(reviewer,
+            contentCategory,
+            ActivityMatchScore.MAKE_MATCH_REVIEW);
+        activities.add(reviewerActivity);
+
+        // 리뷰에 따라 점수 추가
+        reviewedMemberScoreMap.forEach((member, score) -> {
+            Activity activity = Activity.of(member,
+                contentCategory,
+                score);
+            activities.add(activity);
+        });
+        return activities;
+    }
+    /**
+     * 자기가 참여한 매치인지 확인
+     * @param member
+     */
+    public void verifyMemberParticipatedInMatchOrAdmin(Member member) {
+        if (member.getUser().hasRole(RoleEnum.ROLE_ADMIN)){
+            return ;
+        }
+        if (!matchMembers.stream()
+                .map(MatchMember::getMember)
+                .collect(Collectors.toSet())
+                .contains(member)) {
+            throw new BusinessException(ErrorCode.NOT_MATCH_PARTICIPATED);
+        }
+    }
+
+    public Boolean isMemberReviewingBefore(Member member){
+        return getMatchMembers().stream()
+            .filter((mm) ->
+                member.equals(mm.getMember())
+            ).findFirst()
+            .orElseThrow(() ->
+                new IllegalArgumentException("해당 매치에 참여한 멤버가 아닙니다."))
+            .getIsReviewed();
+    }
+
+    /**
+     * 리뷰 대상자가 자기 자신이 아니고 매칭에 포함되어있는지 확인
+     * @param reviewer
+     * @param reviewedMemberSet
+     */
+    private void verifyReviewedMemberIsInMatchAndNotReviewer(Member reviewer, Set<Member> reviewedMemberSet) {
+
+        Set<Member> memberSet = this.getMatchMembers()
+            .stream()
+            .map(MatchMember::getMember)
+            .collect(Collectors.toSet());
+
+        reviewedMemberSet
+            .forEach((member) -> {
+                if (!memberSet.contains(member)) {
+                    throw new BusinessException(ErrorCode.REVIEWED_MEMBER_NOT_IN_MATCH);
+                }else if(reviewer.equals(member)){
+                    throw new BusinessException(ErrorCode.REVIEWING_SELF);
+                }
+            });
+    }
 }
 

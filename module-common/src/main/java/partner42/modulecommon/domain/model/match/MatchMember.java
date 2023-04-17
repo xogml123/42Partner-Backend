@@ -47,20 +47,13 @@ public class MatchMember extends BaseEntity {
     @Column(name = "MATCH_MEMBER_ID")
     private Long id;
 
-
     /********************************* PK가 아닌 필드 *********************************/
-
-
     @Column(name = "IS_AUTHOR", nullable = false, updatable = false)
     private Boolean isAuthor;
 
     @Builder.Default
     @Column(nullable = false)
     private Boolean isReviewed = false;
-
-
-
-
 
 
     /********************************* 비영속 필드 *********************************/
@@ -96,7 +89,7 @@ public class MatchMember extends BaseEntity {
     /********************************* 비니지스 로직 *********************************/
 
 
-    public void updateReviewStatusTrue(){
+    public void updateisReviewedToTrue(){
         verifyAlreadyReviewed();
         this.isReviewed = true;
     }

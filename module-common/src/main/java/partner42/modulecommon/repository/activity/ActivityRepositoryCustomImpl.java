@@ -6,11 +6,10 @@ import static partner42.modulecommon.domain.model.activity.QActivity.activity;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.time.LocalDateTime;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
+import partner42.modulecommon.domain.model.activity.ActivityMatchScore;
 import partner42.modulecommon.domain.model.match.ContentCategory;
 
 @RequiredArgsConstructor
@@ -19,28 +18,17 @@ public class ActivityRepositoryCustomImpl implements ActivityRepositoryCustom {
 
     private final JPAQueryFactory queryFactory;
 
-//    @PersistenceContext
-//    private EntityManager em;
-//    private JPAQueryFactory queryFactory;
-//
-//    @Autowired
-//    public ActivityRepositoryCustomImpl() {
-//        this.queryFactory = new JPAQueryFactory(em);
-//    }
-
     @Override
-    public Integer findSumScoreByMemberIdAndArticleSearch(Long memberId,
+    public List<ActivityMatchScore> findActivityMatchScoreByMemberIdAndArticleSearch(Long memberId,
         ActivitySearch activitySearch) {
-        return queryFactory.select(
-                activity.score.sum()
-            )
+        return queryFactory.select(activity.activityMatchScore)
             .from(activity)
             .where(isContentCategory(activitySearch.getContentCategory()),
                 isMemberId(memberId),
                 goeStartTime(activitySearch.getStartTime()),
                 ltEndTime(activitySearch.getEndTime())
             )
-            .fetchFirst();
+            .fetch();
     }
 
     private BooleanExpression isContentCategory(ContentCategory contentCategory) {

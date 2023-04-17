@@ -3,7 +3,6 @@ name: CI-CD-DEV
 on:
   push:
     branches:
-#      - dev
       - release/1.0.0
 env:
   CONTEXT: dev
@@ -31,8 +30,8 @@ jobs:
 #          files: ${{ env.RESOURCE_PATH }}
 
       - run: mkdir -p ./module-api/src/main/resources
-      - run: touch ./module-api/src/main/resources/application.yml
-      - run: echo "${{ secrets.APPLICATION_DEV }}" > ./module-api/src/main/resources/application.yml
+      - run: touch ${{ env.RESOURCE_PATH }}
+      - run: echo "${{ secrets.APPLICATION_DEV }}" > ${{ env.RESOURCE_PATH }}
 
       - name: Grant execute permission for gradlew
         run: chmod +x ./module-api/gradlew

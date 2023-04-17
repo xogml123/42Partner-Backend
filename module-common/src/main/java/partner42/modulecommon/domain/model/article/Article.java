@@ -25,13 +25,20 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import partner42.modulecommon.domain.model.BaseEntity;
+import partner42.modulecommon.domain.model.activity.Activity;
+import partner42.modulecommon.domain.model.activity.ActivityMatchScore;
 import partner42.modulecommon.domain.model.match.ContentCategory;
+import partner42.modulecommon.domain.model.match.Match;
+import partner42.modulecommon.domain.model.match.MatchMember;
+import partner42.modulecommon.domain.model.match.MatchStatus;
+import partner42.modulecommon.domain.model.match.MethodCategory;
 import partner42.modulecommon.domain.model.matchcondition.ArticleMatchCondition;
+import partner42.modulecommon.domain.model.matchcondition.MatchConditionMatch;
 import partner42.modulecommon.domain.model.member.Member;
 import partner42.modulecommon.domain.model.opinion.Opinion;
+import partner42.modulecommon.exception.BusinessException;
 import partner42.modulecommon.exception.ErrorCode;
 import partner42.modulecommon.exception.InvalidInputException;
-import partner42.modulecommon.exception.UnmodifiableArticleException;
 
 
 @Builder(access = AccessLevel.PRIVATE)
@@ -42,15 +49,8 @@ import partner42.modulecommon.exception.UnmodifiableArticleException;
     @UniqueConstraint(name = "API_ID_UNIQUE", columnNames = {"apiId"}),
 })
 @Entity
-public class Article extends BaseEntity {
-
-//    @Autowired
-//    private
+public class Article extends BaseEntity{
     //********************************* static final 상수 필드 *********************************/
-
-    /**
-     * email 뒤에 붙는 문자열
-     */
 
     /********************************* PK 필드 *********************************/
 
@@ -73,8 +73,6 @@ public class Article extends BaseEntity {
      */
     @Version
     private Long version;
-
-
     /**
      * AUTH에 필요한 필드
      */
@@ -121,15 +119,14 @@ public class Article extends BaseEntity {
     /********************************* 연관관계 매핑 *********************************/
 
 
-    /*********************************  *********************************/
-
     @Builder.Default
     @OneToMany(mappedBy = "article", fetch = FetchType.LAZY, cascade = {CascadeType.REMOVE,
         CascadeType.PERSIST})
     private List<ArticleMatchCondition> articleMatchConditions = new ArrayList<>();
 
     @Builder.Default
-    @OneToMany(mappedBy = "article", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "article", fetch = FetchType.LAZY, cascade = {CascadeType.REMOVE,
+        CascadeType.PERSIST})
     private List<ArticleMember> articleMembers = new ArrayList<>();
 
     @Builder.Default
@@ -151,13 +148,11 @@ public class Article extends BaseEntity {
             .participantNumMax(participantNumMax)
             .contentCategory(contentCategory)
             .build();
-
     }
 
     /********************************* 비니지스 로직 *********************************/
-
-
-    public void update(LocalDate date, String title, String content, Integer participantNumMax,
+    public void update(LocalDate date, String title, String content, Boolean anonymity,
+        Integer participantNumMax, ContentCategory contentCategory,
         List<ArticleMatchCondition> articleMatchConditions) {
         verifyDeleted();
         verifyCompleted();
@@ -165,7 +160,9 @@ public class Article extends BaseEntity {
         this.date = date;
         this.title = title;
         this.content = content;
+        this.anonymity = anonymity;
         this.participantNumMax = participantNumMax;
+        this.contentCategory = contentCategory;
         this.getArticleMatchConditions().clear();
         for (ArticleMatchCondition articleMatchCondition : articleMatchConditions) {
             articleMatchCondition.setArticle(this);
@@ -188,14 +185,10 @@ public class Article extends BaseEntity {
             .map(ArticleMember::getMember)
             .collect(Collectors.toList());
     }
-
-
     public boolean isDateToday() {
         return this.date.isEqual(LocalDate.now());
 
     }
-
-
     private void verifyChangeableParticipantNumMax(Integer participantNumMax) {
         if (this.participantNum > participantNumMax) {
             throw new InvalidInputException(ErrorCode.NOT_CHANGEABLE_PARTICIPANT_NUM_MAX);
@@ -204,28 +197,21 @@ public class Article extends BaseEntity {
 
     private void verifyDeleted() {
         if (this.isDeleted) {
-            throw new UnmodifiableArticleException(ErrorCode.DELETED_ARTICLE);
+            throw new BusinessException(ErrorCode.DELETED_ARTICLE);
         }
     }
 
     private void verifyFull() {
         if (this.participantNum >= this.participantNumMax) {
-            throw new UnmodifiableArticleException(ErrorCode.FULL_ARTICLE);
-        }
-    }
-
-    private void verifyEmpty() {
-        if (this.participantNum <= 1) {
-            throw new UnmodifiableArticleException(ErrorCode.EMPTY_ARTICLE);
+            throw new BusinessException(ErrorCode.FULL_ARTICLE);
         }
     }
 
     private void verifyCompleted() {
         if (this.isComplete) {
-            throw new UnmodifiableArticleException(ErrorCode.COMPLETED_ARTICLE);
+            throw new BusinessException(ErrorCode.COMPLETED_ARTICLE);
         }
     }
-
 
     private void verifyParticipatedMember(Member member) {
 
@@ -246,17 +232,27 @@ public class Article extends BaseEntity {
     }
 
 
-    public void complete() {
+    public Match completeArticleWhenMatchDecided() {
         verifyDeleted();
         verifyCompleted();
         this.isComplete = true;
+        Match match = Match.of(MatchStatus.MATCHED, contentCategory,
+            MethodCategory.MANUAL,
+            this, participantNum);
+        articleMatchConditions
+            .forEach(arm ->
+                MatchConditionMatch.of(match, arm.getMatchCondition()));
+        articleMembers
+            .forEach(am ->
+                MatchMember.of(match, am.getMember(), am.getIsAuthor()));
+        return match;
     }
 
     public ArticleMember participateMember(Member member) {
         verifyDeleted();
         verifyCompleted();
-        verifyFull();
         verifyParticipatedMember(member);
+        verifyFull();
         ArticleMember participateMember = ArticleMember.of(member, false, this);
         this.participantNum++;
         return participateMember;
@@ -265,7 +261,6 @@ public class Article extends BaseEntity {
     public ArticleMember participateCancelMember(Member member) {
         verifyDeleted();
         verifyCompleted();
-        verifyEmpty();
         verifyUnParticipatedMember(member);
         verifyAuthorMember(member);
         ArticleMember participateMember = this.getArticleMembers().stream()
@@ -292,6 +287,18 @@ public class Article extends BaseEntity {
         this.isDeleted = true;
     }
 
+    public boolean isAuthorMember(Member member) {
+        return getAuthorMember().equals(member);
+    }
+
+    public List<Activity> activityScoreToParticipatingMember() {
+        return articleMembers.stream()
+            .map(am ->
+                Activity.of(am.getMember(),
+                    contentCategory, am.getIsAuthor() ? ActivityMatchScore.ARTICLE_MATCH_AUTHOR
+                        : ActivityMatchScore.MATCH_PARTICIPANT))
+            .collect(Collectors.toList());
+    }
 
     /********************************* Dto *********************************/
 

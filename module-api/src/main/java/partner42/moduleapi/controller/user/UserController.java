@@ -51,7 +51,7 @@ public class UserController {
     @PreAuthorize("hasAuthority('user.update')")
     @Operation(summary = "특정 유저 email수정", description = "특정 유저 email 수정")
     @PatchMapping("/users/{userId}/email")
-    public UserOnlyIdResponse getUserById(@PathVariable String userId,
+    public UserOnlyIdResponse updateUserEmail(@PathVariable String userId,
         @Validated @Parameter @RequestBody UserUpdateRequest userUpdateRequest,
         @ApiParam(hidden = true) @AuthenticationPrincipal UserDetails user) {
         return userService.updateEmail(userId, userUpdateRequest, user.getUsername());
@@ -66,7 +66,7 @@ public class UserController {
             throw new InvalidInputException(ErrorCode.REFRESH_TOKEN_NOT_IN_COOKIE);
         }
         String refreshToken = Arrays.stream(request.getCookies())
-            .filter(cookie -> cookie.getName().equals(JWTUtil.REFRESH_TOKEN))
+            .filter(cookie -> JWTUtil.isCookieNameRefreshToken(cookie))
             .map(Cookie::getValue)
             .findFirst().orElseThrow(() ->
                 new InvalidInputException(ErrorCode.REFRESH_TOKEN_NOT_IN_COOKIE));
@@ -76,6 +76,7 @@ public class UserController {
     }
 
 
+
     @Operation(summary = "admin Form 로그인", description = "username password 각각 자기 인트라 아이디로 하면 됩니다!")
     @PostMapping("/auth/login")
     public LoginResponseDto fakeLogin(@Validated @ModelAttribute UserLoginRequest request) {
@@ -83,6 +84,7 @@ public class UserController {
             "This method shouldn't be called. It's implemented by Spring Security filters.");
 
     }
+
 
 
 }
