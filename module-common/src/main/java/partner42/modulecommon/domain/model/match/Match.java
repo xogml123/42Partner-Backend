@@ -74,9 +74,10 @@ public class Match extends BaseEntity {
     @Column(nullable = false, updatable = false, length = 50)
     private final String apiId = UUID.randomUUID().toString();
 
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, updatable = false)
-    private MatchStatus matchStatus;
+    private MatchStatus matchStatus = MatchStatus.MATCHED;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, updatable = false)

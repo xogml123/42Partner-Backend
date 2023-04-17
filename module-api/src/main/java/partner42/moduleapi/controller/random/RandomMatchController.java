@@ -4,6 +4,7 @@ import io.swagger.annotations.ApiParam;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import java.time.LocalDateTime;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -19,14 +20,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import partner42.moduleapi.dto.random.RandomMatchCountResponse;
 import partner42.moduleapi.dto.random.RandomMatchExistDto;
-import partner42.moduleapi.dto.matchcondition.MatchConditionRandomMatchDto;
 import partner42.moduleapi.dto.random.RandomMatchCancelRequest;
 import partner42.moduleapi.dto.random.RandomMatchDto;
 import partner42.moduleapi.dto.random.RandomMatchParam;
 import partner42.moduleapi.service.random.RandomMatchService;
-import partner42.modulecommon.domain.model.match.ContentCategory;
-import partner42.modulecommon.exception.ErrorCode;
-import partner42.modulecommon.exception.InvalidInputException;
+import partner42.modulecommon.domain.model.random.RandomMatch;
+import partner42.moduleapi.producer.random.MatchMakingEvent;
+import partner42.moduleapi.producer.random.RandomMatchProducer;
 import partner42.modulecommon.utils.CustomTimeUtils;
 
 @Slf4j
@@ -36,19 +36,18 @@ import partner42.modulecommon.utils.CustomTimeUtils;
 public class RandomMatchController {
 
     private final RandomMatchService randomMatchService;
-
+    private final RandomMatchProducer randomMatchProducer;
     @PreAuthorize("hasAuthority('random-match.create')")
     @Operation(summary = "랜덤 매칭 신청", description = "랜덤 매칭 신청")
     @PostMapping("/random-matches")
     public ResponseEntity<Void> applyRandomMatch(
         @ApiParam(hidden = true) @AuthenticationPrincipal UserDetails user,
         @Validated @Parameter @RequestBody RandomMatchDto randomMatchDto) {
-        //contentCategory에 따라 필드 검증
-        verifyRandomMatchDtoHasEmptyField(randomMatchDto);
         LocalDateTime now = CustomTimeUtils.nowWithoutNano();
-        randomMatchService.createRandomMatch(user.getUsername(), randomMatchDto, now);
+        List<RandomMatch> randomMatch = randomMatchService.createRandomMatch(user.getUsername(),
+            randomMatchDto, now);
+        randomMatchProducer.send(randomMatchDto.createMatchMakingEvent(now));
         return ResponseEntity.status(HttpStatus.CREATED).build();
-
     }
 
     @PreAuthorize("hasAuthority('random-match.delete')")
@@ -91,12 +90,4 @@ public class RandomMatchController {
         return randomMatchService.readRandomMatchCondition(user.getUsername(), randomMatchCancelRequest, now);
     }
 
-    private void verifyRandomMatchDtoHasEmptyField(RandomMatchDto randomMatchDto) {
-        ContentCategory contentCategory = randomMatchDto.getContentCategory();
-        MatchConditionRandomMatchDto matchConditionRandomMatchDto = randomMatchDto.getMatchConditionRandomMatchDto();
-        if ((contentCategory == ContentCategory.MEAL && !matchConditionRandomMatchDto.getTypeOfStudyList().isEmpty()) ||
-            (contentCategory == ContentCategory.STUDY && !matchConditionRandomMatchDto.getWayOfEatingList().isEmpty())) {
-            throw new InvalidInputException(ErrorCode.MATCH_CONDITION_NOT_EMPTY);
-        }
-    }
 }

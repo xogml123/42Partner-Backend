@@ -1,11 +1,10 @@
 package partner42.moduleapi.dto;
 
-import java.util.ArrayList;
 import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
-import partner42.modulecommon.config.kafka.AlarmEvent;
+import partner42.moduleapi.config.kafka.AlarmEvent;
 
 @Getter
 @Setter

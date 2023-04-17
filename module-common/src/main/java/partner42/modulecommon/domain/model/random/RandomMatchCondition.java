@@ -1,5 +1,6 @@
 package partner42.modulecommon.domain.model.random;
 
+import java.io.Serializable;
 import java.util.Comparator;
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
@@ -28,8 +29,9 @@ import partner42.modulecommon.domain.model.random.RandomMatch.MatchConditionComp
 @Getter
 @Embeddable
 @EqualsAndHashCode
-public class RandomMatchCondition implements Comparable<RandomMatchCondition> {
+public class RandomMatchCondition implements Comparable<RandomMatchCondition>, Serializable {
 
+    private static final long serialVersionUID = 1L;
     @Enumerated(value = EnumType.STRING)
     @Column(nullable = false, updatable = false)
     private ContentCategory contentCategory;
