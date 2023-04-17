@@ -8,32 +8,47 @@ import java.util.concurrent.CountDownLatch;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Import;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import partner42.moduleapi.config.TestBootstrapConfig;
+import partner42.moduleapi.config.kafka.KafkaConsumerConfig;
+import partner42.moduleapi.config.kafka.KafkaProducerConfig;
+import partner42.moduleapi.config.kafka.KafkaTopicConfig;
 import partner42.moduleapi.dto.article.ArticleDto;
 import partner42.moduleapi.dto.article.ArticleOnlyIdResponse;
 import partner42.moduleapi.dto.matchcondition.MatchConditionDto;
 import partner42.moduleapi.testutils.WorkerWithCountDownLatch;
+import partner42.modulecommon.config.redis.LettuceConnectionConfig;
+import partner42.modulecommon.domain.model.article.Article;
 import partner42.modulecommon.domain.model.match.ContentCategory;
-import partner42.modulecommon.producer.AlarmProducer;
 import partner42.modulecommon.repository.article.ArticleRepository;
+import partner42.modulecommon.repository.articlemember.ArticleMemberRepository;
 import partner42.modulecommon.repository.member.MemberRepository;
 
+
 @SpringBootTest
-@Import(TestBootstrapConfig.class)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@Import({TestBootstrapConfig.class})
 @Slf4j
 class ArticleServiceOptimisticLockingWithDaoTest {
-
     @Autowired
     private ArticleService articleService;
     @Autowired
     private MemberRepository memberRepository;
     @Autowired
     private ArticleRepository articleRepository;
+    @Autowired
+    private ArticleMemberRepository articleMemberRepository;
 
     /**
      * 낙관적 락 AOP처리 제대로 동작하는지 확인
@@ -58,6 +73,7 @@ class ArticleServiceOptimisticLockingWithDaoTest {
 
         ArticleOnlyIdResponse articleOnlyIdResponse = articleService.createArticle("takim",
             articleDto);
+
         Thread.sleep(100);
         //when
         CountDownLatch countDownLatch = new CountDownLatch(1);
@@ -65,6 +81,7 @@ class ArticleServiceOptimisticLockingWithDaoTest {
         WorkerWithCountDownLatch sorkimParticipate = new WorkerWithCountDownLatch(
             "sorkim participate", countDownLatch, () ->
         {
+
             articleService.participateArticle("sorkim",
                 articleOnlyIdResponse.getArticleId());
         });
@@ -90,7 +107,9 @@ class ArticleServiceOptimisticLockingWithDaoTest {
         assertThat(
             articleRepository.findByApiIdAndIsDeletedIsFalse(articleOnlyIdResponse.getArticleId()).get()
                 .getParticipantNum()).isEqualTo(3);
-
+        assertThat(
+            articleMemberRepository.findByArticleApiId(articleOnlyIdResponse.getArticleId())
+        ).hasSize(3);
     }
 
 }

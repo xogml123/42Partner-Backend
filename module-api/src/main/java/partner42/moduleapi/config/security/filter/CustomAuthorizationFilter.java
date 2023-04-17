@@ -54,6 +54,8 @@ public class CustomAuthorizationFilter extends OncePerRequestFilter {
     private String secret;
     private final static List<String> TOKEN_IN_PARAM_URLS = List.of("/api/alarm/subscribe");
     private static final String BEARER = "Bearer ";
+    private static final String ACCESS_TOKEN_KEY = "accessToken";
+
 
     /**
      * 인증 시 Authorization header에 Bearer 토큰을 담아서 보내기 때문에
@@ -71,7 +73,9 @@ public class CustomAuthorizationFilter extends OncePerRequestFilter {
         String authorizationHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
         if (TOKEN_IN_PARAM_URLS.contains(request.getRequestURI())) {
             log.info("Request with {} check the query param", request.getRequestURI());
-            token = request.getQueryString().split("=")[1].trim();
+            if (request.getQueryString() != null && request.getQueryString().contains(ACCESS_TOKEN_KEY)) {
+                token = request.getQueryString().split("=")[1].trim();
+            }
         }else if (authorizationHeader != null && authorizationHeader.startsWith(BEARER)) {
             token = getToken(authorizationHeader);
         }

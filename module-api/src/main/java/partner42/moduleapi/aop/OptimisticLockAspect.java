@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Slf4j
 @Order(Ordered.LOWEST_PRECEDENCE - 1)
+//@Order(1)
 @Aspect
 public class OptimisticLockAspect {
 

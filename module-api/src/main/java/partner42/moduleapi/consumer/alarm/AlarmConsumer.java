@@ -1,6 +1,4 @@
-package partner42.moduleapi.consumer;
-
-import static org.apache.kafka.clients.consumer.ConsumerConfig.AUTO_OFFSET_RESET_CONFIG;
+package partner42.moduleapi.consumer.alarm;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -9,7 +7,7 @@ import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 import partner42.moduleapi.service.alarm.AlarmService;
-import partner42.modulecommon.config.kafka.AlarmEvent;
+import partner42.moduleapi.config.kafka.AlarmEvent;
 
 @Slf4j
 @Component
