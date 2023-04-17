@@ -96,6 +96,9 @@ public class RandomMatch extends BaseEntity implements Serializable {
     public static class MatchConditionComparator implements Comparator<RandomMatch> {
         @Override
         public int compare(RandomMatch o1, RandomMatch o2) {
+            if (o1.getRandomMatchCondition().compareTo(o2.getRandomMatchCondition()) == 0){
+                return o1.getCreatedAt().compareTo(o2.getCreatedAt());
+            }
             return o1.getRandomMatchCondition().compareTo(o2.getRandomMatchCondition());
         }
     }

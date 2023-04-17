@@ -12,8 +12,6 @@ public interface RandomMatchRepositoryCustom {
     List<RandomMatch> findForUpdateByCreatedAtAfterAndIsExpiredAndMemberIdAndContentCategory(RandomMatchSearch randomMatchSearch);
     List<RandomMatch> findByCreatedAtAfterAndIsExpiredAndMemberIdAndContentCategory(RandomMatchSearch randomMatchSearch);
 
-
-
     List<RandomMatch> findForUpdateByCreatedAtAfterAndIsExpiredAndRandomMatchConditionAndSortedByCreatedAtASC(
         LocalDateTime createdAt,
         Boolean isExpired,

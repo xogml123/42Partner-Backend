@@ -42,7 +42,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     private final RoleRepository roleRepository;
     private final UserRoleRepository userRoleRepository;
     private final MemberRepository memberRepository;
-    private final BCryptPasswordEncoder passwordEncoder;
+    private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
     /**
      * ClientRegistration을 가지고 실제 Resource Server로 부터 유저 정보를 받아오는 메소드이기 때문에
@@ -102,7 +102,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         //회원가입, 중복 회원가입 예외 처리 필요할 것으로 보임.
         if (userOptional.isEmpty()) {
             //회원에 필용한 정보 생성 및 조회
-            String encodedPassword = passwordEncoder.encode(UUID.randomUUID().toString());
+            String encodedPassword = bCryptPasswordEncoder.encode(UUID.randomUUID().toString());
 
             Member member = Member.of(login);
             memberRepository.save(member);

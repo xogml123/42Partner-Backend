@@ -8,11 +8,8 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 import partner42.moduleapi.dto.match.MatchMakingDto;
-import partner42.moduleapi.producer.random.MatchMakingEvent;
-import partner42.modulecommon.config.kafka.AlarmEvent;
+import partner42.moduleapi.config.kafka.AlarmEvent;
 import partner42.modulecommon.domain.model.alarm.AlarmArgs;
 import partner42.modulecommon.domain.model.alarm.AlarmType;
 import partner42.modulecommon.domain.model.match.Match;
@@ -21,17 +18,13 @@ import partner42.modulecommon.domain.model.member.Member;
 import partner42.modulecommon.domain.model.random.RandomMatch;
 import partner42.modulecommon.domain.model.sse.SseEventName;
 import partner42.modulecommon.domain.model.user.User;
-import partner42.modulecommon.repository.random.RandomMatchConditionSearch;
 import partner42.modulecommon.repository.random.RandomMatchRepository;
-import partner42.modulecommon.utils.slack.SlackBotService;
 
 @Slf4j
 @RequiredArgsConstructor
 @Service
 public class MatchMakingService {
-    private final static String SYSTEM = "system";
-
-
+    private static final String SYSTEM = "system";
     private final RandomMatchService randomMatchService;
     private final RandomMatchRepository randomMatchRepository;
 
@@ -43,12 +36,12 @@ public class MatchMakingService {
             // 변경이 발생했을 경우 예외가 발생한다.
             try {
                 Match match = randomMatchService.makeMatchInRDB(matchedRandomMatches, now);
-                matchMakingDto.getEmails().addAll(match.getMatchMembers().stream()
+                matchMakingDto.getEmails().add(match.getMatchMembers().stream()
                     .map(MatchMember::getMember)
                     .map(Member::getUser)
                     .map(User::getEmail)
                     .collect(Collectors.toList()));
-                matchMakingDto.getAlarmEvents().addAll(match.getMatchMembers().stream()
+                matchMakingDto.getAlarmEvents().add(match.getMatchMembers().stream()
                     .map(MatchMember::getMember)
                     .map(member -> new AlarmEvent(AlarmType.MATCH_CONFIRMED,
                         AlarmArgs.builder()
@@ -63,7 +56,6 @@ public class MatchMakingService {
         });
         return matchMakingDto;
     }
-
 
     /**
      * 정렬된 매칭 리스트를 매칭 조건에 따라 그룹화한다.
@@ -116,6 +108,8 @@ public class MatchMakingService {
             matchedRandomMatches.add(randomMatch);
             return true;
         }
+        //매칭 조건 다른 요소가 randomMatch인 경우 더 이상 같은 조건이 경우가 없는 경우이므로
+        //matchedRandomMatches를 초기화하고 randomMatch를 넣고 다음 반복으로 넘어감
         if (!randomMatch.isMatchConditionEquals(matchedRandomMatches.get(0))) {
             matchedRandomMatches.clear();
             matchedRandomMatches.add(randomMatch);
@@ -125,8 +119,9 @@ public class MatchMakingService {
     }
 
     /**
-     * 매칭 된 유저의 다른 모든 신청 조건 무효화 memberIdSet에 포함되고, 같은 contentCategory 트랜잭션이 걸려있지 않아서 DB에서는 변경 없음
+     * 매칭 된 유저의 다른 모든 신청 조건 무효화 memberIdSet에 포함되고, 같은 contentCategory인 경우
      * Collection에서만 무효화
+     * 트랜잭션이 걸려있지 않아서 DB에서는 변경 없음
      *
      * @param validAndSortedByRandomMatchConditionRandomMatches
      * @param matchedRandomMatches

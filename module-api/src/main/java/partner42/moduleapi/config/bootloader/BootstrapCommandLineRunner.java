@@ -19,7 +19,6 @@ import partner42.modulecommon.domain.model.sse.SseEventName;
 public class BootstrapCommandLineRunner implements CommandLineRunner {
 
     private final BootstrapDataLoader bootstrapDataLoader;
-    private final RedisMessageListenerContainer container;
     private final AlarmService alarmService;
 
     @Value("${spring.jpa.hibernate.data-loader}")

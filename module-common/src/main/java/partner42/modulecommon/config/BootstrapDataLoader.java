@@ -4,7 +4,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
 import javax.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -43,7 +42,7 @@ public class BootstrapDataLoader {
 
     private final MatchConditionRepository matchConditionRepository;
 
-    private final BCryptPasswordEncoder passwordEncoder;
+    private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
     public void createDefaultUsers() {
         createRoleAuthority();
@@ -246,7 +245,7 @@ public class BootstrapDataLoader {
             memberRepository.save(member);
             Role role = roleRepository.findByValue(RoleEnum.ROLE_USER).orElseThrow(() ->
                 new EntityNotFoundException(RoleEnum.ROLE_USER + "에 해당하는 Role이 없습니다."));
-            user = User.of(username, passwordEncoder.encode(username), email, login, imageUrl, member);
+            user = User.of(username, bCryptPasswordEncoder.encode(username), email, login, imageUrl, member);
             UserRole userRole = UserRole.of(role, user);
 
             userRepository.save(user);

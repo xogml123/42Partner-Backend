@@ -1,4 +1,4 @@
-package partner42.modulecommon.config.kafka;
+package partner42.moduleapi.config.kafka;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

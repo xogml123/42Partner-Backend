@@ -1,11 +1,13 @@
 package partner42.moduleapi.consumer.random;
 
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
+import partner42.moduleapi.config.kafka.AlarmEvent;
 import partner42.moduleapi.dto.match.MatchMakingDto;
 import partner42.moduleapi.producer.alarm.AlarmProducer;
 import partner42.moduleapi.service.random.MatchMakingService;
@@ -30,15 +32,17 @@ public class RandomMatchConsumer {
         log.info("matchMakingConsumerGroup");
         MatchMakingDto matchMakingDto = matchMakingService.matchMaking(matchMakingEvent.getNow());
         // 알림 생성.
-        matchMakingDto.getAlarmEvents()
-                .forEach(alarmProducer::send);
-        //slack 알림이 보내지지 않아도 ack를 보내야 함.
-        try {
-            slackBotService.createSlackMIIM(matchMakingDto.getEmails());
-        } catch (Exception e) {
-            log.error("slackBotService.createSlackMIIM(matchMakingDto) error");
-        } finally {
-            ack.acknowledge();
+        for (List<AlarmEvent> alarmEvents: matchMakingDto.getAlarmEvents()){
+            alarmEvents.forEach(alarmProducer::send);
         }
+        //slack 알림이 보내지지 않아도 ack를 보내야 함.
+        matchMakingDto.getEmails().forEach( emails -> {
+            try{
+                slackBotService.createSlackMIIM(emails);
+            } catch(Exception e){
+                log.error("slackBotService.createSlackMIIM(matchMakingDto) error");
+            }
+        });
+        ack.acknowledge();
     }
 }

@@ -4,7 +4,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +21,6 @@ import partner42.modulecommon.domain.model.match.MatchStatus;
 import partner42.modulecommon.domain.model.match.MethodCategory;
 import partner42.modulecommon.domain.model.matchcondition.MatchCondition;
 import partner42.modulecommon.domain.model.matchcondition.MatchConditionMatch;
-import partner42.modulecommon.domain.model.random.RandomMatchCondition;
 import partner42.modulecommon.domain.model.user.User;
 import partner42.modulecommon.repository.match.MatchMemberRepository;
 import partner42.modulecommon.repository.match.MatchRepository;
@@ -31,9 +29,6 @@ import partner42.modulecommon.repository.matchcondition.MatchConditionRepository
 import partner42.modulecommon.repository.random.RandomMatchBulkUpdateDto;
 import partner42.modulecommon.repository.random.RandomMatchSearch;
 import partner42.modulecommon.domain.model.match.ContentCategory;
-import partner42.modulecommon.domain.model.matchcondition.Place;
-import partner42.modulecommon.domain.model.matchcondition.TypeOfStudy;
-import partner42.modulecommon.domain.model.matchcondition.WayOfEating;
 import partner42.modulecommon.domain.model.member.Member;
 import partner42.modulecommon.domain.model.random.RandomMatch;
 import partner42.modulecommon.exception.ErrorCode;
@@ -87,7 +82,8 @@ public class RandomMatchService {
         RandomMatchCancelRequest request, LocalDateTime now) {
         Long memberId = getUserByUsernameOrException(username).getMember().getId();
         //생성된 지 RandomMatch.MAX_WAITING_TIME분 이내 + 취소되지 않은 신청 내역 있는지 확인.
-        List<RandomMatch> randomMatches = randomMatchRepository.findByCreatedAtAfterAndIsExpiredAndMemberIdAndContentCategory(
+        //매칭 맺어주는 알고리즘과 겹칩을 방지하기 위해서 lock을 걸어야함.
+        List<RandomMatch> randomMatches = randomMatchRepository.findForUpdateByCreatedAtAfterAndIsExpiredAndMemberIdAndContentCategory(
             RandomMatchSearch.builder()
                 .contentCategory(request.getContentCategory())
                 .memberId(memberId)
@@ -183,7 +179,6 @@ public class RandomMatchService {
      *
      * @return
      */
-    @Transactional(readOnly = true)
     public List<RandomMatch> getValidRandomMatchesSortedByMatchCondition(LocalDateTime now) {
         List<RandomMatch> randomMatches = randomMatchRepository.findByCreatedAtAfterAndIsExpiredAndMemberIdAndContentCategory(
             RandomMatchSearch.builder()
@@ -194,10 +189,21 @@ public class RandomMatchService {
         return randomMatches;
     }
 
+    /**
+     * matchedRandomMatches는 같은 RandomMatchCondition을 가지고 있어야함.
+     * @param matchedRandomMatches
+     * @param now
+     * @return
+     */
     @Transactional
     public Match makeMatchInRDB(List<RandomMatch> matchedRandomMatches, LocalDateTime now) {
-        //RDB에 Match에 저장, MatchMember저장
         Match match = createAndSaveMatch(matchedRandomMatches);
+        //RDB에 Match에 저장, MatchMember저장
+        //matchMember
+        createAndSaveMatchMembers(match, matchedRandomMatches);
+        //matchCondition
+        createAndSaveMatchCondition(match, matchedRandomMatches);
+
         //RandomMatch에 isExpired = true로 업데이트
         randomMatchRepository.bulkUpdateOptimisticLockIsExpiredToTrueByIds(
             matchedRandomMatches.stream()
@@ -206,10 +212,6 @@ public class RandomMatchService {
                     .version(randomMatch.getVersion())
                     .build())
                 .collect(Collectors.toSet()));
-        //matchMember
-        createAndSaveMatchMembers(match, matchedRandomMatches);
-        //matchCondition
-        createAndSaveMatchCondition(match, matchedRandomMatches);
         return match;
     }
 
@@ -237,16 +239,20 @@ public class RandomMatchService {
             .orElseThrow(() ->
                 new IllegalStateException(
                     errorMessage + randomMatch.getRandomMatchCondition().getPlace().toString())));
-        matchConditions.add(matchConditionRepository.findByValue(
-                (randomMatch).getRandomMatchCondition().getWayOfEating().toString())
-            .orElseThrow(() ->
-                new IllegalStateException(errorMessage
-                    + (randomMatch).getRandomMatchCondition().getWayOfEating().toString())));
-        matchConditions.add(matchConditionRepository.findByValue(
-                (randomMatch).getRandomMatchCondition().getTypeOfStudy().toString())
-            .orElseThrow(() ->
-                new IllegalStateException(errorMessage
-                    + (randomMatch).getRandomMatchCondition().getTypeOfStudy().toString())));
+        if (randomMatch.getRandomMatchCondition().getWayOfEating() != null) {
+            matchConditions.add(matchConditionRepository.findByValue(
+                    randomMatch.getRandomMatchCondition().getWayOfEating().toString())
+                .orElseThrow(() ->
+                    new IllegalStateException(errorMessage
+                        + (randomMatch).getRandomMatchCondition().getWayOfEating().toString())));
+        }
+        if (randomMatch.getRandomMatchCondition().getTypeOfStudy() != null){
+            matchConditions.add(matchConditionRepository.findByValue(
+                    randomMatch.getRandomMatchCondition().getTypeOfStudy().toString())
+                .orElseThrow(() ->
+                    new IllegalStateException(errorMessage
+                        + (randomMatch).getRandomMatchCondition().getTypeOfStudy().toString())));
+        }
         matchConditionMatchRepository.saveAll(matchConditions.stream()
             .map((matchCondition) ->
                 MatchConditionMatch.of(match, matchCondition)

@@ -94,7 +94,7 @@ public class RandomMatchRepositoryCustomImpl implements RandomMatchRepositoryCus
         List<Long> idList = randomMatchBulkUpdateDtos.stream().map(RandomMatchBulkUpdateDto::getId)
             .collect(
                 Collectors.toList());
-        //verifyversion하기 이전에 randomMatches가 변경 될 경우를 막기 위해
+        //verifyVersion하기 이전에 randomMatches가 변경 될 경우를 막기 위해
         // findWithPessimisticLockByIds를 통해 Write_Lock을 건다.
         List<RandomMatch> randomMatches = findWithPessimisticLockByIds(
             idList);

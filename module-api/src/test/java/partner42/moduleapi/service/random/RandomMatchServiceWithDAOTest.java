@@ -6,14 +6,20 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import javax.persistence.OptimisticLockException;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.orm.jpa.JpaOptimisticLockingFailureException;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import partner42.moduleapi.config.ServiceWithDAOTestDefaultConfig;
 import partner42.moduleapi.dto.random.MealRandomMatchDto;
 import partner42.moduleapi.dto.random.RandomMatchCancelRequest;
@@ -23,18 +29,30 @@ import partner42.moduleapi.dto.random.RandomMatchDtoFactory;
 import partner42.moduleapi.dto.random.RandomMatchExistDto;
 import partner42.moduleapi.dto.random.RandomMatchParam;
 import partner42.moduleapi.dto.random.StudyRandomMatchDto;
+import partner42.moduleapi.service.user.UserService;
+import partner42.modulecommon.domain.model.match.ConditionCategory;
 import partner42.modulecommon.domain.model.match.ContentCategory;
+import partner42.modulecommon.domain.model.match.Match;
+import partner42.modulecommon.domain.model.match.MatchMember;
+import partner42.modulecommon.domain.model.match.MatchStatus;
+import partner42.modulecommon.domain.model.match.MethodCategory;
+import partner42.modulecommon.domain.model.matchcondition.MatchCondition;
+import partner42.modulecommon.domain.model.matchcondition.MatchConditionMatch;
 import partner42.modulecommon.domain.model.matchcondition.Place;
 import partner42.modulecommon.domain.model.matchcondition.TypeOfStudy;
 import partner42.modulecommon.domain.model.matchcondition.WayOfEating;
+import partner42.modulecommon.domain.model.member.Member;
 import partner42.modulecommon.domain.model.random.RandomMatch;
+import partner42.modulecommon.domain.model.random.RandomMatchCondition;
 import partner42.modulecommon.domain.model.user.User;
 import partner42.modulecommon.exception.InvalidInputException;
 import partner42.modulecommon.exception.RandomMatchAlreadyExistException;
+import partner42.modulecommon.repository.match.MatchRepository;
 import partner42.modulecommon.repository.random.RandomMatchRepository;
 import partner42.modulecommon.repository.user.UserRepository;
 import partner42.modulecommon.utils.CustomTimeUtils;
 
+@Slf4j
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Import({RandomMatchService.class, RandomMatchDtoFactory.class,
@@ -51,6 +69,8 @@ class RandomMatchServiceWithDAOTest {
 
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private MatchRepository matchRepository;
 
     @BeforeEach
     void setUp() {
@@ -323,12 +343,127 @@ class RandomMatchServiceWithDAOTest {
         assertThat(randomMatchCountResponseStudy.getRandomMatchCount()).isEqualTo(1);
     }
 
-//    @Test
-//    void getValidRandomMatchesSortedByMatchCondition(){
-//        //given
-//
-//        RandomMatch.of(RandomMatchCondition.of())
-//        randomMatchRepository.save()
-//    }
+    @Test
+    void makeMatchInRDB() {
+        User takim = userRepository.findByUsername("takim").get();
+        User sorkim = userRepository.findByUsername("sorkim").get();
+        //when
+        List<RandomMatch> randomMatches = randomMatchRepository.saveAll(List.of(
+            RandomMatch.of(RandomMatchCondition.of(Place.GAEPO, WayOfEating.DELIVERY),
+                takim.getMember()),
+            RandomMatch.of(RandomMatchCondition.of(Place.GAEPO, WayOfEating.DELIVERY),
+                sorkim.getMember())
+        ));
+        Match match = randomMatchService.makeMatchInRDB(randomMatches,
+            CustomTimeUtils.nowWithoutNano());
+        List<RandomMatch> findByIdRandomMatches = randomMatchRepository.findAllById(
+            List.of(randomMatches.get(0).getId(), randomMatches.get(1).getId()));
+        Match matchTest = matchRepository.findById(match.getId()).get();
+        //then
+        assertThat(matchTest.getMatchMembers().stream()
+            .map(MatchMember::getMember)
+            .map(Member::getNickname)
+            .collect(Collectors.toList()))
+            .containsExactlyInAnyOrder("takim", "sorkim");
+        assertThat(matchTest.getMatchConditionMatches()).extracting(MatchConditionMatch::getMatchCondition)
+            .extracting(MatchCondition::getConditionCategory, MatchCondition::getValue)
+            .containsExactlyInAnyOrder(
+                tuple(ConditionCategory.Place, Place.GAEPO.name()),
+                tuple(ConditionCategory.WayOfEating, WayOfEating.DELIVERY.name())
+            );
+        assertThat(matchTest).extracting(Match::getMatchStatus, Match::getContentCategory,
+                Match::getMethodCategory)
+            .containsExactly(MatchStatus.MATCHED, ContentCategory.MEAL,
+                MethodCategory.RANDOM);
+        assertThat(findByIdRandomMatches).extracting(RandomMatch::getIsExpired)
+            .containsExactly(true, true);
+    }
+
+
+    @Test
+    void getValidRandomMatchesSortedByMatchCondition(){
+        //given
+        User takim = userRepository.findByUsername("takim").get();
+        User sorkim = userRepository.findByUsername("sorkim").get();
+        User hyenam = userRepository.findByUsername("hyenam").get();
+
+        RandomMatch randomMatch1 = randomMatchRepository.save(RandomMatch.of(
+            RandomMatchCondition.of(Place.SEOCHO, WayOfEating.TAKEOUT), takim.getMember()));
+        RandomMatch randomMatch2 = randomMatchRepository.save(RandomMatch.of(
+            RandomMatchCondition.of(Place.GAEPO, WayOfEating.TAKEOUT), sorkim.getMember()));
+        RandomMatch randomMatch3 = randomMatchRepository.save(RandomMatch.of(
+            RandomMatchCondition.of(Place.GAEPO, WayOfEating.TAKEOUT), hyenam.getMember()));
+        RandomMatch randomMatch4 = randomMatchRepository.save(RandomMatch.of(
+            RandomMatchCondition.of(Place.SEOCHO, WayOfEating.DELIVERY), takim.getMember()));
+        RandomMatch randomMatch5 = randomMatchRepository.save(RandomMatch.of(
+            RandomMatchCondition.of(Place.GAEPO, TypeOfStudy.NOT_INNER_CIRCLE), takim.getMember()));
+        RandomMatch randomMatch6 = randomMatchRepository.save(RandomMatch.of(
+            RandomMatchCondition.of(Place.SEOCHO, TypeOfStudy.NOT_INNER_CIRCLE), takim.getMember()));
+        RandomMatch randomMatch7 = randomMatchRepository.save(RandomMatch.of(
+            RandomMatchCondition.of(Place.GAEPO, TypeOfStudy.INNER_CIRCLE), takim.getMember()));
+        RandomMatch randomMatch8 = randomMatchRepository.save(RandomMatch.of(
+            RandomMatchCondition.of(Place.GAEPO, WayOfEating.EATOUT), hyenam.getMember()));
+
+        //when
+        List<RandomMatch> randomMatches = randomMatchService.getValidRandomMatchesSortedByMatchCondition(
+            LocalDateTime.now());
+        //then
+
+        assertThat(randomMatches).extracting(RandomMatch::getId)
+            .containsExactly(randomMatch4.getId(), randomMatch1.getId(),randomMatch8.getId(),
+                randomMatch2.getId(), randomMatch3.getId(),
+                randomMatch6.getId(), randomMatch7.getId(), randomMatch5.getId());
+
+    }
+    @Test
+    void getValidRandomMatchesSortedByMatchCondition_whenNowIsAfterMatchCountMinute_thenValidRandomMatchesEmpty(){
+        //given
+        User takim = userRepository.findByUsername("takim").get();
+        User sorkim = userRepository.findByUsername("sorkim").get();
+        User hyenam = userRepository.findByUsername("hyenam").get();
+
+        RandomMatch randomMatch1 = randomMatchRepository.save(RandomMatch.of(
+            RandomMatchCondition.of(Place.GAEPO, WayOfEating.DELIVERY), takim.getMember()));
+        RandomMatch randomMatch2 = randomMatchRepository.save(RandomMatch.of(
+            RandomMatchCondition.of(Place.GAEPO, WayOfEating.DELIVERY), sorkim.getMember()));
+        RandomMatch randomMatch3 = randomMatchRepository.save(RandomMatch.of(
+            RandomMatchCondition.of(Place.GAEPO, WayOfEating.DELIVERY), hyenam.getMember()));
+        RandomMatch randomMatch4 = randomMatchRepository.save(RandomMatch.of(
+            RandomMatchCondition.of(Place.SEOCHO, WayOfEating.DELIVERY), takim.getMember()));
+        RandomMatch randomMatch5 = randomMatchRepository.save(RandomMatch.of(
+            RandomMatchCondition.of(Place.GAEPO, TypeOfStudy.INNER_CIRCLE), takim.getMember()));
+        RandomMatch randomMatch6 = randomMatchRepository.save(RandomMatch.of(
+            RandomMatchCondition.of(Place.SEOCHO, TypeOfStudy.NOT_INNER_CIRCLE), takim.getMember()));
+
+        //when
+        List<RandomMatch> randomMatches = randomMatchService.getValidRandomMatchesSortedByMatchCondition(
+            LocalDateTime.now().plusMinutes(30));
+        //then
+        assertThat(randomMatches).isEmpty();
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.NEVER)
+    void 매칭_알고리즘_실행도중_매칭취소등으로인해_RandomMatch에_변경이일어날경우_makeMatchInDB실패(){
+        User takim = userRepository.findByUsername("takim").get();
+        User sorkim = userRepository.findByUsername("sorkim").get();
+        LocalDateTime now = LocalDateTime.now();
+        RandomMatch randomMatch1 = randomMatchRepository.save(RandomMatch.of(
+            RandomMatchCondition.of(Place.GAEPO, WayOfEating.DELIVERY), takim.getMember()));
+        RandomMatch randomMatch2 = randomMatchRepository.save(RandomMatch.of(
+            RandomMatchCondition.of(Place.GAEPO, WayOfEating.DELIVERY), sorkim.getMember()));
+
+        //when
+        List<RandomMatch> randomMatches = randomMatchService.getValidRandomMatchesSortedByMatchCondition(
+            now);
+        randomMatchService.deleteRandomMatch(sorkim.getUsername(), RandomMatchCancelRequest.builder()
+            .contentCategory(ContentCategory.MEAL).build(), now);
+
+        //then
+        assertThatThrownBy(
+            () -> randomMatchService.makeMatchInRDB(randomMatches, now)
+        ).isInstanceOf(JpaOptimisticLockingFailureException.class)
+            .hasRootCauseInstanceOf(OptimisticLockException.class);
+    }
 
 }

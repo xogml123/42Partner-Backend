@@ -1,4 +1,4 @@
-package partner42.modulecommon.config.kafka;
+package partner42.moduleapi.config.kafka;
 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -15,7 +15,7 @@ import java.util.Map;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.listener.ContainerProperties.AckMode;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
-import partner42.modulecommon.producer.MatchMakingEvent;
+import partner42.moduleapi.producer.random.MatchMakingEvent;
 
 @EnableKafka
 @Configuration

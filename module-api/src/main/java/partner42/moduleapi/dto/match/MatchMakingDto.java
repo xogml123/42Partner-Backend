@@ -8,7 +8,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import partner42.modulecommon.config.kafka.AlarmEvent;
+import partner42.moduleapi.config.kafka.AlarmEvent;
 
 @Getter
 @Setter
@@ -17,6 +17,6 @@ import partner42.modulecommon.config.kafka.AlarmEvent;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class MatchMakingDto {
 
-    private List<String> emails = new ArrayList<>();
-    private List<AlarmEvent> alarmEvents = new ArrayList<>();
+    private List<List<String>> emails = new ArrayList<>();
+    private List<List<AlarmEvent>> alarmEvents = new ArrayList<>();
 }

@@ -6,7 +6,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import partner42.modulecommon.config.kafka.AlarmEvent;
+import partner42.moduleapi.config.kafka.AlarmEvent;
 
 @Getter
 @Setter

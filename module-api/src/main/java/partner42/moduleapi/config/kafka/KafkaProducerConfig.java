@@ -1,4 +1,4 @@
-package partner42.modulecommon.config.kafka;
+package partner42.moduleapi.config.kafka;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -11,7 +11,7 @@ import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.support.serializer.JsonSerializer;
-import partner42.modulecommon.producer.MatchMakingEvent;
+import partner42.moduleapi.producer.random.MatchMakingEvent;
 
 @Configuration
 public class KafkaProducerConfig {
@@ -75,6 +75,4 @@ public class KafkaProducerConfig {
     public KafkaTemplate<String, MatchMakingEvent> matchMakingEventKafkaTemplate() {
         return new KafkaTemplate<>(matchMakingEventProducerFactory());
     }
-
-
 }

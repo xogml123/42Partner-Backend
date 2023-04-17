@@ -12,7 +12,7 @@ import partner42.moduleapi.dto.opinion.OpinionOnlyIdResponse;
 import partner42.moduleapi.dto.opinion.OpinionResponse;
 import partner42.moduleapi.dto.opinion.OpinionUpdateRequest;
 import partner42.moduleapi.mapper.OpinionMapper;
-import partner42.modulecommon.config.kafka.AlarmEvent;
+import partner42.moduleapi.config.kafka.AlarmEvent;
 import partner42.modulecommon.domain.model.alarm.AlarmArgs;
 import partner42.modulecommon.domain.model.alarm.AlarmType;
 import partner42.modulecommon.domain.model.article.Article;

@@ -9,6 +9,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import partner42.moduleapi.dto.EmailDto;
 import partner42.moduleapi.dto.alarm.ResponseWithAlarmEventDto;
@@ -20,7 +21,7 @@ import partner42.moduleapi.dto.match.MatchOnlyIdResponse;
 import partner42.moduleapi.dto.matchcondition.MatchConditionDto;
 import partner42.moduleapi.dto.member.MemberDto;
 import partner42.moduleapi.mapper.MemberMapper;
-import partner42.modulecommon.config.kafka.AlarmEvent;
+import partner42.moduleapi.config.kafka.AlarmEvent;
 import partner42.modulecommon.domain.model.alarm.AlarmArgs;
 import partner42.modulecommon.domain.model.alarm.AlarmType;
 import partner42.modulecommon.domain.model.sse.SseEventName;
@@ -206,7 +207,7 @@ public class ArticleService {
 
     //OptimisticLockException
     //이미 참여중인 경우 방지.
-    @Transactional
+    @Transactional(isolation = Isolation.READ_UNCOMMITTED)
     public ResponseWithAlarmEventDto<ArticleOnlyIdResponse> participateArticle(String username, String articleId) {
         Article article = articleRepository.findEntityGraphArticleMembersByApiIdAndIsDeletedIsFalse(
                 articleId)
