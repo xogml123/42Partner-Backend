@@ -3,15 +3,14 @@ package partner42.moduleapi.controller.article;
 import io.swagger.annotations.ApiParam;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.SliceImpl;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -23,11 +22,16 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import partner42.moduleapi.dto.EmailDto;
+import partner42.moduleapi.dto.alarm.ResponseWithAlarmEventDto;
 import partner42.moduleapi.dto.article.ArticleDto;
 import partner42.moduleapi.dto.article.ArticleOnlyIdResponse;
 import partner42.moduleapi.dto.article.ArticleReadOneResponse;
 import partner42.moduleapi.dto.article.ArticleReadResponse;
+import partner42.moduleapi.dto.match.MatchOnlyIdResponse;
 import partner42.moduleapi.service.article.ArticleService;
+import partner42.modulecommon.exception.ErrorCode;
+import partner42.modulecommon.exception.InvalidInputException;
+import partner42.moduleapi.producer.alarm.AlarmProducer;
 import partner42.modulecommon.repository.article.ArticleSearch;
 import partner42.modulecommon.utils.slack.SlackBotService;
 
@@ -39,6 +43,8 @@ public class ArticleController {
 
     private final ArticleService articleService;
     private final SlackBotService slackBotService;
+    private final AlarmProducer alarmProducer;
+
 
     @Operation(summary = "방 하나 상세조회", description = "방 상세페이지")
     @GetMapping("/articles/{articleId}")
@@ -50,7 +56,6 @@ public class ArticleController {
         return articleService.readOneArticle(username, articleId);
     }
 
-//    @PreAuthorize("hasAuthority('article.read')")
     @Operation(summary = "방 목록조회", description = "방 목록 페이지, ")
     @GetMapping("/articles")
     public SliceImpl<ArticleReadResponse> readAllArticle(Pageable pageable, ArticleSearch condition) {
@@ -63,6 +68,9 @@ public class ArticleController {
     public ArticleOnlyIdResponse writeArticle(
         @ApiParam(hidden = true) @AuthenticationPrincipal UserDetails user,
         @Validated @Parameter @RequestBody ArticleDto articleRequest) {
+        if (LocalDate.now().isAfter(articleRequest.getDate())){
+            throw new InvalidInputException(ErrorCode.ARTICLE_DATE_IS_PAST);
+        }
         return articleService.createArticle(user.getUsername(), articleRequest);
     }
 
@@ -88,7 +96,7 @@ public class ArticleController {
     public ArticleOnlyIdResponse recoverableDeleteArticle(@PathVariable String articleId,
         @Parameter(hidden = true) @AuthenticationPrincipal UserDetails user
     ) {
-        return articleService.changeIsDelete(user.getUsername(), articleId);
+        return articleService.softDelete(user.getUsername(), articleId);
     }
 
     @PreAuthorize("hasAuthority('article.update')")
@@ -97,7 +105,10 @@ public class ArticleController {
     public ArticleOnlyIdResponse participateArticle(@PathVariable String articleId,
         @Parameter(hidden = true) @AuthenticationPrincipal UserDetails user
     ) {
-        return articleService.participateArticle(user.getUsername(), articleId);
+        ResponseWithAlarmEventDto<ArticleOnlyIdResponse> dto = articleService.participateArticle(
+            user.getUsername(), articleId);
+        alarmProducer.send(dto.getAlarmEvent());
+        return dto.getResponse();
     }
 
     @PreAuthorize("hasAuthority('article.update')")
@@ -106,22 +117,25 @@ public class ArticleController {
     public ArticleOnlyIdResponse participateCancelArticle(@PathVariable String articleId,
         @Parameter(hidden = true) @AuthenticationPrincipal UserDetails user
     ) {
-        return articleService.participateCancelArticle(user.getUsername(), articleId);
+        ResponseWithAlarmEventDto<ArticleOnlyIdResponse> dto = articleService.participateCancelArticle(
+            user.getUsername(), articleId);
+        alarmProducer.send(dto.getAlarmEvent());
+        return dto.getResponse();
     }
 
     @PreAuthorize("hasAuthority('article.update')")
-    //작성자인지 확인하는 권한 처리.
     @Operation(summary = "방 매칭 글 확정", description = "방 매칭 글 확정")
     @PostMapping("/articles/{articleId}/complete")
-    public ArticleOnlyIdResponse completeArticle(@PathVariable String articleId,
+    public MatchOnlyIdResponse completeArticle(@PathVariable String articleId,
         @Parameter(hidden = true) @AuthenticationPrincipal UserDetails user
     ) {
-        EmailDto<ArticleOnlyIdResponse> emailDto = articleService.completeArticle(
+        EmailDto<MatchOnlyIdResponse> emailDto = articleService.completeArticle(
             user.getUsername(), articleId);
         //트랜잭션 외부에서 외부 리소스 알림기능을 적용하기 위해서
         //따로 분리.
         List<String> participantsEmails = emailDto.getEmails();
         slackBotService.createSlackMIIM(participantsEmails);
+        emailDto.getAlarmEventList().forEach(alarmProducer::send);
         return emailDto.getResponse();
     }
 

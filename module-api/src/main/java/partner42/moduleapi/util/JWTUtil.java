@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.stream.Collectors;
+import javax.servlet.http.Cookie;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -80,6 +81,10 @@ public class JWTUtil {
             .username(username)
             .authorities(authoritiesJWT)
             .build();
+    }
+
+    public static boolean isCookieNameRefreshToken(Cookie cookie) {
+        return JWTUtil.REFRESH_TOKEN.equals(cookie.getName());
     }
 
     @Getter

@@ -25,7 +25,10 @@ import partner42.modulecommon.exception.ErrorCode;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class ArticleReadResponse {
+public class
+
+
+ArticleReadResponse {
 
     @Schema(name = "nickname", example = "takim", description = "게시글 작성자 nickname")
     @NotBlank

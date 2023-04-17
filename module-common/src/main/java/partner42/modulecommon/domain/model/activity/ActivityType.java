@@ -10,5 +10,5 @@ public enum ActivityType {
     MATCH,
     ARTICLE,
     OPINION,
-    ;
+    ;   
 }

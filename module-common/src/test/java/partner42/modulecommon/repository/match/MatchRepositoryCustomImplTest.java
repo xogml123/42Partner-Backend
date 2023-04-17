@@ -1,24 +1,21 @@
 package partner42.modulecommon.repository.match;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.*;
 
-import java.time.LocalDate;
 import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import lombok.RequiredArgsConstructor;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
-import org.springframework.data.domain.SliceImpl;
-import partner42.modulecommon.domain.model.article.Article;
+import org.springframework.data.domain.Sort;
+import partner42.modulecommon.config.jpa.Auditor;
+import partner42.modulecommon.config.querydsl.QuerydslConfig;
 import partner42.modulecommon.domain.model.match.ContentCategory;
 import partner42.modulecommon.domain.model.match.Match;
 import partner42.modulecommon.domain.model.match.MatchMember;
@@ -29,16 +26,16 @@ import partner42.modulecommon.repository.article.ArticleRepository;
 import partner42.modulecommon.repository.articlemember.ArticleMemberRepository;
 import partner42.modulecommon.repository.member.MemberRepository;
 import partner42.modulecommon.repository.user.UserRepository;
-import partner42.modulecommon.utils.CreateTestDataUtils;
+import partner42.modulecommon.config.BootstrapDataLoader;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@Import({QuerydslConfig.class, Auditor.class})
 class MatchRepositoryCustomImplTest {
 
     @Autowired
     UserRepository userRepository;
-    @Autowired
-    CreateTestDataUtils createTestDataUtils;
+
     @Autowired
     ArticleRepository articleRepository;
 
@@ -59,61 +56,145 @@ class MatchRepositoryCustomImplTest {
     private EntityManager entityManager;
     @BeforeEach
     void setUp() {
-
-        createTestDataUtils.signUpUsers();
-
-        Member takim = memberRepository.findByNickname("takim").get();
-        Member sorkim = memberRepository.findByNickname("sorkim").get();
-
-        Article article1 = Article.of(LocalDate.now().plusDays(1L), "article1", "content", false,
-            3, ContentCategory.MEAL);
-        articleRepository.save(article1);
-        Match match1 = Match.of(MatchStatus.MATCHED, ContentCategory.MEAL, MethodCategory.RANDOM,
-            article1, 3);
-        matchRepository.save(match1);
-        matchMemberRepository.saveAll(List.of(MatchMember.of(match1, takim, true),
-            MatchMember.of(match1, sorkim, false)));
-
-
-        Article article2 = Article.of(LocalDate.now().plusDays(1L), "article2", "content", false,
-            3, ContentCategory.MEAL);
-        articleRepository.save(article2);
-        Match match2 = Match.of(MatchStatus.MATCHED, ContentCategory.MEAL, MethodCategory.RANDOM,
-            article2, 3);
-        matchRepository.save(match2);
-        matchMemberRepository.saveAll(List.of(MatchMember.of(match2, takim, false),
-            MatchMember.of(match2, sorkim, true)));
     }
 
     @Test
-    void findAllFetchJoinMatchMemberId() {
+    void findAllMatchMemberId_givenDifferentMatchPropertyInMatchSearchAndByMemeberId_whenFindByMatchSearchAndMemberId_thenContainsOnly() {
         //given
-        Member takim = memberRepository.findByNickname("takim").get();
-        Member sorkim = memberRepository.findByNickname("sorkim").get();
+        Member member1 = Member.of("member1");
+        Member member2 = Member.of("member2");
 
-        String article1Ttitle = "article1";
-        String article2Ttitle = "article2";
+        memberRepository.saveAll(List.of(member1, member2));
+
+        Match match1 = Match.of(MatchStatus.MATCHED, ContentCategory.MEAL, MethodCategory.RANDOM,
+            null, 3);
+        matchRepository.save(match1);
+        matchMemberRepository.save(
+            MatchMember.of(match1, member1, false));
+        matchMemberRepository.save(
+            MatchMember.of(match1, member2, false));
+
+
+        Match match2 = Match.of(MatchStatus.MATCHED, ContentCategory.STUDY, MethodCategory.RANDOM,
+            null, 3);
+        matchRepository.save(match2);
+        matchMemberRepository.save(
+            MatchMember.of(match2, member1, true));
+
 
 
         //then
+
+        MatchSearch matchSearchMeal = new MatchSearch();
+        matchSearchMeal.setContentCategory(ContentCategory.MEAL);
+
+        MatchSearch matchSearchRandom = new MatchSearch();
+        matchSearchRandom.setMethodCategory(MethodCategory.RANDOM);
         MatchSearch matchSearch = new MatchSearch();
-        matchSearch.setContentCategory(ContentCategory.MEAL);
 
-        SliceImpl<Match> matchSlicesMeal = (SliceImpl<Match>) matchRepository.findAllFetchJoinMatchMemberId(takim.getId(),
-            matchSearch, PageRequest.of(0, 1));
+        PageRequest pageSize3 = PageRequest.of(0, 3);
 
-        SliceImpl<Match> matchSlicesMealOver = (SliceImpl<Match>) matchRepository.findAllFetchJoinMatchMemberId(takim.getId(),
-            matchSearch, PageRequest.of(0, 3));
+        Slice<Match> matchSlicesMeal =matchRepository.findAllMatchByMemberIdAndByMatchSearch(member1.getId(),
+            matchSearchMeal, pageSize3);
 
-        matchSearch.setContentCategory(ContentCategory.STUDY);
-        SliceImpl<Match> matchSliceStudy = (SliceImpl<Match>) matchRepository.findAllFetchJoinMatchMemberId(takim.getId(),
-            matchSearch, PageRequest.of(0, 3));
-        //
-        assertThat(
-            matchSlicesMeal.getContent().get(0).getArticle().getTitle().equals(article1Ttitle));
-        assertThat(matchSlicesMeal.hasNext()).isTrue();
-        assertThat(matchSlicesMealOver.hasNext()).isFalse();
-        assertThat(matchSliceStudy.getContent()).isEmpty();
+        Slice<Match> matchSlicesRandom =  matchRepository.findAllMatchByMemberIdAndByMatchSearch(member1.getId(),
+            matchSearchRandom, pageSize3);
+
+        Slice<Match> matchSliceMember2 = matchRepository.findAllMatchByMemberIdAndByMatchSearch(member2.getId(),
+            matchSearch, pageSize3);
+        //then
+        assertThat(matchSlicesMeal.getContent()).containsOnly(match1);
+        assertThat(matchSlicesRandom.getContent()).containsOnly(match1, match2);
+        assertThat(matchSliceMember2.getContent()).containsOnly(match1);
+
+    }
+
+    @Test
+    void findAllMatchMemberId_whenPageSizeNearEntireQuerySize_thenHasRightNextFlag() {
+        //given
+        Member member1 = Member.of("member1");
+        Member member2 = Member.of("member2");
+
+        memberRepository.saveAll(List.of(member1, member2));
+
+        Match match1 = Match.of(MatchStatus.MATCHED, ContentCategory.MEAL, MethodCategory.RANDOM,
+            null, 3);
+        matchRepository.save(match1);
+        matchMemberRepository.save(
+            MatchMember.of(match1, member1, false));
+        matchMemberRepository.save(
+            MatchMember.of(match1, member2, false));
+
+
+        Match match2 = Match.of(MatchStatus.MATCHED, ContentCategory.STUDY, MethodCategory.RANDOM,
+            null, 3);
+        matchRepository.save(match2);
+        matchMemberRepository.save(
+            MatchMember.of(match2, member1, true));
+
+        //then
+        MatchSearch matchSearch = new MatchSearch();
+
+        PageRequest pageSizeSmaller = PageRequest.of(0, 1);
+
+        PageRequest pageSizeEqual = PageRequest.of(0, 2);
+        PageRequest pageSizeBigger = PageRequest.of(0, 3);
+        PageRequest pageOffset = PageRequest.of(1, 1);
+
+        Slice<Match> matchSlicePageSizeSmaller = matchRepository.findAllMatchByMemberIdAndByMatchSearch(member1.getId(),
+            matchSearch, pageSizeSmaller);
+        Slice<Match> matchSlicePageSizeEqual = matchRepository.findAllMatchByMemberIdAndByMatchSearch(member1.getId(),
+            matchSearch, pageSizeEqual);
+        Slice<Match> matchSlicePageSizeBigger = matchRepository.findAllMatchByMemberIdAndByMatchSearch(member1.getId(),
+            matchSearch, pageSizeBigger);
+        Slice<Match> matchSlicePageOffset = matchRepository.findAllMatchByMemberIdAndByMatchSearch(
+            member1.getId(),
+            matchSearch, pageOffset);
+
+        //then
+        assertThat(matchSlicePageSizeSmaller.hasNext()).isTrue();
+        assertThat(matchSlicePageSizeEqual.hasNext()).isFalse();
+        assertThat(matchSlicePageSizeBigger.hasNext()).isFalse();
+        assertThat(matchSlicePageOffset.hasNext()).isFalse();
+    }
+
+    @Test
+    void findAllMatchMemberId_whenSortByCreatedAt_thenContainsExactly() {
+        //given
+        Member member1 = Member.of("member1");
+        Member member2 = Member.of("member2");
+
+        memberRepository.saveAll(List.of(member1, member2));
+
+        Match match1 = Match.of(MatchStatus.MATCHED, ContentCategory.MEAL, MethodCategory.RANDOM,
+            null, 3);
+        matchRepository.save(match1);
+        matchMemberRepository.save(
+            MatchMember.of(match1, member1, false));
+        matchMemberRepository.save(
+            MatchMember.of(match1, member2, false));
+
+        Match match3 = Match.of(MatchStatus.MATCHED, ContentCategory.STUDY, MethodCategory.RANDOM,
+            null, 3);
+        matchRepository.save(match3);
+        matchMemberRepository.save(
+            MatchMember.of(match3, member1, true));
+
+        Match match2 = Match.of(MatchStatus.MATCHED, ContentCategory.STUDY, MethodCategory.RANDOM,
+            null, 3);
+        matchRepository.save(match2);
+        matchMemberRepository.save(
+            MatchMember.of(match2, member1, true));
+
+        //then
+        MatchSearch matchSearch = new MatchSearch();
+        PageRequest pageSortByCreatedAt = PageRequest.of(0, 3, Sort.by(Sort.Direction.ASC, "createdAt"));
+
+        Slice<Match> matchSlicePageSortByCreatedAt = matchRepository.findAllMatchByMemberIdAndByMatchSearch(member1.getId(),
+            matchSearch, pageSortByCreatedAt);
+
+        //then
+        assertThat(matchSlicePageSortByCreatedAt.getContent()).containsExactly(match1, match3, match2);
 
     }
 }

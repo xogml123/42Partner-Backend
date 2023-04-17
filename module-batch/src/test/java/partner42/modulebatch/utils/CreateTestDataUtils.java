@@ -15,7 +15,6 @@ import partner42.modulecommon.domain.model.matchcondition.TimeOfEating;
 import partner42.modulecommon.domain.model.matchcondition.TypeOfStudy;
 import partner42.modulecommon.domain.model.matchcondition.WayOfEating;
 import partner42.modulecommon.domain.model.member.Member;
-import partner42.modulecommon.domain.model.tryjudge.MatchTryAvailabilityJudge;
 import partner42.modulecommon.domain.model.user.Authority;
 import partner42.modulecommon.domain.model.user.Role;
 import partner42.modulecommon.domain.model.user.RoleEnum;
@@ -224,8 +223,7 @@ public class CreateTestDataUtils {
             //회원에 필용한 정보 생성 및 조회
 
 
-            MatchTryAvailabilityJudge matchTryAvailabilityJudge = MatchTryAvailabilityJudge.of();
-            Member member = Member.of(login, matchTryAvailabilityJudge);
+            Member member = Member.of(login);
             memberRepository.save(member);
 
             Role role = roleRepository.findByValue(RoleEnum.ROLE_USER).orElseThrow(() ->

@@ -2,8 +2,43 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '2.7.5'
 	id 'io.spring.dependency-management' version '1.0.15.RELEASE'
+	id 'jacoco'
+}
+jacoco {
+	toolVersion = "0.8.8"
+	reportsDirectory = layout.buildDirectory.dir('customJacocoReportDir')
+}
+test {
+	// finalizedBy : 이(test) 작업에 대해 주어진 종료자 작업을 추가
+	finalizedBy jacocoTestReport // test 작업이 끝나고 jacocoTestReport를 실행
+}
+jacocoTestReport {
+	reports {
+		xml.required = false
+		csv.required = false
+		html.outputLocation = layout.buildDirectory.dir('jacocoHTML')
+	}
+	// dependsOn : 이 작업에 지정된 종속성을 추가
+	dependsOn test // jacocoTestReport 에 test라는 종속성을 추가
+	finalizedBy 'jacocoTestCoverageVerification'
 }
 
+jacocoTestCoverageVerification {
+	violationRules {
+
+		rule {
+			enabled = false
+			//코드 버커리지 체크 기준
+			element = 'CLASS'
+
+			limit {
+				counter = 'METHOD'
+				value = 'COVEREDRATIO'
+				minimum = 0.5
+			}
+		}
+	}
+}
 group = 'partner42'
 version = '0.0.1-SNAPSHOT'
 sourceCompatibility = '11'
@@ -69,6 +104,8 @@ dependencies {
 	//jpa- pageble등 의존하는 경우 있음.
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 
+	//
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 	//Sentry
 	implementation 'io.sentry:sentry-spring-boot-starter:6.9.2'
 	implementation 'io.sentry:sentry-logback:6.9.2'
@@ -76,6 +113,13 @@ dependencies {
 	//module-common  참조
 	implementation project(':module-common')
 
+	//kafka
+	implementation 'org.springframework.kafka:spring-kafka'
+
+	//test-embedded-redis
+	testImplementation 'it.ozimov:embedded-redis:0.7.1'
+
+	implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
 
 }
 

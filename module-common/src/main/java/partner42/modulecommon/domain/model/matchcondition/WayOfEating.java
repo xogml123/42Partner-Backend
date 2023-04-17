@@ -29,13 +29,13 @@ public enum WayOfEating {
             .collect(Collectors.toList());
     }
 
-    public static List<MatchCondition> wayOfEatingToMatchCondition(List<WayOfEating> wayOfEatings) {
-        return wayOfEatings.stream()
-            .map(wayOfEating -> MatchCondition.of(
-                wayOfEating.name(),
-                ConditionCategory.valueOf(wayOfEating.name())
-
-            ))
-            .collect(Collectors.toList());
-    }
+//    public static List<MatchCondition> wayOfEatingToMatchCondition(List<WayOfEating> wayOfEatings) {
+//        return wayOfEatings.stream()
+//            .map(wayOfEating -> MatchCondition.of(
+//                wayOfEating.name(),
+//                ConditionCategory.valueOf(wayOfEating.name())
+//
+//            ))
+//            .collect(Collectors.toList());
+//    }
 }

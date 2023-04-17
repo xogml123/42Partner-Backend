@@ -53,14 +53,9 @@ public class Opinion extends BaseEntity {
     @Builder.Default
     @Column(nullable = false, updatable = false, length = 50)
     private final String apiId = UUID.randomUUID().toString();
-
-
     @Lob
     @Column(nullable = false)
     private String content;
-
-    private String parentApiId;
-
     @Column(nullable = false, updatable = false)
     private Integer level;
 
@@ -77,6 +72,9 @@ public class Opinion extends BaseEntity {
     private Member memberAuthor;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "PARENT_OPINION_ID", updatable = false)
+    private Opinion parentOpinion;
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ARTICLE_ID", nullable = false, updatable = false)
     private Article article;
 
@@ -90,30 +88,29 @@ public class Opinion extends BaseEntity {
 
     /********************************* 생성 메서드 *********************************/
 
-    public static Opinion of(String content, Member memberAuthor, Article article, String parentApiId, Integer level) {
+    public static Opinion of(String content, Member memberAuthor, Article article, Opinion parentOpinion) {
         Opinion opinion = Opinion.builder()
             .content(content)
             .memberAuthor(memberAuthor)
-            .parentApiId(parentApiId)
-            .level(level)
+            .parentOpinion(parentOpinion)
+            .level(parentOpinion == null ? 1 : parentOpinion.nextLevel())
             .build();
         opinion.setMemberAuthorAndArticle(memberAuthor, article);
         return opinion;
     }
-
-
-
     /********************************* 비니지스 로직 *********************************/
 
     public void updateContent(String content) {
         this.content = content;
     }
 
-    public void delete() {
+    public void recoverableDelete() {
         this.isDeleted = true;
     }
 
-    /********************************* DTO *********************************/
+    private Integer nextLevel() {
+        return this.level + 1;
+    }
 
 }
 
