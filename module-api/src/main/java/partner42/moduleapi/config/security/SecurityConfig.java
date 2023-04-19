@@ -123,7 +123,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.GET, "/api/alarms").authenticated()
                 .antMatchers(HttpMethod.GET, "/api/alarm/subscribe").authenticated()
                 //Actuator
-                .antMatchers("/actuator/**").hasAuthority("actuator.read")
+//                .antMatchers("/actuator/**").hasAuthority("actuator.read")
 
 
                 .antMatchers("/**").permitAll()
