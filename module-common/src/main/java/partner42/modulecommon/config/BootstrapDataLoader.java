@@ -53,6 +53,7 @@ public class BootstrapDataLoader {
         sorkim.put("email", "sorkim@student.42seoul.kr");
         sorkim.put("image_url",
             "https://cdn.intra.42.fr/users/0f260cc3e59777f0f5ba926f19cc1ec9/sorkim.jpg");
+        sorkim.put("role", RoleEnum.ROLE_ADMIN);
 
         Map<String, Object> hyenam = new HashMap<>();
         hyenam.put("id", 4);
@@ -60,6 +61,7 @@ public class BootstrapDataLoader {
         hyenam.put("email", "hyenam@student.42seoul.kr");
         hyenam.put("image_url",
             "https://cdn.intra.42.fr/users/0f260cc3e59777f0f5ba926f19cc1ec9/hyenam.jpg");
+        hyenam.put("role", RoleEnum.ROLE_ADMIN);
 
         Map<String, Object> takim = new HashMap<>();
         takim.put("id", 5);
@@ -67,6 +69,7 @@ public class BootstrapDataLoader {
         takim.put("email", "takim@student.42seoul.kr");
         takim.put("image_url",
             "https://cdn.intra.42.fr/users/0f260cc3e59777f0f5ba926f19cc1ec9/takim.jpg");
+        takim.put("role", RoleEnum.ROLE_ADMIN);
 
         loadUser(sorkim);
         loadUser(hyenam);
@@ -82,13 +85,14 @@ public class BootstrapDataLoader {
         //https://cdn.intra.42.fr/users/0f260cc3e59777f0f5ba926f19cc1ec9/takim.jpg
         String imageUrl = (String) attributes.get("image_url");
 
+        RoleEnum role = (RoleEnum) attributes.get("role");
         HashMap<String, Object> necessaryAttributes = createNecessaryAttributes(apiId, login,
             email, imageUrl);
 
         String username = login;
         Optional<User> userOptional = userRepository.findByUsername(username);
         User oAuth2User = signUpOrUpdateUser(login, email, imageUrl, username, userOptional,
-            necessaryAttributes);
+            necessaryAttributes, role);
     }
 
     private HashMap<String, Object> createNecessaryAttributes(String apiId, String login,
@@ -151,6 +155,7 @@ public class BootstrapDataLoader {
         Authority readAlarm = saveNewAuthority("alarm.read");
         Authority deleteAlarm = saveNewAuthority("alarm.delete");
 
+        Authority readActuator = saveNewAuthority("actuator.read");
 
         //Role 생성
         Role adminRole = saveNewRole(RoleEnum.ROLE_ADMIN);
@@ -166,7 +171,8 @@ public class BootstrapDataLoader {
             createMatch, updateMatch, readMatch, deleteMatch,
             createActivity, updateActivity, readActivity, deleteActivity,
             createRandomMatch, updateRandomMatch, readRandomMatch, deleteRandomMatch,
-            createAlarm, updateAlarm, readAlarm, deleteAlarm);
+            createAlarm, updateAlarm, readAlarm, deleteAlarm,
+            readActuator);
 
         userRole.getAuthorities().clear();
         userRole.addAuthorities(createUser, updateUser, readUser, deleteUser,
@@ -231,20 +237,16 @@ public class BootstrapDataLoader {
             Authority.of(s));
     }
 
-
-
     private User signUpOrUpdateUser(String login, String email, String imageUrl, String username,
-        Optional<User> userOptional, Map<String, Object> necessaryAttributes) {
+        Optional<User> userOptional, Map<String, Object> necessaryAttributes, RoleEnum roleEnum) {
         User user;
         //회원가입
         if (userOptional.isEmpty()) {
             //회원에 필용한 정보 생성 및 조회
-
-
             Member member = Member.of(login);
             memberRepository.save(member);
-            Role role = roleRepository.findByValue(RoleEnum.ROLE_USER).orElseThrow(() ->
-                new EntityNotFoundException(RoleEnum.ROLE_USER + "에 해당하는 Role이 없습니다."));
+            Role role = roleRepository.findByValue(roleEnum).orElseThrow(() ->
+                new EntityNotFoundException(roleEnum + "에 해당하는 Role이 없습니다."));
             user = User.of(username, bCryptPasswordEncoder.encode(username), email, login, imageUrl, member);
             UserRole userRole = UserRole.of(role, user);
 
