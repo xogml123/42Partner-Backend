@@ -10,7 +10,7 @@ import partner42.modulecommon.domain.model.user.User;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2023-04-05T15:32:11+0900",
+    date = "2023-04-19T13:11:32+0900",
     comments = "version: 1.5.3.Final, compiler: javac, environment: Java 11.0.13 (Azul Systems, Inc.)"
 )
 @Component

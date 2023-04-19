@@ -121,6 +121,10 @@ dependencies {
 
 	implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
 
+	//actuator
+	implementation "org.springframework.boot:spring-boot-starter-actuator"
+	//micrometer-prometheus 구현
+	implementation 'io.micrometer:micrometer-registry-prometheus' //추가
 }
 
 tasks.named('test') {
