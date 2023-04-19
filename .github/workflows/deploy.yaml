@@ -30,7 +30,7 @@ jobs:
 #          files: ${{ env.RESOURCE_PATH }}
       - run: mkdir -p ./module-api/src/main/resources
       - run: touch ${{ env.RESOURCE_PATH }}
-      - run: echo "${{ secrets.APPLICATION_DEV }}" > ${{ env.RESOURCE_PATH }}
+      - run: echo '${{ secrets.APPLICATION_DEV }}' > ${{ env.RESOURCE_PATH }}
 
 
       - name: Grant execute permission for gradlew
