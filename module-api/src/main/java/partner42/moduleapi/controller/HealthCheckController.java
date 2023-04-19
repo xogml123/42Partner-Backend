@@ -27,7 +27,7 @@ public class HealthCheckController {
      */
     @GetMapping("/")
     public ResponseEntity<String> test() {
-        return ResponseEntity.ok("test105");
+        return ResponseEntity.ok("test106");
     }
 
 //    @GetMapping("/health")
