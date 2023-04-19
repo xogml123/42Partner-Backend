@@ -15,5 +15,5 @@ permissions:
 hooks:
   ApplicationStart:
     - location: scripts/gh_deploy.sh
-      timeout: 120
+      timeout: 60
       runas: root
