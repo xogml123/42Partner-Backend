@@ -61,8 +61,23 @@ public class ActuatorWithSecurityTest {
 
     @Test
     @WithMockUser()
-    void actuator_whenHasAuthority_then203() throws Exception {
+    void actuator_whenHasAuthority_then403() throws Exception {
         mockMvc.perform(get("/actuator"))
+            .andDo(print())
+            .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void actuatorHealth_whenHasAuthority_then401() throws Exception {
+        mockMvc.perform(get("/actuator"))
+            .andDo(print())
+            .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @WithMockUser()
+    void actuatorHealth_whenHasAuthority_then403() throws Exception {
+        mockMvc.perform(get("/actuator/health"))
             .andDo(print())
             .andExpect(status().isForbidden());
     }
