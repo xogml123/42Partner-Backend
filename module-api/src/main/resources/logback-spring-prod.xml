@@ -1,0 +1,57 @@
+<included>
+  <!-- logback-variables.properties에 정의되어 있는 Key를 사용하기 위한 코드 -->
+  <property resource="logback-variables.properties" />
+
+
+  <appender name="REQUEST2" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>${LOG_DIR}/request2.log</file>
+    <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+      <fileNamePattern>${LOG_DIR}/archive/request2.%d{yyyy-MM-dd}_%i.log</fileNamePattern>
+      <maxFileSize>100MB</maxFileSize>
+      <maxHistory>10</maxHistory>
+      <totalSizeCap>1200MB</totalSizeCap>
+    </rollingPolicy>
+    <encoder>
+      <pattern>${LOG_PATTERN}</pattern>
+      <outputPatternAsHeader>true</outputPatternAsHeader>
+    </encoder>
+  </appender>
+
+<!--  <appender name="ERROR" class="ch.qos.logback.core.rolling.RollingFileAppender">-->
+<!--    <file>${LOG_DIR}/error.log</file>-->
+<!--    <filter class="ch.qos.logback.classic.filter.LevelFilter">-->
+<!--      <level>error</level>-->
+<!--      <onMatch>ACCEPT</onMatch>-->
+<!--      <onMismatch>DENY</onMismatch>-->
+<!--    </filter>-->
+<!--    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">-->
+<!--      <fileNamePattern>${LOG_DIR}/archive/error.%d{yyyy-MM-dd}_%i.log</fileNamePattern>-->
+<!--      &lt;!&ndash;-->
+<!--      ## rollingPolicy에서 "SizeAndTimeBasedRollingPolicy"가 아니라 "TimeBasedRollingPolicy"를 사용하는 경우-->
+
+<!--      In versions prior to 1.1.7,-->
+<!--      this document mentioned a component called SizeAndTimeBasedFNATP.-->
+<!--      However, given that SizeAndTimeBasedRollingPolicy offers a simpler configuration structure,-->
+<!--      we no longer document SizeAndTimeBasedFNATP.-->
+<!--      Nevertheless, earlier configuration files using SizeAndTimeBasedFNATP will continue to work just fine.-->
+<!--      In fact, SizeAndTimeBasedRollingPolicy is implemented with a SizeAndTimeBasedFNATP subcomponent.-->
+
+<!--      - ref : https://logback.qos.ch/manual/appenders.html-->
+<!--      &ndash;&gt;-->
+<!--      <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">-->
+<!--        <maxFileSize>1KB</maxFileSize>-->
+<!--      </timeBasedFileNamingAndTriggeringPolicy>-->
+<!--      <maxHistory>60</maxHistory>-->
+<!--    </rollingPolicy>-->
+<!--    <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">-->
+<!--      <pattern>${LOG_PATTERN}</pattern>-->
+<!--      <outputPatternAsHeader>true</outputPatternAsHeader>-->
+<!--    </encoder>-->
+<!--  </appender>-->
+
+  <root level="INFO">
+    <appender-ref ref="REQUEST2" />
+<!--    <appender-ref ref="ERROR" />-->
+  </root>
+
+</included>
