@@ -32,7 +32,7 @@ fi
 
 DEPLOY_JAR="$DEPLOY_PATH/build/libs/$JAR_NAME"
 echo "> DEPLOY_JAR 배포" >> $DEPLOY_LOG_PATH
-sudo nohup java -jar -Dlogback.configurationFile=$LOGBACK_CONFIG_PATH -Dspring.profiles.active=prod $DEPLOY_JAR  &
+sudo nohup java -jar -Dlogback.configurationFile=$LOGBACK_CONFIG_PATH -Dspring.profiles.active=prod $DEPLOY_JAR 1> /dev/null 2>&1  &
 
 sleep 3
 echo "> 배포 종료 : $(date +%c)" >> $DEPLOY_LOG_PATH
