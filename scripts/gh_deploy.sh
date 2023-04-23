@@ -7,6 +7,7 @@ DEPLOY_PATH=$PROJECT_PATH/$MODULE_NAME
 DEPLOY_LOG_PATH="$PROJECT_PATH/$MODULE_NAME/deploy.log"
 DEPLOY_ERR_LOG_PATH="$PROJECT_PATH/$MODULE_NAME/deploy_err.log"
 APPLICATION_LOG_PATH="$PROJECT_PATH/$MODULE_NAME/application.log"
+LOGBACK_CONFIG_PATH="$DEPLOY_PATH/src/main/resources/logback-spring.xml"
 BUILD_JAR=$(ls $JAR_PATH)
 JAR_NAME=$(basename $BUILD_JAR)
 
@@ -31,7 +32,7 @@ fi
 
 DEPLOY_JAR="$DEPLOY_PATH/build/libs/$JAR_NAME"
 echo "> DEPLOY_JAR 배포" >> $DEPLOY_LOG_PATH
-nohup java -jar  $DEPLOY_JAR > /dev/null 2> $DEPLOY_ERR_LOG_PATH &
+sudo nohup java -jar -Dlogback.configurationFile=$LOGBACK_CONFIG_PATH -Dspring.profiles.active=prod $DEPLOY_JAR  &
 
 sleep 3
 echo "> 배포 종료 : $(date +%c)" >> $DEPLOY_LOG_PATH
