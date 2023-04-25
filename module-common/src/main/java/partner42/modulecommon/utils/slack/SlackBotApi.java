@@ -25,8 +25,12 @@ public class SlackBotApi {
     @Value("${slack.uri}")
     private String slackURI;
 
+    private static final String USERS_LOOKUPBYEMAIL = "users.lookupByEmail";
+    private static final String CONVERSATIONS_OPEN = "conversations.open";
+    private static final String CHAT_POSTMESSAGE = "chat.postMessage";
+
     public Optional<String> getSlackIdByEmail(String slackEmail){
-        String url = slackURI + "users.lookupByEmail";
+        String url = slackURI + USERS_LOOKUPBYEMAIL;
         String email = slackEmail;
         url += "?email=" + email;
         HttpHeaders headers = new HttpHeaders();
@@ -55,7 +59,7 @@ public class SlackBotApi {
     }
 
     public String sendMessage(String slackId, String message) {
-        String url = slackURI + "chat.postMessage";
+        String url = slackURI + CHAT_POSTMESSAGE;
 
         HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", "Bearer " + slackToken);
@@ -80,14 +84,13 @@ public class SlackBotApi {
     }
 
     public Optional<String> createMPIM(List<String> slackIds){
-        String url = slackURI + "conversations.open";
+        String url = slackURI + CONVERSATIONS_OPEN;
 
         HttpHeaders headers = new HttpHeaders();
-        headers.add("Authorization", "Bearer " + slackToken);
-        headers.add("Content-type", "application/json; charset=utf-8");
+        headers.add(HttpHeaders.AUTHORIZATION, "Bearer " + slackToken);
+        headers.add(HttpHeaders.CONTENT_TYPE, "application/json; charset=utf-8");
 
         String userIds = String.join(",", slackIds);
-        System.out.println("userIds = " + userIds);
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("users", userIds);
         String body = jsonObject.toString();
@@ -100,7 +103,7 @@ public class SlackBotApi {
         if (jsonResponse.getBoolean("ok")){
             return Optional.ofNullable(jsonResponse.getJSONObject("channel").getString("id"));
         }else{
-            log.info("error = " + jsonResponse.getString("error"));
+            log.warn("error = " + jsonResponse.getString("error"));
             return Optional.empty();
         }
     }
