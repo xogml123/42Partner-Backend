@@ -36,6 +36,8 @@
 6. 매칭이 완료되면 Slack을 통해 알림을 받을 수 있습니다.
 <img width="709" alt="image" src="https://user-images.githubusercontent.com/47822403/234507261-f2b74d8c-aa5d-4860-bb01-3553e3e554ed.png">
 
+# Backend API Swagger Link
+[API 명세 링크](https://api.v2.42partner.com/swagger-ui/index.html#/)
 ## 배포 구조 소개
 ### Database Design
 
@@ -51,6 +53,7 @@
 
 ### CICD
 [Blue/Green 무중단 배포](https://velog.io/@xogml951/CICD-%EA%B5%AC%EC%B6%95-Github-action-code-deploy-s3)
+
 <img width="630" alt="image" src="https://user-images.githubusercontent.com/47822403/234505615-16f8b5b8-64a4-494f-9e64-1d40df3e7326.png">
 
 
