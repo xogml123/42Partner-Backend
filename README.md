@@ -37,7 +37,9 @@
 <img width="709" alt="image" src="https://user-images.githubusercontent.com/47822403/234507261-f2b74d8c-aa5d-4860-bb01-3553e3e554ed.png">
 
 # Backend API Swagger Link
-[API 명세 링크](https://api.v2.42partner.com/swagger-ui/index.html#/)
+
+## [API 명세 링크](https://api.v2.42partner.com/swagger-ui/index.html#/)
+
 ## 배포 구조 소개
 ### Database Design
 
