@@ -6,21 +6,21 @@
 
 ## Backend API Swagger Link
 
-### [API 명세 링크](https://api.v2.42partner.com/swagger-ui/index.html#/)
+#### [API 명세 링크](https://api.v2.42partner.com/swagger-ui/index.html#/)
 
 ## 배포 구조
 ### Database Design
 
 <img width="1177" alt="image" src="https://user-images.githubusercontent.com/47822403/234504770-59fcb9bc-1c98-4b42-8eea-4f60d85d7a7a.png">
 
-### Architecture Design
+## Architecture Design
 <img width="1031" alt="image" src="https://user-images.githubusercontent.com/47822403/234498210-e681f1b8-fd42-4e7c-a4aa-e6c0a7c534ae.png">
 
 <img width="800" alt="image" src="https://user-images.githubusercontent.com/47822403/234505501-0215da77-36f0-41a1-b5aa-5fbafcf22759.png">
 
 
-## Architecture Design Point
-### [아키텍처 설계 과정](https://velog.io/@xogml951/AWS-HAHigh-Availability-%EA%B5%AC%EC%B6%95-%EA%B8%B0%EB%A1%9D)
+### Architecture Design Point
+#### [아키텍처 설계 과정](https://velog.io/@xogml951/AWS-HAHigh-Availability-%EA%B5%AC%EC%B6%95-%EA%B8%B0%EB%A1%9D)
 
 - High Availavility
     - 적어도 둘 이상의 Availavility Zone에 instance가 분포 하도록 함.
@@ -60,7 +60,8 @@
 
 ### CICD
 * 배포 중 서비스를 정상 동작 시키기 위해 Blue/Green 무중단으로 배포
-[Blue/Green 무중단 배포 구현 링크](https://velog.io/@xogml951/CICD-%EA%B5%AC%EC%B6%95-Github-action-code-deploy-s3)
+* 
+#### [Blue/Green 무중단 배포 구현 링크](https://velog.io/@xogml951/CICD-%EA%B5%AC%EC%B6%95-Github-action-code-deploy-s3)
 
 <img width="630" alt="image" src="https://user-images.githubusercontent.com/47822403/234505615-16f8b5b8-64a4-494f-9e64-1d40df3e7326.png">
 
