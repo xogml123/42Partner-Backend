@@ -169,7 +169,7 @@
 
 ## Dev-Ops
 
-### 배포 자동화
+### 무중단 배포 자동화
 
 [https://velog.io/@xogml951/CICD-구축-Github-action-code-deploy-s3](https://velog.io/@xogml951/CICD-%EA%B5%AC%EC%B6%95-Github-action-code-deploy-s3)
 
