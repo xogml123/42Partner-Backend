@@ -23,44 +23,45 @@
 #### [아키텍처 설계 과정](https://velog.io/@xogml951/AWS-HAHigh-Availability-%EA%B5%AC%EC%B6%95-%EA%B8%B0%EB%A1%9D)
 
 - High Availavility
-    - 적어도 둘 이상의 Availavility Zone에 instance가 분포 하도록 함.
-    - WAS의 경우 Application Load Balancer, 와 Auto Scaling Group활용.
-    - NAT Gateway의 경우 각각의 Availability Zone에 적어도 하나 위치.
-    - RDS의 경우 Multi-az로 설정 하고 하나의 RDS만 Active하도록 설정
-        - 여러 RDS를 Active로 설정할 정도의 부하가 없는 상황.
-        - 여러 RDS를 Active로 설정해도 DB Storage 사이에 병목이 발생할 수 있기 때문에 조회 요청이 높아지면 Replication을 하는 것도 고려해야함.
+    - 적어도 둘 이상의 Availavility Zone에 instance가 분포 하도록 합니다.
+    - WAS의 경우 Application Load Balancer, 와 Auto Scaling Group활용합니다.
+    - NAT Gateway의 경우 각각의 Availability Zone에 적어도 하나 위치시킵니다.
+    - RDS의 경우 Multi-az로 설정 하고 하나의 RDS만 Active하도록 설정합니다
+        - 여러 RDS를 Active로 설정할 정도의 부하가 없는 상황입니다.
+        - 여러 RDS를 Active로 설정해도 DB Storage 사이에 병목이 발생할 수 있기 때문에 조회 요청이 높아지면 Replication을 하는 것도 고려해야합니다.
 - AWS VPC Custom설정(IGW, NAT Gateway, Public/Private/DB Subnet, Route Table)
     - 보안성 강화를 위한 조치
         - WAS를 실행중인 EC2
-            - Private Subnet에 위치하게 하여 외부 Network에서의 직접 접근 방지
-            - NAT gateway를 Route table에 추가하여 EC2에서 외부로 요청 시작(주로 외부 API호출 목적)은 가능하게함.
+            - Private Subnet에 위치하게 하여 외부 Network에서의 직접 접근을 방지합니다.
+            - NAT gateway를 Route table에 추가하여 EC2에서 외부로 요청 시작(주로 외부 API호출 목적)은 가능하게 합니다.
         - RDS
-            - DB Subnet에 위치하게 하여 외부 Network에서의 직접 접근 방지
-            - Private Subnet과의 차이점은 DB Subnet은 NAT Gateway와 연결하지 않음.
-                - DB에서 외부로 먼저 요청할 일이 없기 때문.
+            - DB Subnet에 위치하게 하여 외부 Network에서의 직접 접근을 방지합니다
+            - Private Subnet과의 차이점은 DB Subnet은 NAT Gateway와 연결하지 않습니다.
+                - DB에서 외부로 먼저 요청할 일이 없기 때문입니다.
         - Bastion Host
             - Public Subnet에 위치하여 EC2, RDS로 SSH, 3306포트로 접속할 수 있게함.
-            - 같은 VPC내에 있기 때문에 SG만 설정해주면 접속 가능.
+            - Private Subnet에 주요 컴포넌트들을 위치시키고 개발자는 Bastion Host를 통해서 접근합니다.
+            - SSH포트만 열어두어야합니다.
 - Load Balancer, Auto Scaling Group
     - Load Balancer
-        - 외부에서 Web Application Server로 들어오는 요청을 앞단에서 받아 EC2에 적절하게 부하를 분산.
-        - HTTPS 인증을 수행하고 SSL Termination을 수행하여 WAS부터 내부 통신을 할 때에 HTTP로 내부 통신을 수행함으로서 성능을 개선할 수 있음.
+        - 외부에서 Web Application Server로 들어오는 요청을 앞단에서 받아 EC2에 적절하게 부하를 분산할 수 있습니다.
+        - HTTPS 인증을 수행하고 SSL Termination을 수행하여 WAS부터 내부 통신을 할 때에 HTTP로 내부 통신을 수행함으로서 성능을 개선할 수 있습니다.
     - Auto Scaling Group
-        - EC2 Health Check를 통해 비정상적인 EC2 발견시 Termination
-        - CloudWatch를 통해 서버 부하를 체크하여(예. CPU 사용률 70퍼이상) 필요 시 등록해 놓은 Launch Template을 통해 자동 EC2 배포.
-        - 트래픽이 몰리거나 EC2내 장애가 발생했을때 기본적인 자동 대처 가능.
-- Route53, Certificate Mange
-    - Route53을 통해 Domain을 제공 받음.
-    - AWS Certificate Manger를 통해 SSL 인증서를 발급 받음.
+        - EC2 Health Check를 통해 비정상적인 EC2 발견시 Termination 합니다.
+        - CloudWatch를 통해 서버 부하를 체크하여(예. CPU 사용률 70퍼이상) 필요 시 등록해 놓은 Launch Template을 통해 자동 EC2를 배포할 수 있습니다.
+        - 트래픽이 몰리거나 EC2내 장애가 발생했을때 기본적인 자동 Scaling이 가능합니다.
+- Route53, Certificate Manger
+    - Route53을 통해 Domain을 제공 받습니다.
+    - AWS Certificate Manger를 통해 SSL 인증서를 발급 받았습니다.
 - Nginx
-    - Nginx를 Reverse Proxy로 활용.
-    - WAS 서버가 정적 파일을 직접 다루는것은 자원 낭비이기 때문에 Web Server를 앞단에 두어 처리하게 하는것이 바람직하다고 판단.
-    - 추가적으로 캐싱, 로드밸런싱, 보안 강화 등의 역할을 할 수 있고 아키텍처 디자인 면에서 유연성을 확보할 수 있음.
-    - Docker Compose를 활용하여 EC2내부에서 컴포넌트들을 Container화하면 더 좋을 수 있을 수 있지만 아직 구현하지 않음.
+    - Nginx를 Reverse Proxy로 활용합니다.
+    - WAS 서버가 정적 파일을 직접 다루는것은 자원 낭비이기 때문에 Web Server를 앞단에 두어 처리하게 하는것이 바람직하다고 판단했습니다.
+    - 추가적으로 캐싱, 로드밸런싱, 보안 강화 등의 역할을 할 수 있고 아키텍처 디자인 면에서 유연성을 확보할 수 있습니다.
+    - Docker Compose를 활용하여 EC2내부에서 컴포넌트들을 Container화할 계획이 있습니다.
 
 ### CICD
 * 배포 중 서비스를 정상 동작 시키기 위해 Blue/Green 무중단으로 배포
-* 
+
 #### [Blue/Green 무중단 배포 구현 링크](https://velog.io/@xogml951/CICD-%EA%B5%AC%EC%B6%95-Github-action-code-deploy-s3)
 
 <img width="630" alt="image" src="https://user-images.githubusercontent.com/47822403/234505615-16f8b5b8-64a4-494f-9e64-1d40df3e7326.png">
