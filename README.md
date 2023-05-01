@@ -1,30 +1,21 @@
 # 42Partner-Backend
 
+## Backend API Swagger Link
 
-# Backend API Swagger Link
+### [API 명세 링크](https://api.v2.42partner.com/swagger-ui/index.html#/)
 
-## [API 명세 링크](https://api.v2.42partner.com/swagger-ui/index.html#/)
-
-## 배포 구조 소개
+## 배포 구조
 ### Database Design
 
 <img width="1177" alt="image" src="https://user-images.githubusercontent.com/47822403/234504770-59fcb9bc-1c98-4b42-8eea-4f60d85d7a7a.png">
-
-<br>
-[DB 설계과정](https://indigo-catsup-e60.notion.site/Database-DB-Design-bf9ce489736f4001b471ba33c66f35e9)
 
 ### Architecture Design
 <img width="1031" alt="image" src="https://user-images.githubusercontent.com/47822403/234498210-e681f1b8-fd42-4e7c-a4aa-e6c0a7c534ae.png">
 
 <img width="800" alt="image" src="https://user-images.githubusercontent.com/47822403/234505501-0215da77-36f0-41a1-b5aa-5fbafcf22759.png">
 
-### CICD
-[Blue/Green 무중단 배포](https://velog.io/@xogml951/CICD-%EA%B5%AC%EC%B6%95-Github-action-code-deploy-s3)
 
-<img width="630" alt="image" src="https://user-images.githubusercontent.com/47822403/234505615-16f8b5b8-64a4-494f-9e64-1d40df3e7326.png">
-
-
-## Design Point
+## Architecture Design Point
 [아키텍처 설계 과정](https://indigo-catsup-e60.notion.site/Architecture-Design-c103a3d951644e47b327293aadde2ed3)
 - High Availavility
     - 적어도 둘 이상의 Availavility Zone에 instance가 분포 하도록 함.
@@ -61,6 +52,12 @@
     - WAS 서버가 정적 파일을 직접 다루는것은 자원 낭비이기 때문에 Web Server를 앞단에 두어 처리하게 하는것이 바람직하다고 판단.
     - 추가적으로 캐싱, 로드밸런싱, 보안 강화 등의 역할을 할 수 있고 아키텍처 디자인 면에서 유연성을 확보할 수 있음.
     - Docker Compose를 활용하여 EC2내부에서 컴포넌트들을 Container화하면 더 좋을 수 있을 수 있지만 아직 구현하지 않음.
+
+### CICD
+* 배포 중 서비스를 정상 동작 시키기 위해 Blue/Green 무중단으로 배포
+[Blue/Green 무중단 배포 구현 링크](https://velog.io/@xogml951/CICD-%EA%B5%AC%EC%B6%95-Github-action-code-deploy-s3)
+
+<img width="630" alt="image" src="https://user-images.githubusercontent.com/47822403/234505615-16f8b5b8-64a4-494f-9e64-1d40df3e7326.png">
 
 ## 프로젝트 수행 배경 및 필요성
 
