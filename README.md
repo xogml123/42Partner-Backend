@@ -1,5 +1,9 @@
 # 42Partner-Backend
 
+### 프로젝트 내용
+- 42Partner는 42Seoul생활을 하면서 학습과 식사를 함께할 파트너를 매칭해주는 프로그램입니다.
+- **학습과 식사** 두 카테고리에 대해서 게임처럼 방 생성 혹은 랜덤 매칭을 통해 조건에 맞는 교육생들을 매칭해주는 기능을 제공합니다.
+
 ## Backend API Swagger Link
 
 ### [API 명세 링크](https://api.v2.42partner.com/swagger-ui/index.html#/)
@@ -16,7 +20,8 @@
 
 
 ## Architecture Design Point
-[아키텍처 설계 과정](https://indigo-catsup-e60.notion.site/Architecture-Design-c103a3d951644e47b327293aadde2ed3)
+### [아키텍처 설계 과정](https://velog.io/@xogml951/AWS-HAHigh-Availability-%EA%B5%AC%EC%B6%95-%EA%B8%B0%EB%A1%9D)
+
 - High Availavility
     - 적어도 둘 이상의 Availavility Zone에 instance가 분포 하도록 함.
     - WAS의 경우 Application Load Balancer, 와 Auto Scaling Group활용.
@@ -58,43 +63,6 @@
 [Blue/Green 무중단 배포 구현 링크](https://velog.io/@xogml951/CICD-%EA%B5%AC%EC%B6%95-Github-action-code-deploy-s3)
 
 <img width="630" alt="image" src="https://user-images.githubusercontent.com/47822403/234505615-16f8b5b8-64a4-494f-9e64-1d40df3e7326.png">
-
-## 프로젝트 수행 배경 및 필요성
-
-### 프로젝트 수행 배경
-- 42Seoul이라는 교육 과정에 참여하면서 교육생 끼리 서로 교류할 필요성이 많은 과정임에도 기회가 적다고 느끼게 되었습니다.
-- 또한 식당이 아니라 교육장으로 배달을 시켜서 먹는 경우가 많은데 배달비가 부담이 되어 Slack을 통해 글을 올리는 분들이 많습니다.
-
-### 프로젝트 내용
-- 42Partner는 42Seoul생활을 하면서 학습과 식사를 함께할 파트너를 매칭해주는 프로그램입니다.
-- **학습과 식사** 두 카테고리에 대해서 게임처럼 방 생성 혹은 랜덤 매칭을 통해 조건에 맞는 교육생들을 매칭해주는 기능을 제공합니다.
-
-### 프로젝트 기대효과
-- 42Seoul과정은 동료학습을 핵심으로 하는 교육과정으로 교육생 교류 정도에 따라 학습 능률이 올라가기 때문에 이에 기여할 것으로 기대 됩니다.
-- 식사할 때 배달비도 아끼면서, 동료간에 소통을 할 수 있는 연결 창구가 될 수 있습니다.
-
-## 프로젝트 협업 과정
-
-- 협업 툴로는 Git을 활용, Git Flow 전략 수립. [Gitflow 전략](https://techblog.woowahan.com/2553/)
-- Issue template, Pull request convention, commit convention을 정하여 일관된 형식으로 협업 및 정보 공유가 이루어질 수 있도록 함.
-- [Git Convention](https://www.notion.so/Github-Convention-2386de41d1de41fabc7b10cf2ab235b0)
-- Issue 관리를 위해 Jira와 Gihub Issue를 고민하던중  프로젝트 규모를 고려하여 Github Issue활용.
-- Notion을 활용하여 전체적인 프로젝트의 일정관리 및 필요한 문서들을 정리.
-- 1주일 단위로 Sprint 진행하여 MVP단위로 개발을 수행.
-## 프로젝트 기능 소개
-1. 사이트에 로그인이 되어 있지 않을 경우 로그인 페이지로 리다이렉트 됩니다. 로그인이 되어 있는 상태면 식사와 공부 선택 페이지로 이동이 됩니다.
-<img width="703" alt="image" src="https://user-images.githubusercontent.com/47822403/234506550-a1a9b6e9-ee50-482d-9600-521961689f54.png">
-
-<img width="703" alt="image" src="https://user-images.githubusercontent.com/47822403/234506478-e9febdfd-2508-4600-be89-53118325718d.png">
-2. 랜덤 매칭 페이지에서는 매칭 조건을 입력하여 매칭에 참여할 수 있습니다.
-<img width="701" alt="image" src="https://user-images.githubusercontent.com/47822403/234506590-335307ce-5a5a-4d3a-a996-e8756b25e82e.png">
-3. 방 매칭 목록 페이지에서는 매칭 참여 방 목록과 조건등이 표현됩니다.
-4. 방 매칭 신청 페이지에서는 조건을 입력하여 방을 생성할 수 있습니다..
-<img width="425" alt="image" src="https://user-images.githubusercontent.com/47822403/234506868-ad29d362-9390-407b-944a-b3295be1d8eb.png">
-5. 방 매칭 상세 페이지에서는 매칭 완료, 신청을 할 수 있고 댓글을 남길 수 있습니다.
-<img width="417" alt="image" src="https://user-images.githubusercontent.com/47822403/234507060-232e7dc9-1b77-4f42-9c77-9479f07b3ac5.png">
-6. 매칭이 완료되면 Slack을 통해 알림을 받을 수 있습니다.
-<img width="709" alt="image" src="https://user-images.githubusercontent.com/47822403/234507261-f2b74d8c-aa5d-4860-bb01-3553e3e554ed.png">
 
 
 # 개발 과정 상세
@@ -190,6 +158,46 @@
 ### 로깅
 
 - 이전에 했었던 구해줘 카뎃 프로젝트를 운영할 때 API요청 시 에러가 발생하게 되면 그때마다 EC2에 접속하여 리다이렉션된 로그파일을 확인하는 방식으로 대응했습니다. 로그 발생 기록을 확인하기 힘들었던 경험이 있어 이를 해결하기 위해 API요청 시 발생한 에러 로그를 쉽게 확인하고 통계 데이터를 제공해주는 Sentry를 활용하게 되었습니다. 또한 Logback 설정을 RollingFile 방식으로 구성하여 특정 시기가 지나면 자동 삭제될 수 있도록 하고 쌓아놓은 로그를 활용할 경우를 생각해 로그 포맷을 Custom하였습니다.
+
+
+## 프로젝트 수행 배경 및 필요성
+
+### 프로젝트 수행 배경
+- 42Seoul이라는 교육 과정에 참여하면서 교육생 끼리 서로 교류할 필요성이 많은 과정임에도 기회가 적다고 느끼게 되었습니다.
+- 또한 식당이 아니라 교육장으로 배달을 시켜서 먹는 경우가 많은데 배달비가 부담이 되어 Slack을 통해 글을 올리는 분들이 많습니다.
+
+### 프로젝트 내용
+- 42Partner는 42Seoul생활을 하면서 학습과 식사를 함께할 파트너를 매칭해주는 프로그램입니다.
+- **학습과 식사** 두 카테고리에 대해서 게임처럼 방 생성 혹은 랜덤 매칭을 통해 조건에 맞는 교육생들을 매칭해주는 기능을 제공합니다.
+
+### 프로젝트 기대효과
+- 42Seoul과정은 동료학습을 핵심으로 하는 교육과정으로 교육생 교류 정도에 따라 학습 능률이 올라가기 때문에 이에 기여할 것으로 기대 됩니다.
+- 식사할 때 배달비도 아끼면서, 동료간에 소통을 할 수 있는 연결 창구가 될 수 있습니다.
+
+## 프로젝트 협업 과정
+
+- 협업 툴로는 Git을 활용, Git Flow 전략 수립. [Gitflow 전략](https://techblog.woowahan.com/2553/)
+- Issue template, Pull request convention, commit convention을 정하여 일관된 형식으로 협업 및 정보 공유가 이루어질 수 있도록 함.
+- [Git Convention](https://www.notion.so/Github-Convention-2386de41d1de41fabc7b10cf2ab235b0)
+- Issue 관리를 위해 Jira와 Gihub Issue를 고민하던중  프로젝트 규모를 고려하여 Github Issue활용.
+- Notion을 활용하여 전체적인 프로젝트의 일정관리 및 필요한 문서들을 정리.
+- 1주일 단위로 Sprint 진행하여 MVP단위로 개발을 수행.
+## 프로젝트 기능 소개
+1. 사이트에 로그인이 되어 있지 않을 경우 로그인 페이지로 리다이렉트 됩니다. 로그인이 되어 있는 상태면 식사와 공부 선택 페이지로 이동이 됩니다.
+<img width="703" alt="image" src="https://user-images.githubusercontent.com/47822403/234506550-a1a9b6e9-ee50-482d-9600-521961689f54.png">
+
+<img width="703" alt="image" src="https://user-images.githubusercontent.com/47822403/234506478-e9febdfd-2508-4600-be89-53118325718d.png">
+2. 랜덤 매칭 페이지에서는 매칭 조건을 입력하여 매칭에 참여할 수 있습니다.
+<img width="701" alt="image" src="https://user-images.githubusercontent.com/47822403/234506590-335307ce-5a5a-4d3a-a996-e8756b25e82e.png">
+3. 방 매칭 목록 페이지에서는 매칭 참여 방 목록과 조건등이 표현됩니다.
+4. 방 매칭 신청 페이지에서는 조건을 입력하여 방을 생성할 수 있습니다..
+<img width="425" alt="image" src="https://user-images.githubusercontent.com/47822403/234506868-ad29d362-9390-407b-944a-b3295be1d8eb.png">
+5. 방 매칭 상세 페이지에서는 매칭 완료, 신청을 할 수 있고 댓글을 남길 수 있습니다.
+<img width="417" alt="image" src="https://user-images.githubusercontent.com/47822403/234507060-232e7dc9-1b77-4f42-9c77-9479f07b3ac5.png">
+6. 매칭이 완료되면 Slack을 통해 알림을 받을 수 있습니다.
+<img width="709" alt="image" src="https://user-images.githubusercontent.com/47822403/234507261-f2b74d8c-aa5d-4860-bb01-3553e3e554ed.png">
+
+
     
 
 
