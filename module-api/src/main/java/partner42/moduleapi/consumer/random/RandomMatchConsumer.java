@@ -29,7 +29,7 @@ public class RandomMatchConsumer {
     @KafkaListener(topics = "${kafka.topic.match-making.name}", groupId = "${kafka.consumer.match-making.rdb-group-id}",
         containerFactory = "kafkaListenerContainerFactoryMatchMakingEvent")
     public void matchMakingConsumerGroup(@Payload MatchMakingEvent matchMakingEvent, Acknowledgment ack) {
-        log.info("matchMakingConsumerGroup");
+        log.debug("matchMakingConsumerGroup");
         MatchMakingDto matchMakingDto = matchMakingService.matchMaking(matchMakingEvent.getNow());
         // 알림 생성.
         for (List<AlarmEvent> alarmEvents: matchMakingDto.getAlarmEvents()){

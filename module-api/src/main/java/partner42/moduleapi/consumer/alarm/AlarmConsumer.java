@@ -25,7 +25,7 @@ public class AlarmConsumer {
     @KafkaListener(topics = "${kafka.topic.alarm.name}", groupId = "${kafka.consumer.alarm.rdb-group-id}",
          containerFactory = "kafkaListenerContainerFactoryRDB")
     public void createAlarmInRDBConsumerGroup(@Payload AlarmEvent alarmEvent, Acknowledgment ack) {
-        log.info("createAlarmInRDBConsumerGroup");
+        log.debug("createAlarmInRDBConsumerGroup");
         alarmService.createAlarm(alarmEvent.getUserId(), alarmEvent.getType(), alarmEvent.getArgs());
         ack.acknowledge();
     }
@@ -33,7 +33,7 @@ public class AlarmConsumer {
     @KafkaListener(topics = "${kafka.topic.alarm.name}", groupId = "${kafka.consumer.alarm.redis-group-id}",
          containerFactory = "kafkaListenerContainerFactoryRedis")
     public void redisPublishConsumerGroup(@Payload AlarmEvent alarmEvent, Acknowledgment ack) {
-        log.info("redisPublishConsumerGroup");
+        log.debug("redisPublishConsumerGroup");
         alarmService.send(alarmEvent.getUserId(),
             alarmEvent.getEventName());
         ack.acknowledge();

@@ -40,7 +40,7 @@ public class OptimisticLockAspect {
         Exception exceptionHolder = null;
         for (int retryCount = 0; retryCount <= retryMaxCount; retryCount++) {
             try {
-                log.info("[RETRY_COUNT]: {}", retryCount);
+                log.debug("[RETRY_COUNT]: {}", retryCount);
                 return joinPoint.proceed();
             } catch (OptimisticLockException | ObjectOptimisticLockingFailureException | CannotAcquireLockException e) {
                 log.error("{} 발생", e.getClass());
