@@ -1,8 +1,29 @@
 # 42Partner-Backend
 
-### 프로젝트 내용
+## 프로젝트 내용
 - 42Partner는 42Seoul생활을 하면서 학습과 식사를 함께할 파트너를 매칭해주는 프로그램입니다.
 - **학습과 식사** 두 카테고리에 대해서 게임처럼 방 생성 혹은 랜덤 매칭을 통해 조건에 맞는 교육생들을 매칭해주는 기능을 제공합니다.
+
+## 사용 기술
+
+### Backend
+
+- Java
+- Spring Boot, Spring Data JPA, Spring Security
+- JPA, Querydsl
+- Junit5, Mockito
+- Gradle
+
+### Infra
+
+- AWS EC2, RDS, VPC, ELB, ASG, Code Deploy
+- MySQL
+- Redis
+- Kafka
+- Github Action
+- Nginx
+- Sentry
+- Prometheus, Grafana
 
 ## Backend API Swagger Link
 
