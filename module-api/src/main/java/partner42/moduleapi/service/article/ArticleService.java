@@ -184,6 +184,8 @@ public class ArticleService {
 
     public SliceImpl<ArticleReadResponse> readAllArticle(Pageable pageable,
         ArticleSearch condition) {
+        log.info("readAllArticle: {}", Thread.currentThread().getName());
+
         Slice<Article> articleSlices = articleRepository.findSliceByCondition(pageable,
             condition);
         return new SliceImpl<>(articleSlices.getContent().stream()
