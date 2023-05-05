@@ -18,7 +18,11 @@ public class SlackBotService {
 
     public final SlackBotApi slackBotApi;
 
-    @Async
+    /**
+     * Async Thread pool 별도 사용
+     * @param emails
+     */
+    @Async("threadPoolTaskExecutor")
     public void createSlackMIIM(List<String> emails) {
         List<String> slackIds = emails.stream()
             .map(email ->

@@ -35,6 +35,7 @@ public class AlarmController {
     @GetMapping("/alarms")
     public Slice<AlarmDto> readAllAlarms(@ApiParam(hidden = true) @AuthenticationPrincipal UserDetails user,
         Pageable pageable) {
+        log.info("readAllAlarms{}", Thread.currentThread().getName());
         return alarmService.sendAlarmSliceAndIsReadToTrue(pageable, user.getUsername());
     }
 

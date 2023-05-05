@@ -51,7 +51,6 @@ public class ArticleController {
     public ArticleReadOneResponse readOneArticle(
         @PathVariable String articleId,
         @Parameter(hidden = true) @AuthenticationPrincipal UserDetails user) {
-
         String username = user != null ? user.getUsername() : null;
         return articleService.readOneArticle(username, articleId);
     }
@@ -68,6 +67,7 @@ public class ArticleController {
     public ArticleOnlyIdResponse writeArticle(
         @ApiParam(hidden = true) @AuthenticationPrincipal UserDetails user,
         @Validated @Parameter @RequestBody ArticleDto articleRequest) {
+
         if (LocalDate.now().isAfter(articleRequest.getDate())){
             throw new InvalidInputException(ErrorCode.ARTICLE_DATE_IS_PAST);
         }
