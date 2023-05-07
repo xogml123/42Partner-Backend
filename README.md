@@ -45,11 +45,13 @@
 
 - High Availavility
     - 적어도 둘 이상의 Availavility Zone에 instance가 분포 하도록 합니다.
-    - WAS의 경우 Application Load Balancer, 와 Auto Scaling Group활용합니다.
+    - Application Load Balancer를 통해 부하를 WAS로 향하는 요청을 분산시킵니다.
+    - Auto Scaling Group을 적용하고 WAS의 Scaling 정책은 Dynamic Scaling cpu50% 이상인 경우로 적용했습니다..
     - NAT Gateway의 경우 각각의 Availability Zone에 적어도 하나 위치시킵니다.
     - RDS의 경우 Multi-az로 설정 하고 하나의 RDS만 Active하도록 설정합니다
-        - 여러 RDS를 Active로 설정할 정도의 부하가 없는 상황입니다.
-        - 여러 RDS를 Active로 설정해도 DB Storage 사이에 병목이 발생할 수 있기 때문에 조회 요청이 높아지면 Replication을 하는 것도 고려해야합니다.
+        - failover를 위해 stand by DB를 다른 Availability zone에 설정합니다.
+        - 여러 RDS를 Active로 설정해도 DB Storage 사이에 병목이 발생할 수 있기 때문에 성능 향상을 보장할 수 없습니다. 조회 부하가 크다면 Replication을 고려하는 것이 낫습니다.
+        
 - AWS VPC Custom설정(IGW, NAT Gateway, Public/Private/DB Subnet, Route Table)
     - 보안성 강화를 위한 조치
         - WAS를 실행중인 EC2
@@ -60,7 +62,7 @@
             - Private Subnet과의 차이점은 DB Subnet은 NAT Gateway와 연결하지 않습니다.
                 - DB에서 외부로 먼저 요청할 일이 없기 때문입니다.
         - Bastion Host
-            - Public Subnet에 위치하여 EC2, RDS로 SSH, 3306포트로 접속할 수 있게함.
+            - Public Subnet에 위치하여 EC2, RDS로 SSH, 3306포트로 접속할 수 있게합니다.
             - Private Subnet에 주요 컴포넌트들을 위치시키고 개발자는 Bastion Host를 통해서 접근합니다.
             - SSH포트만 열어두어야합니다.
 - Load Balancer, Auto Scaling Group
@@ -69,8 +71,12 @@
         - HTTPS 인증을 수행하고 SSL Termination을 수행하여 WAS부터 내부 통신을 할 때에 HTTP로 내부 통신을 수행함으로서 성능을 개선할 수 있습니다.
     - Auto Scaling Group
         - EC2 Health Check를 통해 비정상적인 EC2 발견시 Termination 합니다.
-        - CloudWatch를 통해 서버 부하를 체크하여(예. CPU 사용률 70퍼이상) 필요 시 등록해 놓은 Launch Template을 통해 자동 EC2를 배포할 수 있습니다.
+        - CloudWatch를 통해 서버 부하를 체크하여(예. Dynamic Scaling CPU 사용률 50퍼이상) 필요 시 등록해 놓은 Launch Template을 통해 자동 EC2를 배포할 수 있습니다.
         - 트래픽이 몰리거나 EC2내 장애가 발생했을때 기본적인 자동 Scaling이 가능합니다.
+- MSK(Kafka)
+  - 서로 다른 Availability zone에 적어도 하나의 Broker가 존재하도록 하고 insync replicas를 2이상으로 설정하여 데이터를 이중화합니다.
+- Elasticache(Redis)
+  - cluster mode를 활용합니다. cluster mode에서 master node와 slave node가 각각 1, 2개씩(원래 redis cluster에서는 master가 최소 3대이상 있어야 합니다.) 존재하게 되며 master node의 경우 sharding을 통해 추가할 수 있습니다.
 - Route53, Certificate Manger
     - Route53을 통해 Domain을 제공 받습니다.
     - AWS Certificate Manger를 통해 SSL 인증서를 발급 받았습니다.
