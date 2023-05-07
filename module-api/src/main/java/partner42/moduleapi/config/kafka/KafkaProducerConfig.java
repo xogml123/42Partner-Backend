@@ -37,7 +37,8 @@ public class KafkaProducerConfig {
 
     /**
      * enable.idempotence true를 위해서는 retry가 0이상,
-     * max.in.flight.requests.per.connection 은 5이하여야한다.
+     * max.in.flight.requests.per.connection 은 5(MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION_FOR_IDEMPOTENCE)이하여야한다.
+     * 또한 produce의 순서를 보장하기 위해서는
      * @return
      */
     @Bean
