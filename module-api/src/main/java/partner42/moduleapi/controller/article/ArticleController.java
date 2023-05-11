@@ -61,7 +61,7 @@ public class ArticleController {
         SliceImpl<ArticleReadResponse> articleReadResponses = articleService.readAllArticle(
             pageable, condition);
         for (ArticleReadResponse articleReadResponse : articleReadResponses) {
-            log.debug("articleReadResponse : {}", articleReadResponse);
+            log.info("articleReadResponse : {}", articleReadResponse);
         }
         return articleReadResponses;
     }

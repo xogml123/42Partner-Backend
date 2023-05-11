@@ -187,7 +187,7 @@ public class ArticleService {
         + " + '-' + #condition.anonymity + '-' + #condition.contentCategory +'-'+ #condition.isComplete")
         public SliceImpl<ArticleReadResponse>readAllArticle(Pageable pageable,
         ArticleSearch condition) {
-        log.debug("readAllArticle Called");
+        log.info("readAllArticle Called");
         Slice<Article> articleSlices = articleRepository.findSliceByCondition(pageable,
             condition);
         return new SliceImpl<>(articleSlices.getContent().stream()

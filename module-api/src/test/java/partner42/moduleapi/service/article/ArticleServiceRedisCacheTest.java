@@ -77,9 +77,7 @@ class ArticleServiceRedisCacheTest {
         //then
         SliceImpl<ArticleReadResponse> result = articleService.readAllArticle(page,
             articleSearch);
-        SliceImpl<ArticleReadResponse> result2 = (SliceImpl<ArticleReadResponse>)redisTemplate.opsForValue().get("articles::0-20-createdAt: ASC-null-MEAL-null");
-        log.info("result = {}", result);
-        log.info("result2 = {}", result2);
+
 
     }
 }

@@ -36,7 +36,7 @@ public class CacheConfig {
      * disableCachingNullValues - null값이 캐싱될 수 없도록 설정한다. null값 캐싱이 시도될 경우 에러를 발생시킨다.<br>
      * entryTtl - 캐시의 TTL(Time To Live)를 설정한다. Duraction class로 설정할 수 있다.<br>
      * serializeKeysWith - 캐시 Key를 직렬화-역직렬화 하는데 사용하는 Pair를 지정한다.<br>
-     * serializeValuesWith - 캐시 Value를 직렬화-역직렬화 하는데 사용하는 Pair를 지정한다.
+     * serializeValuesWith - 캐시 Value를 직렬화-역직렬화 하는데 사용하는 Pair를 지정한다. -> 가시성이 중요하지 않기 때문에 JDKSerializer 사용<br>
      * Value는 다양한 자료구조가 올 수 있기 때문에 GenericJackson2JsonRedisSerializer를 사용한다.
      *
      * @param redisConnectionFactory Redis와의 연결을 담당한다.
@@ -69,11 +69,19 @@ public class CacheConfig {
 //                RedisSerializationContext.SerializationPair
 //                    .fromSerializer(serializer)));
 
+        HashMap<String, RedisCacheConfiguration> cacheConfigurations = new HashMap<>();
+        cacheConfigurations.put(ARTICLES_CACHE_NAME, RedisCacheConfiguration.defaultCacheConfig()
+            .disableCachingNullValues()
+            .entryTtl(Duration.ofSeconds(ARTICLES_EXPIRE_SECOND))
+            .serializeKeysWith(
+                RedisSerializationContext.SerializationPair
+                    .fromSerializer(new StringRedisSerializer())));
+
+
         return RedisCacheManager.RedisCacheManagerBuilder
             .fromConnectionFactory(redisConnectionFactory)
             .cacheDefaults(configuration)
-//            .withCacheConfiguration(ARTICLES_CACHE_NAME, cacheConfigurations.get(ARTICLES_CACHE_NAME))
-//            .withInitialCacheConfigurations(cacheConfigurations)
+            .withInitialCacheConfigurations(cacheConfigurations)
             .build();
 
     }
