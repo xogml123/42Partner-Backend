@@ -58,7 +58,12 @@ public class ArticleController {
     @Operation(summary = "방 목록조회", description = "방 목록 페이지, ")
     @GetMapping("/articles")
     public SliceImpl<ArticleReadResponse> readAllArticle(Pageable pageable, ArticleSearch condition) {
-        return articleService.readAllArticle(pageable, condition);
+        SliceImpl<ArticleReadResponse> articleReadResponses = articleService.readAllArticle(
+            pageable, condition);
+        for (ArticleReadResponse articleReadResponse : articleReadResponses) {
+            log.debug("articleReadResponse : {}", articleReadResponse);
+        }
+        return articleReadResponses;
     }
 
     @PreAuthorize("hasAuthority('article.create')")

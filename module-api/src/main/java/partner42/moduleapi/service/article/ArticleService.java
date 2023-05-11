@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
@@ -182,10 +183,11 @@ public class ArticleService {
 
     }
 
-    public SliceImpl<ArticleReadResponse> readAllArticle(Pageable pageable,
+    @Cacheable(value = "articles", key = "#pageable.pageNumber + '-' + #pageable.pageSize + '-' + #pageable.sort"
+        + " + '-' + #condition.anonymity + '-' + #condition.contentCategory +'-'+ #condition.isComplete")
+        public SliceImpl<ArticleReadResponse>readAllArticle(Pageable pageable,
         ArticleSearch condition) {
-        log.info("readAllArticle: {}", Thread.currentThread().getName());
-
+        log.debug("readAllArticle Called");
         Slice<Article> articleSlices = articleRepository.findSliceByCondition(pageable,
             condition);
         return new SliceImpl<>(articleSlices.getContent().stream()

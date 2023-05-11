@@ -1,6 +1,7 @@
 package partner42.moduleapi.dto.matchcondition;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.AccessLevel;
@@ -19,7 +20,9 @@ import partner42.modulecommon.domain.model.matchcondition.WayOfEating;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class MatchConditionDto {
+public class MatchConditionDto implements Serializable{
+
+    private static final long serialVersionUID = 1L;
 
     @Builder.Default
     @Schema(name = "place", example = "SEOCHO(서초 클러스터), GAEPO(개포 클러스터), OUT_OF_CLUSTER(클러스터 외부)", description = "앞에 영어를 배열로 보내면 됨.")
