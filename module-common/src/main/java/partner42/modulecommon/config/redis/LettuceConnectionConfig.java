@@ -124,19 +124,11 @@ public class LettuceConnectionConfig {
     }
 
 
-//    @Bean // 만약 PlatformTransactionManager 등록이 안되어 있다면 해야함, 되어있다면 할 필요 없음
-//    public PlatformTransactionManager transactionManager() throws SQLException {
-//        // 사용하고 있는 datasource 관련 내용, 아래는 JDBC
-////        return new DataSourceTransactionManager(dataSource);
-//
-//        // JPA 사용하고 있다면 아래처럼 사용하고 있음
-//        return new JpaTransactionManager(entityManagerFactory);
-//    }
-
     @Bean
     public RedisTemplate<String, Object> redisTemplate(ObjectMapper objectMapper) {
-        GenericJackson2JsonRedisSerializer serializer =
-            new GenericJackson2JsonRedisSerializer(objectMapper);
+        // GenericJackson2JsonRedisSerializer는 시각화 가능한 json으로 변환해준다.
+//        GenericJackson2JsonRedisSerializer serializer =
+//            new GenericJackson2JsonRedisSerializer(objectMapper);
 
         RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
         redisTemplate.setConnectionFactory(redisConnectionFactory(redisClusterConfiguration()));
@@ -148,9 +140,9 @@ public class LettuceConnectionConfig {
         // 동작에는 문제가 없지만 redis-cli을 통해 직접 데이터를 보려고 할 때 알아볼 수 없는 형태로 출력되기 때문에 적용한 설정입니다.
         // 참고 https://wildeveloperetrain.tistory.com/32
         redisTemplate.setKeySerializer(new StringRedisSerializer());
-        redisTemplate.setValueSerializer(serializer);
+//        redisTemplate.setValueSerializer(serializer);
         redisTemplate.setHashKeySerializer(new StringRedisSerializer());
-        redisTemplate.setHashValueSerializer(serializer);
+//        redisTemplate.setHashValueSerializer(serializer);
         redisTemplate.setEnableTransactionSupport(true); // transaction 허용
 
         return redisTemplate;
@@ -172,7 +164,5 @@ public class LettuceConnectionConfig {
         log.info("PubSubConfig init");
         return container;
     }
-
-
 
 }
