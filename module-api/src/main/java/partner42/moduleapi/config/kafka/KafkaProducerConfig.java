@@ -20,7 +20,8 @@ public class KafkaProducerConfig {
     private String bootstrapServers;
 
     /**
-     * ack: all
+     * ack: all, min-insync-replicas도 2이상으로 하여야 acks all의 효과가 나타남. 그렇지 않으면 acks: 1처럼
+     * leader에만 produce하면 ack를 받고 끝나기 때문에 acks: all의 효과가 나타나지 않음.
      * In-Sync-Replica에 모두 event가 저장되었음이 확인 되어야 ack 신호를 보냄 가장 성능은 떨어지지만
      * event produce를 보장할 수 있음.
      */
@@ -36,9 +37,10 @@ public class KafkaProducerConfig {
     private Integer maxInFlightRequestsPerConnection;
 
     /**
-     * enable.idempotence true를 위해서는 retry가 0이상,
+     * enable.idempotence true를 위해서는 retry가 1이상,
      * max.in.flight.requests.per.connection 은 5(MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION_FOR_IDEMPOTENCE)이하여야한다.
-     * 또한 produce의 순서를 보장하기 위해서는
+     * max.in.flight.requests.per.connection가 2이상일 경우 retry시 produce 순서가 보장 되지 않을 수 있는데
+     * 보장하기 위해서는 enable.idempotence를 true로 해야한다.
      * @return
      */
     @Bean

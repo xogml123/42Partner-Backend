@@ -124,19 +124,11 @@ public class LettuceConnectionConfig {
     }
 
 
-//    @Bean // 만약 PlatformTransactionManager 등록이 안되어 있다면 해야함, 되어있다면 할 필요 없음
-//    public PlatformTransactionManager transactionManager() throws SQLException {
-//        // 사용하고 있는 datasource 관련 내용, 아래는 JDBC
-////        return new DataSourceTransactionManager(dataSource);
-//
-//        // JPA 사용하고 있다면 아래처럼 사용하고 있음
-//        return new JpaTransactionManager(entityManagerFactory);
-//    }
-
     @Bean
     public RedisTemplate<String, Object> redisTemplate(ObjectMapper objectMapper) {
-        GenericJackson2JsonRedisSerializer serializer =
-            new GenericJackson2JsonRedisSerializer(objectMapper);
+        // GenericJackson2JsonRedisSerializer는 시각화 가능한 json으로 변환해준다.
+//        GenericJackson2JsonRedisSerializer serializer =
+//            new GenericJackson2JsonRedisSerializer(objectMapper);
 
         RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
         redisTemplate.setConnectionFactory(redisConnectionFactory(redisClusterConfiguration()));
@@ -148,9 +140,9 @@ public class LettuceConnectionConfig {
         // 동작에는 문제가 없지만 redis-cli을 통해 직접 데이터를 보려고 할 때 알아볼 수 없는 형태로 출력되기 때문에 적용한 설정입니다.
         // 참고 https://wildeveloperetrain.tistory.com/32
         redisTemplate.setKeySerializer(new StringRedisSerializer());
-        redisTemplate.setValueSerializer(serializer);
+//        redisTemplate.setValueSerializer(serializer);
         redisTemplate.setHashKeySerializer(new StringRedisSerializer());
-        redisTemplate.setHashValueSerializer(serializer);
+//        redisTemplate.setHashValueSerializer(serializer);
         redisTemplate.setEnableTransactionSupport(true); // transaction 허용
 
         return redisTemplate;
@@ -172,38 +164,5 @@ public class LettuceConnectionConfig {
         log.info("PubSubConfig init");
         return container;
     }
-
-
-//    /**
-//     * Redis Cache를 사용하기 위한 cache manager 등록.<br>
-//     * 커스텀 설정을 적용하기 위해 RedisCacheConfiguration을 먼저 생성한다.<br>
-//     * 이후 RadisCacheManager를 생성할 때 cacheDefaults의 인자로 configuration을 주면 해당 설정이 적용된다.<br>
-//     * RedisCacheConfiguration 설정<br>
-//     * disableCachingNullValues - null값이 캐싱될 수 없도록 설정한다. null값 캐싱이 시도될 경우 에러를 발생시킨다.<br>
-//     * entryTtl - 캐시의 TTL(Time To Live)를 설정한다. Duraction class로 설정할 수 있다.<br>
-//     * serializeKeysWith - 캐시 Key를 직렬화-역직렬화 하는데 사용하는 Pair를 지정한다.<br>
-//     * serializeValuesWith - 캐시 Value를 직렬화-역직렬화 하는데 사용하는 Pair를 지정한다.
-//     * Value는 다양한 자료구조가 올 수 있기 때문에 GenericJackson2JsonRedisSerializer를 사용한다.
-//     *
-//     * @param redisConnectionFactory Redis와의 연결을 담당한다.
-//     * @return
-//     */
-//    @Bean
-//    public RedisCacheManager redisCacheManager(RedisConnectionFactory redisConnectionFactory,
-//        ObjectMapper objectMapper) {
-//        RedisCacheConfiguration configuration = RedisCacheConfiguration.defaultCacheConfig()
-//            .disableCachingNullValues()
-//            .entryTtl(Duration.ofSeconds(defaultExpireSecond))
-//            .serializeKeysWith(
-//                RedisSerializationContext.SerializationPair
-//                    .fromSerializer(new StringRedisSerializer()))
-//            .serializeValuesWith(
-//                RedisSerializationContext.SerializationPair
-//                    .fromSerializer(new GenericJackson2JsonRedisSerializer(objectMapper)));
-//
-//        return RedisCacheManager.RedisCacheManagerBuilder.fromConnectionFactory(redisConnectionFactory)
-//            .cacheDefaults(configuration).build();
-//    }
-
 
 }
