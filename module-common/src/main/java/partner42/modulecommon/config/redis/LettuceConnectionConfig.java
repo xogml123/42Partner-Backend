@@ -174,36 +174,5 @@ public class LettuceConnectionConfig {
     }
 
 
-//    /**
-//     * Redis Cache를 사용하기 위한 cache manager 등록.<br>
-//     * 커스텀 설정을 적용하기 위해 RedisCacheConfiguration을 먼저 생성한다.<br>
-//     * 이후 RadisCacheManager를 생성할 때 cacheDefaults의 인자로 configuration을 주면 해당 설정이 적용된다.<br>
-//     * RedisCacheConfiguration 설정<br>
-//     * disableCachingNullValues - null값이 캐싱될 수 없도록 설정한다. null값 캐싱이 시도될 경우 에러를 발생시킨다.<br>
-//     * entryTtl - 캐시의 TTL(Time To Live)를 설정한다. Duraction class로 설정할 수 있다.<br>
-//     * serializeKeysWith - 캐시 Key를 직렬화-역직렬화 하는데 사용하는 Pair를 지정한다.<br>
-//     * serializeValuesWith - 캐시 Value를 직렬화-역직렬화 하는데 사용하는 Pair를 지정한다.
-//     * Value는 다양한 자료구조가 올 수 있기 때문에 GenericJackson2JsonRedisSerializer를 사용한다.
-//     *
-//     * @param redisConnectionFactory Redis와의 연결을 담당한다.
-//     * @return
-//     */
-//    @Bean
-//    public RedisCacheManager redisCacheManager(RedisConnectionFactory redisConnectionFactory,
-//        ObjectMapper objectMapper) {
-//        RedisCacheConfiguration configuration = RedisCacheConfiguration.defaultCacheConfig()
-//            .disableCachingNullValues()
-//            .entryTtl(Duration.ofSeconds(defaultExpireSecond))
-//            .serializeKeysWith(
-//                RedisSerializationContext.SerializationPair
-//                    .fromSerializer(new StringRedisSerializer()))
-//            .serializeValuesWith(
-//                RedisSerializationContext.SerializationPair
-//                    .fromSerializer(new GenericJackson2JsonRedisSerializer(objectMapper)));
-//
-//        return RedisCacheManager.RedisCacheManagerBuilder.fromConnectionFactory(redisConnectionFactory)
-//            .cacheDefaults(configuration).build();
-//    }
-
 
 }
