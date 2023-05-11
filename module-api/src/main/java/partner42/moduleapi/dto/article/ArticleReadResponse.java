@@ -1,6 +1,7 @@
 package partner42.moduleapi.dto.article;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import javax.validation.constraints.Max;
@@ -25,10 +26,9 @@ import partner42.modulecommon.exception.ErrorCode;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class
+public class ArticleReadResponse implements Serializable{
 
-
-ArticleReadResponse {
+    private static final long serialVersionUID = 1L;
 
     @Schema(name = "nickname", example = "takim", description = "게시글 작성자 nickname")
     @NotBlank

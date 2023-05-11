@@ -14,6 +14,7 @@ public enum TypeOfStudy {
 
     private final String value;
 
+
     @JsonCreator
     public static TypeOfStudy from(String s) {
         String target = s.toUpperCase();
