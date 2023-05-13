@@ -54,7 +54,7 @@ public class CacheConfig {
 //            .serializeValuesWith(
 //                RedisSerializationContext.SerializationPair
 //                    .fromSerializer(new GenericJackson2JsonRedisSerializer(objectMapper)));
-
+        
 //        JavaType type = objectMapper.getTypeFactory().constructParametricType(SliceImpl.class, ArticleReadResponse.class);
 //        Jackson2JsonRedisSerializer<SliceImpl<ArticleReadResponse>> serializer = new Jackson2JsonRedisSerializer<>(type);
 //        serializer.setObjectMapper(objectMapper);
