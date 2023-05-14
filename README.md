@@ -29,16 +29,15 @@
 
 #### [API 명세 링크](https://api.v2.42partner.com/swagger-ui/index.html#/)
 
-## 배포 구조
-### Database Design
-
-<img width="1177" alt="image" src="https://user-images.githubusercontent.com/47822403/234504770-59fcb9bc-1c98-4b42-8eea-4f60d85d7a7a.png">
-
 ## Architecture Design
 <img width="1031" alt="image" src="https://user-images.githubusercontent.com/47822403/234498210-e681f1b8-fd42-4e7c-a4aa-e6c0a7c534ae.png">
 
 <img width="800" alt="image" src="https://user-images.githubusercontent.com/47822403/234505501-0215da77-36f0-41a1-b5aa-5fbafcf22759.png">
 
+## 배포 구조
+### Database Design
+
+<img width="1177" alt="image" src="https://user-images.githubusercontent.com/47822403/234504770-59fcb9bc-1c98-4b42-8eea-4f60d85d7a7a.png">
 
 ### Architecture Design Point
 #### [아키텍처 설계 과정](https://velog.io/@xogml951/AWS-HAHigh-Availability-%EA%B5%AC%EC%B6%95-%EA%B8%B0%EB%A1%9D)
@@ -96,75 +95,49 @@
 
 # 개발 과정 상세
 
-# 1. JMeter Perfomance Test와 WAS, DB 옵션 튜닝.
+# 1. JMeter Perfomance Test와 Thread Pool, DBCP 튜닝. TPS 약 3배로 상승(66 → 200)
 
 [Perfomance Test와 병목지점 찾기](https://velog.io/@xogml951/Perfomance-Test-Web-Application-Server-%ED%8A%9C%EB%8B%9D)
 
 [Scalability-Test-Thread-Pool-DBCP-적정-설정값-찾기](https://velog.io/@xogml951/Scalability-Test-Thread-Pool-DBCP-%EC%A0%81%EC%A0%95-%EC%84%A4%EC%A0%95%EA%B0%92-%EC%B0%BE%EA%B8%B0)
 
-[상황 설명]
+[테스트 조건]
 
-1. JMeter를 활용하여 Article 생성, 조회, 참여, 참여 취소 API를 동시에 요청하도록 시나리오를 만들고 RAMP-UP시간으로 점진적으로 부하를 증가 시킬 수 있는 테스트 환경을 구축. 조회와 수정, 삽입이 발생하는 쿼리가 약 10: 1의 비율로 발생 하도록 설정.
-2. 부하를 점진적으로 늘리면서 테스트 → 병목지점 및 원인 파악 → 설정 수정 후 재배포 → 병목 지점 해소 → 부하 늘린 상태에서 다시 테스트 반복 → 아키텍처가 버틸 수 있는 한계지점에서 가용 자원들을 최대로 사용하는 지점 까지 테스트
-    1. 최초 JVM, Spring 관련 옵션을 건드리지 않고 배포 → 문제점 발견 및 개선
-    2. DBCP, Thread pool을 조정하면서 자원을 최대치로 활용하는 지점 찾기
-3. 최종적으로 DB CPU 사용률이 100%에 도달하고 DBCP, Thread pool등 가용 자원을 모두 사용하는 상황에 도달함. TPS가 더 이상 상승하지 않고 요청 응답 시간이 5초로 정상 요청 시간(0.5s내외)에 비해 정상적으로 요청을 처리한다고 보기 힘든 수준에 도달함.
-4. 해당 케이스에서 부하 테스트 도중 ASG의 Dynamic Scaling 정책에 따라 WAS가 2배로 증가 되었지만 해당 상황이 개선되지 못함.
+1. JMeter를 활용하여 Article 조회, 참여 요청이 각각 10: 1의 비율로 발생 하도록 설정.
 
 [문제점 및 이슈]
 
-1. 처음에는 JVM 옵션을 따로 설정하지 않고 배포하였음 이 경우 다음과 문제 현상이 발생하였음. 
-    - JMeter로 부하 테스트 시 DB CPU 사용률, WAS의 Heap 메모리 used 지표등 충분히 더 높은 트래픽을 처리할 수 있음에도 TPS가 증가하지 않고 응답시간이 급격히 증가하는 문제가 발생함.
-    - Thread Pool의 스레드 개수가 명확한 제한 없이 상승함.
-        - DBCP가 10으로 설정되어있고, WAS는 2대인 상황에서 모든 Connection 사용되고 Connection 대기가 150까지 증가함.  반면 RDS의 CPU부하는 30%정도에 불과함.
-    - EC2가 재 실행됨. 이때, JVM 메모리 모니터링 지표, 최종 로그등을 보았을 때 Out Of Memory 등의 심각한 Error는 발생하지 않았음. 응답 시간 증가로 Health Check가 하여 EC2가 재 시작한 것으로 판단됨.
-2. 1의 부하테스트 이후 Thread pool Size, DBCP size를 조정하면서 테스트하였고 **병목 지점 확인을 위해 부하를 3배까지 늘렸음.** Thread pool size 18, DBCP 20, WAS 2에서 약 240TPS에 도달하였고, Response time은 5초. **해당 테스트 중 ASG에 의해서 WAS가 2배로 늘었지만 개선되지 않음. DB자원 CPU 사용률은 100% 도달.**
+1. JVM 옵션 Default 사용 시 하드웨어 자원(RDS CPU 사용률등)을 활용하지 못하고 병목이 발생.
 
 [원인 분석]
 
-1. JVM, Spring, DB관련 옵션을 따로 설정하지 않고 배포할 경우 다음과 같은 문제가 발생할 수 있음.
-    - Thread pool과 Thread pool Waiting Queue의 max size를 따로 지정하지 않으면 요청마다 Thread를 생성하는 방식으로 동작홤. 스레드 생성으로 자원이 낭비되고 컨텍스트 스위칭 오버헤드가 증가하며, 심각한 경우 장애 발생 요인이 될 수 있음.
-    - DBCP는 10으로 되어있음. DB 성능이 좋더라도 DB Connection이 부족하여 활용을 못할 수 있음.
-    - DB 옵션중 max_connections라는 Client 연결 수를 조절하는 옵션이 있는데 RDS의 경우 이 값을 스펙에 따라 동적으로 결정함.(t3.micro의 경우 대략 85 정도)
-2. RDS CPU사용률이 100%이고 WAS Scaling이 성능을 개선시키지 못한 것으로 보아 결국 DB에서 병목이 발생한 것으로 판단됨.
+1. JVM, Spring, DB관련 배포 시 설정해야함.
+    - Thread pool 미 설정 시 Thread, Waiting Queue 요청마다 Thread생성 및 요청이 무한하게 쌓여 스레드 생성으로 인한 자원 낭비, 컨텍스트 스위칭 오버헤드, 심각한 경우 메모리 관련 장애 요인이 됨.
+    - DBCP max pool size 10으로 되어있음. RDS 자원 활용하지 못함.
+    - DB 옵션중 max_connections라는 Client 연결 수를 조절하는 옵션, RDS의 경우 이 값을 스펙에 따라 동적으로 결정하므로 고정적으로 지정.(t3.micro의 경우 대략 85 정도)
 
 [해결 방안]
 
-1. RDS의 max_connection을 AWS에서 동적으로 지정해주는 값을 참고 하여 85으로 지정하고, 최대 4대의 WAS가 각각 DBCP를 20으로 쓰도록 하여 여유분 5개를 둠. Thread pool과 waiting queue가 사용될 수 있도록 Tomcat의 스레드 풀을 설정함.
-2. WAS가 병목이 아니었기 때문에 Auto Scaling이 성능 개선을 이루지 못함. DB가 병목인 경우 부하를 줄일 수 있는 방법을 찾아야함. 인덱스, 쿼리등을 개선하거나 Scale out, 캐싱등의 방법이 있음.
+1. 최대 4대의 WAS당 DBCP  max size를 20, 최대 80. 
+2. RDS max_connection을 AWS에서 동적으로 지정해주는 값을 참고 하여 85으로 지정(20 * 4 + 5 여유분)  
+3. Thread pool max size 18, waiting queue 100으로 설정
 
 [결과]
 
-1. 병목 상태 기준 튜닝후 TPS 4배 상승. 조회 60 → 240TPS , 참여, 조회(수정 API) 6 → 20 TPS
+1. 병목 상태 기준 튜닝후 TPS 3배 상승. 조회 66 → 200TPS , 참여, 조회(수정 API) 6 → 20 TPS
 
 [배운 점]
 
-1. Application을 Default로 설정 없이 배포하는 것이 큰 문제임을 알게 됨.
-2. Thread pool, DBCP, 데이터 베이스의 max connection, JVM max heap size 등의 옵션이 Application에 미치는 영향과 실제 병목 상황과 지점을 경험해볼 수 있었음.
-3. 해당 옵션들을 튜닝하여 자원들을 충분히 활용하는 설정값을 찾을 수 있었음.
-4. ‘결국 DB가 병목이다’ 라는 말이 있듯이 Web Server, WAS등의 다른 요소들에 비해 DB가 상태를 가지고 있다는 특성으로 인해 쉽게 Scale out하기 힘들다는 것을 느끼게 되었고 DB부하를 분산시킬 방법들에 대해서 공부하고 고민하였음.
+1. Application을 Default로 설정 없이 배포하는 것의 위험성과 JVM, DB관련 옵션의 중요성과 영향 확인.
 
 [추가 개선점]
 
-1. DB 부하를 줄일 방법에 대해서 고민해봐야함. 다음과 같은 방법들이 있음.
-    1. RDBMS자체의 성능을 잘 이끌어 낼 수 있는 방향으로 쿼리를 튜닝하거나 구조를 개선한다.
-        - 인덱스 적용
-        - 록을 최소화 하는 방향으로 개선
-        - 반정규화
-        - 쿼리 튜닝
-    2. RDBMS를 Scale up, Scale out한다.
-        - Partitioning
-        - Replication(조회부하를 Replica node를 통해 분산시킬 수 있다.)
-        - Sharding(Master자체를 늘릴 수 있지만 관계형 데이터베이스는 Sharding에 의한 제한점이 큼.)
-    3. Cache를 활용하여 읽기 부하를 분산시킨다.
-        - Redis는 Scale out에 유리함. 특히, RDBMS와 다르게 적은 제약으로 Master node를 Sharding 할 수 있음.
-2. 현재 JAVA 11을 사용하고 있고 G1 GC가 Default로 사용되고 있는데 Parallel GC로 전환하여 테스트해 볼 필요가 있음. 
-3. EC2 t3.micro, RDS t3.micro 옵션의 적정성을 생각해 보고 스펙을 조정해 볼 필요가 있음. 특히, EC2의 경우 t3.micro 4대를 쓰는 것보다 같은 비용으로 CPU는 동일하지만 RAM은 2배인 t3.small 2대를 사용하는 것이 나을 수 있음.
-4. EC2내 JVM의 CPU사용률이 100%에 도달하였음에도 EC2 CPU 사용률은 40%정도까지 밖에 증가하지않음. JVM 실행 옵션을 통해 CPU 할당량을 늘려야할 필요가 있음. 
+1. Heap Size, GC등을 바꾸어서 테스트해 볼 필요성이 있음.
+2. EC2개별 스펙을 늘리고 개수를 늘리는 경우도 테스트해 볼 필요성이 있음.
 
-# 2. 분산 캐시(Redis) 활용 DB부하 완화 및 병목 해결. 동일 테스트 조건
+# 2. Redis를 활용하여 DB병목 해결및 부하 분산. TPS 2.7배(220 → 600), 응답시간 정상화 5s → 0.25s
 
-분산 캐시 적용 및 부하 테스트 DB 병목 개선 여부 확인
+[분산 캐시 적용 및 부하 테스트 DB 병목 개선 여부 확인](https://velog.io/@xogml951/DB-%EB%B3%91%EB%AA%A9-%EB%B6%84%EC%82%B0-%EC%BA%90%EC%8B%9CRedis-%ED%95%B4%EA%B2%B0-%EA%B8%B0%EB%A1%9D)
 
 [캐시 종류 및 전략 별 트레이드 오프](https://velog.io/@xogml951/%EC%BA%90%EC%8B%9C-%EC%A0%84%EB%9E%B5%EA%B3%BC-%EA%B0%9C%EB%85%90)
 
@@ -174,17 +147,21 @@
 
 [Redis replication Sentinel vs Cluster](https://velog.io/@xogml951/Redis-replicationSentinel-Cluster)
 
+[테스트 조건]
+
+1. pageNumber를 평균 50, 표준편차 8의 정규분포로 생성. 20 %의 게시글이 80%의 요청을 받는 상황 가정
+
 [문제점 및 이슈]
 
-1. 부하 테스트를 하며 DBCP, Thread pool등을 튜닝 하던 중 DB자체에 병목이 발생함. 
+1. 부하를 늘려서 테스트하고 WAS를 2→4대로 늘렸지만 RDS CPU 사용률100% 병목 발생.
 
 [해결 방안]
 
-1. 조회 수정 요청이 약 10:1로 발생하기 때문에 조회 부하 분산을 위해 캐시를 활용하고 주요 선택 사항들을 트레이드 오프를 고려하여 다음과 같이 결정함.
+1. 조회 부하 분산을 위해 캐시를 활용하고 주요 선택 사항들을 트레이드 오프를 고려하여 다음과 같이 결정함.
     1. 분산 캐시
-    2. write-around(DB에만 쓰고 Cache에는 쓰지 않음.)
+    2. write-around- DB에만 쓰고 Cache에는 쓰지 않음
     3. Redis
-    4. TTL 5초(Cache데이터가 최대 5초 동안은 갱신 되지 않을 수 있지만 Cache 데이터는 방 목록 조회에서만 활용되고 Article 수정이 될만한 API가 호출 되고 난 후 방 상세 페이지로 넘어가기 때문에 사용자가 체감하기 어려움.)
+    4. TTL 5초 - 캐시 데이터 정합성 일부 포기
     5. cache-aside(lazy loading)
     6. Least Frequently Used 
 
@@ -192,65 +169,230 @@
 
 1. 다양한 캐시 전략, Eviction 정책과 분산 캐시, 로컬 캐시, 분산 캐시 종류등의 장단점과 트레이드오프에 대해서 이해할 수 있었음.
 2. 캐시를 통한 조회 부하 분산을 통해 DB 병목 해결을 경험해볼 수 있었음.
-3. 여러 WAS인 경우 cache에 동시에 쓰는 경우가 발생할 텐데 Redis는 Single Thread이지만 동시성 문제는 발생하기 때문에 트랜잭션, Watch, 분산락 등에 대해서 추가적으로 학습하였음.
+
+[결과]
+
+1. 조회 성능 TPS 2.7배 상승, 응답시간 정상화 5s → 0.25s
 
 [추가 개선점]
 
-1. 방 매칭의 참여자 수와 같은 데이터의 경우 일관성이 매우 중요해 db에서는 락을 사용해 수정해야함. row level의 락이 걸리기 때문에 해당 컬럼을 따로 분리하여 락 적용 범위를 줄일 필요가 있어 보임.
-2. Consistent Hashing, Hot key와 같은 Redis 성능과 관련된 주요 내용에 대해서 추가 학습 필요.
-3. @Cacheput적용 시 DB 트랜잭션 롤백 될 경우 어떤 식으로 동작하는지 체크해봐야함.
+1. 방 매칭의 참여자 수와 같은 데이터의 경우 일관성이 중요해 db에서는 락을 사용해 수정해야함. row level의 락이 걸리기 때문에 해당 컬럼을 따로 분리하여 락 적용 범위를 줄일 필요가 있어 보임.
 
-# 3. GenerationType.AUTO Entity insert 시 발생하는 HikariCP Deadlock 트러블 슈팅
+# 3.  AWS High Available, Scalable Architecture 구성
 
-[DBCP-Deadlock-트러블-슈팅과-GenerationType.AUTO](https://velog.io/@xogml951/DBCP-Deadlock-%ED%8A%B8%EB%9F%AC%EB%B8%94-%EC%8A%88%ED%8C%85%EA%B3%BC-GenerationType.AUTO)
+[AWS-HAHigh-Availability-구축](https://velog.io/@xogml951/AWS-HAHigh-Availability-%EA%B5%AC%EC%B6%95-%EA%B8%B0%EB%A1%9D)
 
-[문제점 및 이슈]
+[Redis Sentinel vs Cluster](https://velog.io/@xogml951/Redis-replicationSentinel-Cluster)
 
-1. Thread pool과 DBCP을 조정하여 JMeter로 Scalability Test를 진행하던 중 DB connection을 획득하지 못하고 Timeout 하는 현상 발생.
-
-[원인 분석]
-
-1. @GeneratedValue(strategy = GenerationType.AUTO)와 Mysql을 같이 사용하는 경우 insert 시 사용할 id를 생성하기 위해 hibernate_sequence를 사용하고 락을 걸어 값을 update하기 때문에 별도의 connection과 트랜잭션을 진행함. 즉, 하나의 thread에서 2개 이상의 DB Connection을 요구하는 경우가 발생함.
-2. 1번 사항 때문에 Thread pool Size가 DBCP Size보다 크거나 같으면 DB Connection 자원에 대해서 DeadLock이 발생할 수 있음.
-
-[해결 방안]
-
-1. GenerationType.AUTO를 GenerationType.Identity로 변경
-2. DBCP size를 Thread pool Size보다 충분히 크게 두기. 이 경우 DBCP를 thread pool size보다 너무 크게 하면 idle connection이 늘어날 수 있고 반대로 약간 더 크게 하면 DB connection을 대기 받기 위한 시간이 길어질 확률이 높음.
-
-[배운 점]
-
-1. 예상치 못하게 DB Connection을 2개이상 요청하는 경우가 있을 수 있음을 알게 되었음.
-2. GenerationType에 따른 동작 방식과 장단점을 이해할 수 있었음.
-
-# 4. ec2_sds_config, relabel_configs를 활용하여 Prometheus, Grafana  성능 모니터링 구축.
-
-[AWS-Auto-Scaling-Group-EC2-WAS-대상Actuator-Prometheus-Grafana-Micrometer-모니터링-적용](https://velog.io/@xogml951/AWS-Auto-Scaling-Group-EC2-WAS-%EB%8C%80%EC%83%81Actuator-Prometheus-Grafana-Micrometer-%EB%AA%A8%EB%8B%88%ED%84%B0%EB%A7%81-%EC%A0%81%EC%9A%A9)
+[Kafka-개념과-내부구조](https://velog.io/@xogml951/Kafka-%EA%B0%9C%EB%85%90%EA%B3%BC-%EA%B8%B0%EB%B3%B8-%EC%84%B8%ED%8C%85)
 
 [문제점 및 이슈]
 
-1. ASG로 관리되는 EC2를 Prometheus로 모니터링할 때 EC2가 새로 배포된 경우 모니터링 대상에 자동으로 포함 되지 않는 문제가 발생함.
-2. JVM과 Thread pool, DBCP의 개념을 학습하게 되면서 AWS상에 배포한 주요 시스템 설정들을 Default상태로 배포한 것과 모니터링 하지 않는 것에 문제의식을 느낌.
+1. AWS Availability Zone에 자체에 장애가 발생하면 그 위에 구축한 서비스도 장애가 발생할 수 있음.
+2. 부하 증가나 예상치 못한 문제로 WAS가 종료되거나 MYSQL, Redis, Kafka 등에 장애가 발생하면 서비스가 정상 운영되지 못하고 자동복구 되지 못함. Redis의 경우 In-memory DB이기 때문에 최악의 경우 데이터가 유실 될 수 있음.
+3. WAS, RDS등의 요소들은 Public Subnet에 존재할 경우 보안성이 떨어짐.
 
 [원인 분석]
 
-1. Prometheus의 scrape_config시 ASG로 관리되는 EC2들의 Private IP가 동적으로 변경될 수 있는데 static 한 IP지정 방식을 사용했기 때문에 자동 수정되지 못함.
+1. 시스템의 요소들이 하나의 Availability Zone에만 분포하고 이중화 되지 않음.
+2. Default VPC를 사용하여 Private Subnet이 정의 되지 않음.
 
 [해결 방안]
 
-1. Spring Actuator를 통해 제공되는 Metric을 Micrometer를 통해 Prometheus에게 맞는 형태로 제공하고 Grafana를 통해 수집된 지표를 시각화하여 모니터링 할 수 있는 환경을 구축함.
-2. ec2_sds_config를 통해 WAS가 배포된 EC2의 Private Ip를 동적으로 수집하고 relabel_configs를 통해 대상 IP주소가 변경 될 수 있도록함.
+1. 시스템의 요소들이 모두 이중화 되어야 하며 적어도 둘 이상의 Availability Zone하도록 구성함.
+2. WAS의 경우 ELB, ASG를 통해 부하 분산, Health check, 자동 복구가 될 수 있도록 하고 RDS는 Stand By 구성, Redis는 Cluster구성을 통해 Replica를 두고, Kafka는 Broker를 둘 이상 두고 In Sync Replica를 2이상으로 둠.
+
+[결과]
+
+1. Availability zone 자체의 문제, 특정 컴포넌트의 장애가 발생했을 때 데이터를 유지하고 failover할 수 있음.
+
+[배운점]
+
+1. AWS HA 구성 이유와 VPC, ELB, ASG, RDS, MSK, ElastiCache등의 서비스의 설정 방법과 이유에 대해서 알 수 있었음.
+2. RDB, Redis, Kafka가 가용성 확장성을 확보하는 원리와 관계형 데이터베이스와 NOSQL의 차이에 대해서 배울 수 있었음.
+
+# 4. SSE, Redis Pub/Sub을 통해 Polling 방식의 알림 기능 개선, Kafka를 통해 핵심 로직의 알림 의존성 제거.
+
+[SSE Redis pubsub Kafka로 알림 기능개선](https://velog.io/@xogml951/Server-Sent-EventsSSE-Redis-pubsub-Kafka%EB%A1%9C-%EC%95%8C%EB%A6%BC-%EA%B8%B0%EB%8A%A5-%EA%B0%9C%EC%84%A0%ED%95%98%EA%B8%B0)
+
+[Apache Kafka-개념과-기본-세팅](https://velog.io/@xogml951/Kafka-%EA%B0%9C%EB%85%90%EA%B3%BC-%EA%B8%B0%EB%B3%B8-%EC%84%B8%ED%8C%85)
+
+[Apache Kafka 초기설정 주의점](https://velog.io/@xogml951/Apache-Kafka)
+
+![Untitled](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/cd06fac7-d493-4d40-a73d-71ce304ba579/Untitled.png)
+
+[문제점 및 이슈]
+
+1. 알림 기능 추가 후 클라이언트의 Polling으로 인해 서버 부하가 크게 증가함.
+2. 매칭 확정, 댓글 작성 등의 요청에서 알림을 동기적으로 생성해야하는 경우 알림 의존성 발생.
+3. SSE 연결이 바로 종료되는 경우가 생기고 실시간성이 지나치게 떨어지는 경우가 발생.
+
+[원인 분석]
+
+1. SSE를 활용할 경우 개선할 경우, WAS가 여러 대 있는 경우 SSE연결 객체와 알림 응답 객체가 같다는 보장이 없음.
+2. Nginx를 Reverse Proxy로 사용하는 경우 Upstream 요청 시 HTTP/1.0 버전을 사용함. 이 경우 SSE의 HTTP/1.1의 지속 연결이 적용되지 않기 때문에 연결이 바로 끊어질 수 있음. 또한, Nginx는 Buffering 기능이 있기 때문에 SSE의 실시간성이 떨어질 수 있음.
+
+[해결 방안]
+
+1. SSE를 활용하여 Polling 요청 제거 클라이언트로 응답 보냄.
+2. WAS Scale out상황에서 Redis pub/sub을 통해 SSE연결이 실제로 되어있는 WAS찾아서 응답.
+3. Kafka 를 통해 매칭 확정, 댓글 작성 등의 요청이 알림 생성과 무관하게 응답하도록 의존성 제거.
+4. SSE 응답에 대해서 Nginx를 HTTP 1.1 설정하고 X-Accel-Buffering: no를 통해 버퍼링 기능 제한.
+
+[결과]
+
+1. SSE를 통해 알람이 생성되었을 때만 응답 할 수 있고 알람 생성 시 핵심 로직과 의존성 감소.
 
 [배운 점]
 
-1. Spring Actuator, Micrometer, Grafana, Prometheus를 활용하여 서버 지표를 수집하고 모니터링하는 플로우를 알 수 있었으며 구축경험을 할 수 있었음 .
-2. WAS를 설정하지 않고 배포 할 시 Heap size, Thread pool, DBCP등이 어떤 값으로 지정되는지 알 수 있었고 이에 대한 문제의식을 가지게 되었음.
+1. Polling 방식의 비효율성을 SSE로 해결할 수 있음을 배웠음.
+2. Redis pub/sub과 Kafka의 차이를 이해하고 각각의 동작 방식을 이해하였음.
+3. Kafka를 사용하기 위해 필수적으로 설정해 주어야 하는 옵션들과 Kafka 내부 동작 방식에 대해서 학습하고 이해할 수 있었음.
+4. Nginx를 Reverse Proxy로 활용할 때 생길 수 있는 영향에 대해서 생각해 볼 수 있었음.
+
+# 5. 매칭 알고리즘 효율성을 위해 트랜잭션 분리 및 매칭 신청 응답 시간 감소를 위해 Kafka 활용
+
+[랜덤 매칭 트랜잭션 분리 Kafka 기능 개선](https://velog.io/@xogml951/%EB%9E%9C%EB%8D%A4-%EB%A7%A4%EC%B9%AD-polling-%EB%B0%B0%EC%B9%98-%ED%8A%B8%EB%9E%9C%EC%9E%AD%EC%85%98-%EB%B6%84%EB%A6%AC-%EB%B0%8F-%EB%A6%AC%ED%8C%A9%ED%86%A0%EB%A7%814)
+
+[문제점 및 이슈]
+
+1. 한 명의 사용자만 매칭을 취소하더라도 전체 매칭 알고리즘이 롤백 됨.
+2. 매칭 알고리즘의 정렬과 같은 CPU 연산시간이 긴 작업에서 DB Connection이 필요 없음에도 소모함.
+3. 매칭 신청 시 과 매칭 알고리즘이 동기적으로 동작함.
+4. 매칭 알고리즘 단일 실행 보장하지 못함.
+
+[원인 분석]
+
+1. 트랜잭션이 하나로 되어있음.
+2. 매칭 신청 API 호출 시 해당 요청이 매칭 알고리즘에 의존하여 동기적으로 처리됨.
+
+[해결 방안]
+
+1. 트랜잭션을 분리. 
+    1. 매칭 신청 조회 트랜잭션 readOnly=true
+    2. 매칭 조건으로 매칭 그룹을 묶는 작업 트랜잭션 없이 수행
+    3. 각각의 매칭 그룹마다 트랜잭션을 실행. commit 시점에 조회의 Version이 다름이 확인되면 해당 트랜잭션만 롤백.
+2. 매칭 신청 API요청 시 매칭 알고리즘 event produce 후 바로 응답.
+3. Kafka event produce 시 key값을 지정하여 하나의 파티션에만 생성되도록 보장하고 idempotence관련 설정.
+
+[결과]
+
+1. 트랜잭션이 효율적으로 동작하고 부분적으로 commit, rollback될 수 있음.
+2. 매칭 알고리즘 완료와 상관없이 매칭 신청이 이루어질 수 있으며, 코드 측면에서 알림 의존성 감소 및 로직 공통화.
+
+[배운 점]
+
+1. 트랜잭션을 적절히 분리하고 Version을 통해 낙관적락을 직접 구현해봄.
+2. Kafka의 partition과 consumer의 상관 관계, key값 지정 시 특정 partition에만 저장되며 parition 개수 변경과 관련된 주의사항. 
+3. update쿼리를 직접 작성하는 것과 Dirty Checking방식의 차이를 알게 됨.
+
+# 6. 낙관적 락으로 방 매칭 DB 동시성 문제 해결 및, retry 공통 로직 AOP 활용
+
+[Optimistic Lock과 AOP활용 방 매칭 동시성 문제 해결](https://velog.io/@xogml951/API%EB%8F%99%EC%8B%9C%EC%84%B1-%EB%AC%B8%EC%A0%9C-%ED%95%B4%EA%B2%B0-%EA%B8%B0%EB%A1%9D-Optimistic-Lock%EA%B3%BC-AOP%ED%99%9C%EC%9A%A9)
+
+[트랜잭션 Isolation개념 총 정리](https://velog.io/@xogml951/%ED%8A%B8%EB%9E%9C%EC%9E%AD%EC%85%98-Isolation%EC%B4%9D-%EC%A0%95%EB%A6%AC)
+
+[문제점 및 이슈]
+
+1. 방 매칭에서 참여 인원 제한이 있음에도 동시에 서로 다른 사용자가 매칭을 신청할 경우 참여 인원보다 많은 인원이 참여해 버리는 문제가 발생
+
+[원인 분석]
+
+1. MYSQL Repetable Read 격리 수준에서 트랜잭션 이상 현상 lost update가 발생.
+
+[해결 방안]
+
+1. 비관적 배타 록을 고려했으나 충돌 상황이 자주 발생하지 않고 수정 시점에 조회가 불가능해져 성능이 저하될 수 있기 때문에 낙관적록을 활용.
+2. 또한, 충돌이 발생하여 요청이 취소되면 Retry 하는 관심사가 공통으로 적용되어야 하므로 AOP를 활용.
+
+[결과]
+
+1. 방 매칭 참여 인원수에 대해서 Lost Update 이상 현상을 해결하였음.
+
+[배운 점]
+
+1. 트랜잭션 Isolation과 관련된 Serializability, Recoverbility, 이상현상, 격리 수준 등의 개념과 MYSQL이 격리 수준별 동작 원리.
+2. 낙관적 락과 비관적 락의 동작 방식과 장, 단점.
+3. AOP내부 동작과 적용 사례 이해.
 
 [추가 개선점]
 
-1. Prometheus에 지표가 쌓여 storage 용량이 부족할 경우를 대비하여야함.
+1. 서비스가 커져서 방 매칭 참여가 활발해질 경우 비관적락을 고려해야함.
 
-# 5. 단위 테스트 무분별한 Test Double 사용 시 리팩토링 내성 하락 등의 Trade Off를 고려하여 작성, 컨트롤 할 수 없는 코드 영향 최소화.
+# 7. Pagination Fetch Join 트러블 슈팅 및 N+1 문제 해결을 위한 여러 방식 트레이드 오프 고려 선택 및 적용
+
+[N+1문제 해결 방식과 장단점 총 정리](https://velog.io/@xogml951/JPA-N1-%EB%AC%B8%EC%A0%9C-%ED%95%B4%EA%B2%B0-%EC%B4%9D%EC%A0%95%EB%A6%AC)
+
+[문제점 및 이슈]
+
+1.  페이징이 포함된 Select 쿼리에 Fetch Join을 사용했을 때 warn log가 발생.
+
+[원인 분석]
+
+1. 페이징이 포함된 Select 쿼리에서 Fetch Join을 사용할 경우 페이징을 위해 전체 테이블 데이터를 모두 메모리에 로딩해야 하며 OutOfMemory와 같은 심각한 장애 발생 가능.
+
+[해결 방안]
+
+1. 페이징이 포함된 Select 쿼리는 fetch join하지 말고 default_batch_fetch_size옵션 활용.
+2. 일반Join을 하고 Dto로 바로 변환하여 조회하는 방식도 있음. 
+
+[결과]
+
+1. 테이블의 모든 레코드를 조회하는 방식에서 Pagination을 적용한 범위까지만 테이블 조회.
+
+[배운점]
+
+1. 다양한 N+1 문제의 해결법과 각각의 장단점, 제약사항에 대해 배우고 선택할 수 있게 되었음.
+2. fetch join
+    1. 장점: 네트워크 쿼리 전송 횟수 감소
+    2. 단점: 컬렉션 연관관계(1:N)를 가진 경우 paging제한, 컬렉션 하나까지만 fetch join 가능, 1:N관계에서 1쪽의 데이터가 join 시 중복으로 존재하기 때문에 불필요한 데이터 통신량 증가등의 문제가 있고 조회 메서드가 각각 정의해야함.
+3. default_batch_fetch_size
+    1. 장점: 컬렉션 관계에 대해서 제한이 없으며 join을 하지 않기 때문에 데이터 전송량이 감소하고 Entity그래프 탐색을 통해 손쉽게 코드를 작성할 수 있다는 장점이 있음. 
+    2. 단점: fetch join대비 쿼리 전송 수가 많음.
+4. 일반 Join을 하고 Dto로 바로 변환
+    1. 장점: Entity Column이 많을 때 Projection하여 특정 컬럼만 조회할 수 있음, 커버링 인덱스 활용가능성 상승.
+    2. 단점: 영속성 컨텍스트와 무관하게 동작하고 Repository가 Dto에 의존하게 되기 때문에 API변경에 DAO도 수정되어야 할 수 있음.
+5. 결론
+    1. 1:1 연관관계는 최대한 fetch join을 활용하고 컬렉션 연관관계는 default_batch_fetch_size활용.
+    2. 많은 컬럼 중 특정 컬럼만 조회해야 할 경우나 커버링 인덱스를 활용하고 싶은 경우 데이터 전송량을 줄이고 싶으면 일반 Join을 하고 Projection하여 Dto로 바로 변환. 다만 이 경우 DAO객체를 분리하여 작성하는 것이 좋음.
+
+# 8. WAS Scale out 시 Session 방식 문제점 JWT로 해결
+
+[Refresh-Token을-어디에-저장해야-할까Feat.-XSS-CSRF-CORS](https://velog.io/@xogml951/Refresh-Token%EC%9D%84-%EC%96%B4%EB%94%94%EC%97%90-%EC%A0%80%EC%9E%A5%ED%95%B4%EC%95%BC-%ED%95%A0%EA%B9%8CFeat.-XSS-CSRF-CORS)
+
+[OAuth 개념](https://velog.io/@xogml951/Spring-Security-OAuth-JWT%EB%A5%BC-%ED%99%9C%EC%9A%A9%ED%95%9C-%EC%9D%B8%EC%A6%9D-%EA%B3%BC%EC%A0%95-%EA%B0%9C%EB%85%90-%EB%B0%8F-%EA%B5%AC%ED%98%84-%EC%B4%9D-%EC%A0%95%EB%A6%AC1-OAuth-%EA%B0%9C%EB%85%90%EA%B3%BC-%EB%A1%9C%EA%B7%B8%EC%9D%B8-%EB%B0%8F-%ED%9A%8C%EC%9B%90%EA%B0%80%EC%9E%85%EC%97%90-%ED%99%9C%EC%9A%A9%ED%95%98%EA%B8%B0)
+
+[JWT개념과-회원가입-및-로그인-로직-구현1](https://velog.io/@xogml951/Spring-Security-OAuth-JWT%EB%A5%BC-%ED%99%9C%EC%9A%A9%ED%95%9C-%EC%9D%B8%EC%A6%9D-%EA%B3%BC%EC%A0%95-%EA%B0%9C%EB%85%90-%EB%B0%8F-%EA%B5%AC%ED%98%84-%EC%B4%9D-%EC%A0%95%EB%A6%AC2-JWT%EA%B0%9C%EB%85%90%EA%B3%BC-%ED%9A%8C%EC%9B%90%EA%B0%80%EC%9E%85-%EB%B0%8F-%EB%A1%9C%EA%B7%B8%EC%9D%B8-%EB%A1%9C%EC%A7%81-%EA%B5%AC%ED%98%84)
+
+[OAuth-JWT-회원가입-및-로그인-로직-구현2](https://velog.io/@xogml951/Spring-Security-OAuth-JWT%EB%A5%BC-%ED%99%9C%EC%9A%A9%ED%95%9C-%EC%9D%B8%EC%A6%9D-%EA%B3%BC%EC%A0%95-%EA%B0%9C%EB%85%90-%EB%B0%8F-%EA%B5%AC%ED%98%84-%EC%B4%9D-%EC%A0%95%EB%A6%AC3-OAuth-JWT-%ED%9A%8C%EC%9B%90%EA%B0%80%EC%9E%85-%EB%B0%8F-%EB%A1%9C%EA%B7%B8%EC%9D%B8-%EB%A1%9C%EC%A7%81-%EA%B5%AC%ED%98%84)
+
+[문제점 및 이슈]
+
+1. Session 방식의 인증을 활용할 때 AWS ELB와 여러 WAS를 구성하면 제대로 로그인 처리가 되지 않는 문제 발생.
+
+[원인 분석]
+
+1. In-memory에 Session을 저장하기 때문에 어떤 WAS로 요청이 도달하느냐에 따라서 인증이 되지 않은 것으로 동작함.
+2. Redis Clustered Session을 구성하는 경우 인증은 제대로 처리되지만 매 API 요청마다 Redis를 조회해야 하는 비용이 있고 향후 앱으로 개발할 경우 호환이 안 될 수 있는 문제가 있음.
+
+[해결 방안]
+
+1. JWT방식으로 인증 정보 자체를 Token에 포함시켜 Stateless 하게 유지.
+2. Token 탈취 시 이를 무력화할 수 없다는 단점이 있지만 Access Token 만료 시간을 5분 정도로 짧게 유지하고 Refresh Token으로 재발급하도록 함.
+
+[결과]
+
+1. WAS가 여러 대 있는 상황에서 인증이 제대로 동작하며, 인가 시 Authority를 체크할때 DB, Redis를 조회하지 않음.
+
+[배운 점]
+
+1. WAS를 Stateless 하게 유지하지 못할 경우 꼭 Session이 아니더라도 Scale Out시 문제가 발생할 수 있다는 것을 깨닫게 됨.
+2. Refresh Token 저장 위치를 고민하고 근거를 찾는 과정에서 Local Storage의 경우 JavaScript 코드를 통해 조작할 수 있기 때문에 XSS공격에 취약하지만, Cookie의 경우 httpOnly를 통해 이를 방지할 수 있고 반대로 CSRF에는 취약함을 알게 되었음.
+3. JWT의 구조와 Secret key 단순 설정과 같은 보안 관점의 잘못된 구현 방식에 대해서 배울 수 있었음.
+4. Session, JWT의 차이와 장단점에 대해서 배울 수 있었음.
+5. OAuth 2.0의 동작 방식에 대해서 배울 수 있었음.
+
+# 9. 단위 테스트 시 리팩토링 내성을 고려하여 Test Double 사용 최소화, 프로덕션 코드에서 테스트 하기 힘든 코드 영향 최소화.
 
 [Test-Double-사용에-따른-Trade-Off와-Service-Layer-단위-테스트](https://velog.io/@xogml951/JUnit5%EA%B3%BC-Spring-boot-%ED%85%8C%EC%8A%A4%ED%8A%B8-%EC%BD%94%EB%93%9C-%EC%9E%91%EC%84%B1-Test-Double-%EC%82%AC%EC%9A%A9%EC%97%90-%EB%94%B0%EB%A5%B8-Trade-Off%EC%99%80-Service-Layer-%EB%8B%A8%EC%9C%84-%ED%85%8C%EC%8A%A4%ED%8A%B83)
 
@@ -277,13 +419,17 @@
 1. 제어할 수 없는 코드인 경우에만 Test Double을 사용하고 DAO 등은 Repository Layer 단위 테스트에서 충분히 검증하고 Mocking하지 않도록 함.
 2. LocalDateTime.now()를 Controller에서 호출하고 Service에는 변수로 넘겨주는 방식으로 변경. 테스트할 수 없는 코드가 존재하게 되면 해당 코드 위치부터 상위에 위치한 모듈들도 테스트하기 힘들게 됨.
 
+[결과]
+
+1. 테스트 하기 힘든 코드의 영향을 최소화 하고 테스트 대상 객체에서 의존하는 클래스의 인터페이스가 변경되었을 때 거짓 음성 발생 최소화.
+
 [배운 점]
 
 1. 리팩토링 내성, 회귀 방지, 빠른 테스트의 요소가 중요하다는 점을 인지하고 각 요소가 배타적인 성격을 가지고 있기 때문에 테스트 코드 작성 방식에 따른 트레이드 오프를 알게 되었음. 우선순위를 리팩토링 내성, 회귀 방지, 빠른 테스트 순으로 만족하게 하려고 노력함.
 2. Test Double을 남발할 경우 인터페이스가 변경되면 거짓 음성이 발생하고 리팩토링 내성이 저하되기 때문에 외부 API 요청, 무작위 성격의 로직 등 테스트 시 컨트롤할 수 없는 모듈인 경우에만 적용하는 것이 좋다고 생각함. 
 3. 제어할 수 없는 외부 API 요청, 무작위 성격의 로직 등의 로직은 최대한 상위 모듈 쪽에서 호출되도록해야함. 이와 같은 요소가 하위 모듈에 있을 경우 해당 모듈에 의존하는 상위 모듈들이 모두 테스트하기 힘들어지기 때문.
 
-# 6. 책임 주도 설계 리팩토링을 통해 랜덤 매칭 조건에 따른 분기 문 제거, Domain Model에 비지니스 로직 응집,  오브젝트(조영호) 정리
+# 10. 리팩토링을 통해 랜덤 매칭 조건에 따른 분기문 제거, Domain Model에 비지니스 로직 응집, 오브젝트(조영호) 정리
 
 [오브젝트조영호-정리](https://velog.io/@xogml951/%EC%98%A4%EB%B8%8C%EC%A0%9D%ED%8A%B8%EC%A1%B0%EC%98%81%ED%98%B8-%EC%9A%94%EC%95%BD-%EC%A0%95%EB%A6%AC)
 
@@ -308,13 +454,18 @@
 2. @JsonTypeInfo, @JsonSubTypes을 활용하면 요청 Body가 Controller에서 변환될 때 알맞은 sub type의 객체가 생성되도록 할 수 있으며 이렇게 하면 다형성을 활용해 분기를 삭제할 수 있음.
 3. JPA의 Cascade Option, Dirty Checking등의 기능의 도움을 받아 Service Layer에 있던 비지니스 로직을 최대한 Domain Model 내로 이동시킴.
 
+[결과]
+
+1. 매칭 카테고리가 추가되거나 변경 되어도 코드 변경이 최소화됨.
+2. Domain Entity, VO의 순수 Java 환경의 테스트를 통해 비지니스 로직을 최대한 검증할 수 있음. 
+
 [배운 점]
 
 1. 문제 해결 과정에서 ‘오브젝트’라는 책을 읽게 되었는데 좋은 객체지향 설계는 객체가 스스로 자신의 상태에 대해서 책임지고 이러한 객체들이 서로 협력하는 방향으로 구성된 것이며 다형성을 활용하여 같은 메시지에 다르게 책임을 질 수 있도록 하는 것임을 알게 되었음
 2. Solid 원칙과 객체지향의 4대 요소들이 왜 중요한지 깊이 있게 이해할 수 있었고 이러한 이해를 리팩토링 과정에 적용할 수 있었음.
 3. 상속을 사용하면 안되는 상황에 사용 시 생기는 문제와 코드 재사용을 위해서는 Composition을 활용해야함을 배웠음.
 
-# 7. Kafka acks:all, min.insync.replicas 설정 주의점, producer Idempotence를 위한 설정, RR방식 배치 성능 문제등 초기 설정 주의점 학습.
+# 11. Kafka acks:all, min.insync.replicas 설정 주의점, producer Idempotence를 위한 설정, RR방식 배치 성능 문제등 초기 설정 주의점 학습.
 
 [Apache Kafka-개념과-기본-세팅](https://velog.io/@xogml951/Kafka-%EA%B0%9C%EB%85%90%EA%B3%BC-%EA%B8%B0%EB%B3%B8-%EC%84%B8%ED%8C%85)
 
@@ -338,201 +489,62 @@
 3. 파티션 개수는 처음에 잘 정해야함. 파티션 개수는 줄일 수 없으며 늘릴 수는 있지만 늘릴 경우 key를 지정해도  Hashing이 파티션 개수 변화에 영향을 받아 같은 파티션에 produce가 보장 되지 않음.
 4. Kafka produce시 Default로 사용되는 Round-Robin방식은 파티션에 최대한 고르게 이벤트를 produce하기 때문에 배치 처리의 관점에서 성능 저하 요인이 될 수 있음. 그 이유는 consumer는 한번에 하나의 파티션에서 특정 batch size로 consume하기 때문에 고르게 분포되면 한번에 consume할 수 있는 이벤트 개수가 줄어듬. 해당 문제를 배치 produce시 하나의 파티션에 produce하는 Sticky Partitioner를 통해 개선할 수 있음.
 
-# 8. SSE, Redis Pub/Sub을 통해 Polling 방식의 알림 기능 개선, Kafka를 통해 핵심 로직의 알림 의존성 제거.
+# 12. GenerationType.AUTO Entity insert 시 발생하는 HikariCP Deadlock 트러블 슈팅
 
-[SSE Redis pubsub Kafka로 알림 기능개선](https://velog.io/@xogml951/Server-Sent-EventsSSE-Redis-pubsub-Kafka%EB%A1%9C-%EC%95%8C%EB%A6%BC-%EA%B8%B0%EB%8A%A5-%EA%B0%9C%EC%84%A0%ED%95%98%EA%B8%B0)
-
-[Apache Kafka-개념과-기본-세팅](https://velog.io/@xogml951/Kafka-%EA%B0%9C%EB%85%90%EA%B3%BC-%EA%B8%B0%EB%B3%B8-%EC%84%B8%ED%8C%85)
-
-[Apache Kafka 초기설정 주의점](https://velog.io/@xogml951/Apache-Kafka)
-
-![Untitled](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/cd06fac7-d493-4d40-a73d-71ce304ba579/Untitled.png)
+[DBCP-Deadlock-트러블-슈팅과-GenerationType.AUTO](https://velog.io/@xogml951/DBCP-Deadlock-%ED%8A%B8%EB%9F%AC%EB%B8%94-%EC%8A%88%ED%8C%85%EA%B3%BC-GenerationType.AUTO)
 
 [문제점 및 이슈]
 
-1. 알림 기능 추가 후 클라이언트의 Polling으로 인해 서버 부하가 크게 증가함.
-2. 이를 해결하기 위해 Server Sent Event를 활용하였지만 알림 시에도 SSE 응답이 오지 않는 경우가 자주 발생함.
-3. 알림 기능의 추가 후 매칭 확정, 댓글 작성 등의 응답시간이 증가하고 알림에 의존하는 구조가 됨.
-4. 알림에 대한 의존성을 제거하기 위해 Kafka를 활용하는 경우 redis pub이 무수히 생성되는 문제가 발생할 수 있음.
-5. 알림 연결이 바로 종료되는 경우가 생기고 실시간성이 지나치게 떨어지는 경우가 발생.
+1. Thread pool과 DBCP을 조정하여 JMeter로 Scalability Test를 진행하던 중 DB connection을 획득하지 못하고 Timeout 하는 현상 발생.
 
 [원인 분석]
 
-1. 알림의 특성상 생성 시 사용자에게 이를 노출할 필요가 있기 때문에 브라우저에서 Polling을 하는 구조로 되어있는데, 이 때문에 유저가 많아질수록 Server의 부하가 크게 증가함.
-2. WAS를 Scale Out 하여 구성하는 경우 특정 WAS와 클라이언트가 SSE 연결을 하므로 알림을 생성한 이후의 요청이 같은 WAS에 오지 않는다면 SSE 응답을 보낼 수 없음.
-3. 매칭 확정, 댓글 작성 등의 요청이 오면 알림도 생성되어야 하는데, 알림 쪽에 문제가 발생하면 핵심 기능도 실패할 수 있음. 또한, 알림이 정상 동작 하더라도 핵심 기능과 알림이 동기적으로 완료되어야 응답할 수 있기 때문에 Response Time이 증가함.
-4. 알림 Event의 Consumer Group이 하나로 정의 되어있고 Alarm Event 발생 시 Redis channel에 pub, Database에 Alarm 저장 두 역할을 모두 수행함. Alarm 저장 트랜잭션이 롤백 되더라도 Redis pub은 이미 보내져 있고 Kafka Consumer의 Commit이 되지 않기 때문에 Redis pub만 여러 번 실행됨.
-5. Nginx를 Reverse Proxy로 사용하는 경우 Upstream 요청 시 HTTP/1.0 버전을 사용함. 이 경우 SSE의 HTTP/1.1의 지속 연결이 적용되지 않기 때문에 연결이 바로 끊어질 수 있음. 또한, Nginx는 Buffering 기능이 있기 때문에 SSE의 실시간성이 떨어질 수 있음.
+1. @GeneratedValue(strategy = GenerationType.AUTO)와 Mysql을 같이 사용하는 경우 insert 시 사용할 id를 생성하기 위해 hibernate_sequence를 사용하고 락을 걸어 값을 update하기 때문에 별도의 connection과 트랜잭션을 진행함. 즉, 하나의 thread에서 2개 이상의 DB Connection을 요구하는 경우가 발생함.
+2. 1번 사항 때문에 Thread pool Size가 DBCP Size보다 크거나 같으면 DB Connection 자원에 대해서 DeadLock이 발생할 수 있음.
 
 [해결 방안]
 
-1. Server Sent Event를 활용하여 알림이 생성될 경우 WAS에서 Client로 이를 응답 하여 알려주기 때문에 Polling을 제거하였고 불필요한 API 요청을 줄일 수 있었음.
-2. SSE 응답을 보내야 하는 경우 Redis Channel에 pub을 하고 모든 WAS들은 해당 채널에 sub을 하며 pub시 In-memory SSEmitterRepository에서 SSE 연결 객체를 찾아 연결된 WAS가 응답할 수 있도록 함.
-3. 매칭 확정, 댓글 작성 트랜잭션이 성공하면 Kafka Alarm Event를 발행하는 방식으로 변경하면 매칭 확정, 댓글 작성은 Alarm과 상관없이 응답할 수 있으며 Alarm을 비동기적으로 저장하여 Response time을 줄일 수 있음. 또한, Consume하는 부분에서 Alarm 생성 로직을 공통화 할 수 있기 때문에 코드적인 중복도 최소화할 수 있음.
-4. Redis pub/sub Consumer Group, Alarm 생성 Consumer Group으로 분리함. 각각이 Offset이 다르게 적용되기 때문에 코드 작성 오류로 인한 Consumer의 Commit이 의도한 대로 동작하지 않는 문제를 해결할 수 있었음.
-5. Nginx를 1.1 버전으로 설정하고 X-Accel-Buffering: no를 통해 버퍼링 기능을 부분적으로 제한함.
+1. GenerationType.AUTO를 GenerationType.Identity로 변경
+2. DBCP size를 Thread pool Size보다 충분히 크게 두기. 이 경우 DBCP를 thread pool size보다 너무 크게 하면 idle connection이 늘어날 수 있고 반대로 약간 더 크게 하면 DB connection을 대기 받기 위한 시간이 길어질 확률이 높음.
+
+[결과]
+
+1. DBCP DeadLock을 해결하였음.
 
 [배운 점]
 
-1. Polling 방식의 비효율성을 SSE로 해결할 수 있음을 배웠음.
-2. Redis pub/sub과 Kafka의 차이를 이해하고 각각의 동작 방식을 이해하였음.
-3. Kafka를 사용하는 이유와 목적에 대해서 알 수 있었음.
-4. Kafka를 사용하기 위해 필수적으로 설정해 주어야 하는 옵션들과 Kafka 내부 동작 방식에 대해서 학습하고 이해할 수 있었음.
-5. Nginx를 Reverse Proxy로 활용할 때 생길 수 있는 영향에 대해서 생각해 볼 수 있었음.
+1. 예상치 못하게 DB Connection을 2개이상 요청하는 경우가 있을 수 있음을 알게 되었음.
+2. GenerationType에 따른 동작 방식과 장단점을 이해할 수 있었음.
 
-# 9. 트랜잭션 분리 및 Kafka로 매칭 알고리즘 실행 방식 개선
+# 13. ec2_sds_config, relabel_configs를 활용하여 Prometheus, Grafana  성능 모니터링 구축.
 
-[랜덤 매칭 트랜잭션 분리 Kafka 기능 개선](https://velog.io/@xogml951/%EB%9E%9C%EB%8D%A4-%EB%A7%A4%EC%B9%AD-polling-%EB%B0%B0%EC%B9%98-%ED%8A%B8%EB%9E%9C%EC%9E%AD%EC%85%98-%EB%B6%84%EB%A6%AC-%EB%B0%8F-%EB%A6%AC%ED%8C%A9%ED%86%A0%EB%A7%814)
+[AWS-Auto-Scaling-Group-EC2-WAS-대상Actuator-Prometheus-Grafana-Micrometer-모니터링-적용](https://velog.io/@xogml951/AWS-Auto-Scaling-Group-EC2-WAS-%EB%8C%80%EC%83%81Actuator-Prometheus-Grafana-Micrometer-%EB%AA%A8%EB%8B%88%ED%84%B0%EB%A7%81-%EC%A0%81%EC%9A%A9)
 
 [문제점 및 이슈]
 
-1. 한 명의 사용자만 매칭을 취소하더라도 전체 매칭 알고리즘이 롤백 됨.
-2. 매칭 알고리즘의 정렬과 같은 CPU 연산시간이 긴 작업에서 DB Connection이 필요 없음에도 소모함.
-3. 매칭 신청 시 매칭 알고리즘이 완료되어야 응답을 할 수 있음.
-4. 매칭 알고리즘이 여러 스레드에서 동시에 실행될 수 있음. 
-5. 매칭 알고리즘이 실패하더라도 재실행하지 못함.
-6. 매칭 신청 취소 시 영속성 컨텍스트 Dirty Checking을 활용할 경우 update 쿼리가 대량으로 발생.
+1. ASG로 관리되는 EC2를 Prometheus로 모니터링할 때 EC2가 새로 배포된 경우 모니터링 대상에 자동으로 포함 되지 않는 문제가 발생함.
 
 [원인 분석]
 
-1. 트랜잭션이 하나로 되어있음.
-2. 매칭 신청 API 호출 시 해당 요청이 매칭 알고리즘에 의존하여 동기적으로 처리됨.
-3. 영속성 컨텍스트 Dirty Checking을 활용할 경우 Entity 개수만큼 update 쿼리가 발생함.
+1. Prometheus의 scrape_config시 ASG로 관리되는 EC2들의 Private IP가 동적으로 변경될 수 있는데 static 한 IP지정 방식을 사용했기 때문에 자동 수정되지 못함.
 
 [해결 방안]
 
-1. 트랜잭션을 분리해야 함. 매칭 신청 조회 트랜잭션을 readOnly=true로 실행하고 매칭 조건으로 정렬하고 매칭 그룹을 묶는 작업은 트랜잭션 밖에서 수행한다음, 매칭 그룹 개수만큼 트랜잭션을 실행하고 commit 시점에 조회의 Version이 다름이 확인되면 해당 트랜잭션만 롤백함.
-2. 매칭 신청 API요청 시 매칭 신청이 완료되면 매칭 알고리즘 event를 produce하는 것으로 개선. 이렇게 할 경우 매칭 알고리즘 수행 완료와 상관없이 매칭 신청이 이루어질 수 있음. 
-3. Kafka event produce 시 key값을 지정하여 하나의 파티션에만 생성되도록 보장하면 동시에 하나의 Consumer에서 매칭 알고리즘을 실행하도록 할 수 있음. 이것이 유지되기 위해서는 partition의 개수가 변경되어서는 안됨. 
-4. bulkUpdate쿼리를 직접 작성하여야함. 이때, 영속성 컨텍스트와 무관하게 DB에 직접 반영되기 때문에 영속성 컨텍스트를 초기화 해야함.
+1. ec2_sds_config를 통해 WAS가 배포된 EC2의 Private Ip를 동적으로 수집하고 relabel_configs를 통해 대상 IP주소가 변경 될 수 있도록함.
+
+[결과]
+
+1. 서버 성능과 관련된 메트릭들을 모니터링 할 수 있게 되었으며 ASG, Code Deploy로 인해 새로 배포된 EC2가 자동으로 모니터링 대상에 포함됨.
 
 [배운 점]
 
-1. 트랜잭션을 적절히 분리하고 Version을 통해 낙관적락을 직접 구현해봄.
-2. Kafka의 partition과 consumer의 상관 관계, key값 지정 시 특정 partition에만 저장되며 parition 개수 변경과 관련된 주의사항을 배움. 
-3. update쿼리를 직접 작성하는 것과 Dirty Checking방식의 차이를 알게 됨.
+1. Spring Actuator, Micrometer, Grafana, Prometheus를 활용하여 서버 지표를 수집하고 모니터링하는 플로우를 알 수 있었으며 구축경험을 할 수 있었음 .
 
-# 10. 낙관적 락과 AOP를 활용해 방 매칭 DB 동시성 문제 해결
+[추가 개선점]
 
-[Optimistic Lock과 AOP활용 방 매칭 동시성 문제 해결](https://velog.io/@xogml951/API%EB%8F%99%EC%8B%9C%EC%84%B1-%EB%AC%B8%EC%A0%9C-%ED%95%B4%EA%B2%B0-%EA%B8%B0%EB%A1%9D-Optimistic-Lock%EA%B3%BC-AOP%ED%99%9C%EC%9A%A9)
+1. Prometheus에 지표가 쌓여 storage 용량이 부족할 경우를 대비하여야함.
 
-[트랜잭션 Isolation개념 총 정리](https://velog.io/@xogml951/%ED%8A%B8%EB%9E%9C%EC%9E%AD%EC%85%98-Isolation%EC%B4%9D-%EC%A0%95%EB%A6%AC)
-
-[문제점 및 이슈]
-
-1. 방 매칭에서 참여 인원 제한이 있음에도 동시에 서로 다른 사용자가 매칭을 신청할 경우 참여 인원보다 많은 인원이 참여해 버리는 문제가 발생
-
-[원인 분석]
-
-1. MYSQL Repetable Read 격리 수준에서 트랜잭션 이상 현상 lost update가 발생
-
-[해결 방안]
-
-1. 비관적 배타 록을 고려했으나 충돌 상황이 자주 발생하지 않고 수정 시점에 조회가 불가능해져 성능이 저하될 수 있기 때문에 낙관적록을 활용.
-2. 또한, 충돌이 발생하여 요청이 취소되면 Retry 하는 관심사가 공통으로 적용되어야 하므로 AOP를 활용.
-
-[배운 점]
-
-1. 트랜잭션 Isolation과 관련된 Serializability, Recoverbility, 이상현상, 격리 수준 등의 개념과 MYSQL이 격리 수준에 따라 어떤 방식으로 동작 하는지 알게 되었음.
-2. 낙관적 락과 비관적 락의 동작 방식과 장, 단점을 고려해 선택할 수 있게 되었음.
-3. AOP가 Decorator Pattern, CGLIB, 빈 후처리기 등과 같은 기술들을 통해 어떻게 프록시 객체를 생성하고 적용되는지 이해하였음.
-4. AOP를 통해 공통적으로 적용해야 하는 부가 로직을 효과적으로 처리할 수 있음을 경험했음.
-
-# 11. Paging Fetch Join문제 해결 및 N+1 문제를 해결하기 위한 다양한 방식 이해 및 적용
-
-[N+1문제 해결 방식과 장단점 총 정리](https://velog.io/@xogml951/JPA-N1-%EB%AC%B8%EC%A0%9C-%ED%95%B4%EA%B2%B0-%EC%B4%9D%EC%A0%95%EB%A6%AC)
-
-[문제점 및 이슈]
-
-1.  페이징이 포함된 Select 쿼리에 Fetch Join을 사용했을 때 warn log가 발생.
-
-[원인 분석]
-
-1. 페이징이 포함된 Select 쿼리에서 Fetch Join을 사용할 경우 페이징을 위해 전체 테이블 데이터를 모두 메모리에 로딩해야 하며 OutOfMemory와 같은 심각한 장애 발생 가능.
-
-[해결 방안]
-
-1. 페이징이 포함된 Select 쿼리는 fetch join하지 말고 default_batch_fetch_size옵션 활용.
-2. 일반Join을 하고 Dto로 바로 변환하여 조회하는 방식도 있음. 
-
-[배운점]
-
-1. 다양한 N+1 문제의 해결법과 각각의 장단점, 제약사항에 대해 배우고 선택할 수 있게 되었음.
-2. fetch join
-    1. 장점: 네트워크 쿼리 전송 횟수 감소
-    2. 단점: 컬렉션 연관관계(1:N)를 가진 경우 paging제한, 컬렉션 하나까지만 fetch join 가능, 1:N관계에서 1쪽의 데이터가 join 시 중복으로 존재하기 때문에 불필요한 데이터 통신량 증가등의 문제가 있고 조회 메서드가 각각 정의해야함.
-3. default_batch_fetch_size
-    1. 장점: 컬렉션 관계에 대해서 제한이 없으며 join을 하지 않기 때문에 데이터 전송량이 감소하고 Entity그래프 탐색을 통해 손쉽게 코드를 작성할 수 있다는 장점이 있음. 
-    2. 단점: fetch join대비 쿼리 전송 수가 많음.
-4. 일반 Join을 하고 Dto로 바로 변환
-    1. 장점: Entity Column이 많을 때 Projection하여 특정 컬럼만 조회할 수 있음, 커버링 인덱스 활용가능성 상승.
-    2. 단점: 영속성 컨텍스트와 무관하게 동작하고 Repository가 Dto에 의존하게 되기 때문에 API변경에 DAO도 수정되어야 할 수 있음.
-5. 결론
-    1. 1:1 연관관계는 최대한 fetch join을 활용하고 컬렉션 연관관계는 default_batch_fetch_size활용.
-    2. 많은 컬럼 중 특정 컬럼만 조회해야 할 경우나 커버링 인덱스를 활용하고 싶은 경우 데이터 전송량을 줄이고 싶으면 일반 Join을 하고 Projection하여 Dto로 바로 변환. 다만 이 경우 DAO객체를 분리하여 작성하는 것이 좋음.
-
-# 12. Session 방식 JWT로 개선
-
-[Refresh-Token을-어디에-저장해야-할까Feat.-XSS-CSRF-CORS](https://velog.io/@xogml951/Refresh-Token%EC%9D%84-%EC%96%B4%EB%94%94%EC%97%90-%EC%A0%80%EC%9E%A5%ED%95%B4%EC%95%BC-%ED%95%A0%EA%B9%8CFeat.-XSS-CSRF-CORS)
-
-[OAuth 개념](https://velog.io/@xogml951/Spring-Security-OAuth-JWT%EB%A5%BC-%ED%99%9C%EC%9A%A9%ED%95%9C-%EC%9D%B8%EC%A6%9D-%EA%B3%BC%EC%A0%95-%EA%B0%9C%EB%85%90-%EB%B0%8F-%EA%B5%AC%ED%98%84-%EC%B4%9D-%EC%A0%95%EB%A6%AC1-OAuth-%EA%B0%9C%EB%85%90%EA%B3%BC-%EB%A1%9C%EA%B7%B8%EC%9D%B8-%EB%B0%8F-%ED%9A%8C%EC%9B%90%EA%B0%80%EC%9E%85%EC%97%90-%ED%99%9C%EC%9A%A9%ED%95%98%EA%B8%B0)
-
-[JWT개념과-회원가입-및-로그인-로직-구현1](https://velog.io/@xogml951/Spring-Security-OAuth-JWT%EB%A5%BC-%ED%99%9C%EC%9A%A9%ED%95%9C-%EC%9D%B8%EC%A6%9D-%EA%B3%BC%EC%A0%95-%EA%B0%9C%EB%85%90-%EB%B0%8F-%EA%B5%AC%ED%98%84-%EC%B4%9D-%EC%A0%95%EB%A6%AC2-JWT%EA%B0%9C%EB%85%90%EA%B3%BC-%ED%9A%8C%EC%9B%90%EA%B0%80%EC%9E%85-%EB%B0%8F-%EB%A1%9C%EA%B7%B8%EC%9D%B8-%EB%A1%9C%EC%A7%81-%EA%B5%AC%ED%98%84)
-
-[OAuth-JWT-회원가입-및-로그인-로직-구현2](https://velog.io/@xogml951/Spring-Security-OAuth-JWT%EB%A5%BC-%ED%99%9C%EC%9A%A9%ED%95%9C-%EC%9D%B8%EC%A6%9D-%EA%B3%BC%EC%A0%95-%EA%B0%9C%EB%85%90-%EB%B0%8F-%EA%B5%AC%ED%98%84-%EC%B4%9D-%EC%A0%95%EB%A6%AC3-OAuth-JWT-%ED%9A%8C%EC%9B%90%EA%B0%80%EC%9E%85-%EB%B0%8F-%EB%A1%9C%EA%B7%B8%EC%9D%B8-%EB%A1%9C%EC%A7%81-%EA%B5%AC%ED%98%84)
-
-[문제점 및 이슈]
-
-1. Session 방식의 인증을 활용할 때 AWS ELB와 여러 WAS를 구성하면 제대로 로그인 처리가 되지 않는 문제 발생.
-
-[원인 분석]
-
-1. In-memory에 Session을 저장하기 때문에 어떤 WAS로 요청이 도달하느냐에 따라서 인증이 되지 않은 것으로 동작함.
-2. Redis Clustered Session을 구성하는 경우 인증은 제대로 처리되지만 매 API 요청마다 Redis를 조회해야 하는 비용이 있고 향후 앱으로 개발할 경우 호환이 안 될 수 있는 문제가 있음.
-
-[해결 방안]
-
-1. JWT방식으로 인증 정보 자체를 Token에 포함시켜 Stateless 하게 유지.
-2. Token 탈취 시 이를 무력화할 수 없다는 단점이 있지만 Access Token 만료 시간을 5분 정도로 짧게 유지하고 Refresh Token으로 재발급하도록 함.
-
-[배운 점]
-
-1. WAS를 Stateless 하게 유지하지 못할 경우 꼭 Session이 아니더라도 Scale Out시 문제가 발생할 수 있다는 것을 깨닫게 됨.
-2. Refresh Token 저장 위치를 고민하고 근거를 찾는 과정에서 Local Storage의 경우 JavaScript 코드를 통해 조작할 수 있기 때문에 XSS공격에 취약하지만, Cookie의 경우 httpOnly를 통해 이를 방지할 수 있고 반대로 CSRF에는 취약함을 알게 되었음.
-3. JWT의 구조와 Secret key 단순 설정과 같은 보안 관점의 잘못된 구현 방식에 대해서 배울 수 있었음.
-4. Session, JWT의 차이와 장단점에 대해서 배울 수 있었음.
-5. OAuth 2.0의 동작 방식에 대해서 배울 수 있었음.
-
-# 13.  AWS High Available, Scalable Architecture 구성
-
-[AWS-HAHigh-Availability-구축](https://velog.io/@xogml951/AWS-HAHigh-Availability-%EA%B5%AC%EC%B6%95-%EA%B8%B0%EB%A1%9D)
-
-[Redis Sentinel vs Cluster](https://velog.io/@xogml951/Redis-replicationSentinel-Cluster)
-
-[Kafka-개념과-내부구조](https://velog.io/@xogml951/Kafka-%EA%B0%9C%EB%85%90%EA%B3%BC-%EA%B8%B0%EB%B3%B8-%EC%84%B8%ED%8C%85)
-
-[문제점 및 이슈]
-
-1. AWS Availability Zone에 자체에 장애가 발생하면 그 위에 구축한 서비스도 장애가 발생할 수 있음.
-2. 부하 증가나 예상치 못한 문제로 WAS가 종료되거나 MYSQL, Redis, Kafka 등에 장애가 발생하면 서비스가 정상 운영되지 못하고 자동복구 되지 못함. Redis의 경우 In-memory DB이기 때문에 최악의 경우 데이터가 유실 될 수 있음.
-3. WAS, RDS등의 요소들은 Public Subnet에 존재할 경우 보안성이 떨어짐.
-
-[원인 분석]
-
-1. 시스템의 요소들이 하나의 Availability Zone에만 분포하고 이중화 되지 않음.
-2. Default VPC를 사용하여 Private Subnet이 정의 되지 않음.
-
-[해결 방안]
-
-1. 시스템의 요소들이 모두 이중화 되어야 하며 적어도 둘 이상의 Availability Zone하도록 구성함.
-2. WAS의 경우 ELB, ASG를 통해 부하 분산, Health check, 자동 복구가 될 수 있도록 하고 RDS는 Stand By 구성, Redis는 Cluster구성을 통해 Replica를 두고, Kafka는 Broker를 둘 이상 두고 In Sync Replica를 2이상으로 둠.
-
-[배운점]
-
-1. AWS HA 구성 이유와 VPC, ELB, ASG, RDS, MSK, ElastiCache등의 서비스의 설정 방법과 이유에 대해서 알 수 있었음.
-2. RDB, Redis, Kafka가 가용성 확장성을 확보하는 원리와 관계형 데이터베이스와 NOSQL의 차이에 대해서 배울 수 있었음.
-
-# 14. Blue/Green 무중단 배포 자동화
+# 14. 배포 시 서비스 유지를 위해 Blue/Green 무중단 배포 자동화
 
 [Github action code deploy s3를 통한 Blue/Green무중단 배포](https://velog.io/@xogml951/CICD-%EA%B5%AC%EC%B6%95-Github-action-code-deploy-s3)
 
@@ -550,6 +562,10 @@
 
 1. Github Action, AWS Code deploy Blue/Green 무중단 배포를 통해 특정 브랜치에 push할 경우 CI/CD가 자동화 됨. Load Balancer를 통해 점진적으로 뒤에 배포된 WAS로 트래픽을 이동 시키기 때문에 서비스를 종료하지 않을 수 있음.
 2. Github Action Secret 를 통해서 전달함.
+
+[결과]
+
+1. 협업 시 빌드 배포 과정에서 충돌이 방지 되고 서비스 종료없이 트래픽을 유지하면서 배포할 수 있게 되었음.
 
 [배운점]
 
@@ -576,6 +592,10 @@
 
 1. Logging 설정의 중요성과 방법에 대해서 배웠음.
 2. 프로젝트 협업 시 에러에 대한 전반적인 사항들을 공유하는 것이 중요하다는 것을 깨달음.
+
+[결과]
+
+1. API 별로 에러 통계와 로그 정보를 쉽게 얻고 빠르게 수정 할 수 있게 되었음.
 
 [추가 개선점]
 
