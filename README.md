@@ -26,8 +26,9 @@
 - Prometheus, Grafana
 
 ## Backend API Swagger Link
+### [API 명세 링크](http://partner-swagger-api.s3-website.ap-northeast-2.amazonaws.com/dynamic-html-client-generated/docs/index.html) 
 
-#### [API 명세 링크](https://api.v2.42partner.com/swagger-ui/index.html#/)
+### [API 명세 링크(미 동작할 경우 위에 링크 클릭)](https://api.v2.42partner.com/swagger-ui/index.html#/)
 
 ## Architecture Design
 <img width="1031" alt="image" src="https://user-images.githubusercontent.com/47822403/234498210-e681f1b8-fd42-4e7c-a4aa-e6c0a7c534ae.png">
