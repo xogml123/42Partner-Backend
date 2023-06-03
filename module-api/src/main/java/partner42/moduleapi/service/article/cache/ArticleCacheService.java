@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Component;
+import partner42.moduleapi.config.cache.ProbabilisticEarlyRecomputationConfig.RandomDoubleGenerator;
 
 @Component
 @RequiredArgsConstructor
@@ -15,7 +16,8 @@ public class ArticleCacheService {
     private static final double BETA = 1.0;
     private static final String DELTA = "delta";
 
-    private final Random random;
+    private final RandomDoubleGenerator randomDoubleGenerator;
+
     private final RedisTemplate<String, Object> redisTemplate;
     private final DefaultRedisScript<List<Object>> cacheGetRedisScript;
     private final DefaultRedisScript<Object> cacheSetRedisScript;
@@ -26,7 +28,7 @@ public class ArticleCacheService {
         String deltaStr = valueList.get(1);
         // 재 갱신을 해야하는 경우.
         if (data == null ||
-            - Long.valueOf(deltaStr) * BETA * Math.log(random.nextDouble()) >= (long) ret.get(1)) {
+            - Long.valueOf(deltaStr) * BETA * Math.log(randomDoubleGenerator.nextDouble()) >= (long) ret.get(1)) {
             long start = System.currentTimeMillis();
             data = recomputer.apply(args);
             long computationTime = (System.currentTimeMillis() - start) * 1000;
