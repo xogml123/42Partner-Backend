@@ -5,6 +5,7 @@ import java.util.Random;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
+import partner42.moduleapi.service.article.cache.ArticleCacheRepository;
 
 @Configuration
 public class ProbabilisticEarlyRecomputationConfig {
@@ -13,4 +14,5 @@ public class ProbabilisticEarlyRecomputationConfig {
     public Random random() {
         return new Random();
     }
+
 }
