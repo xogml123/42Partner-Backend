@@ -183,10 +183,13 @@ public class ArticleService {
 
     }
 
-    @Cacheable(value = "articles", key = "#pageable.pageNumber + '-' + #pageable.pageSize + '-' + #pageable.sort"
-        + " + '-' + #condition.anonymity + '-' + #condition.contentCategory +'-'+ #condition.isComplete")
+//    @Cacheable(value = "articles", key = "#pageable.pageNumber + '-' + #pageable.pageSize + '-' + #pageable.sort"
+//        + " + '-' + #condition.anonymity + '-' + #condition.contentCategory +'-'+ #condition.isComplete")
         public SliceImpl<ArticleReadResponse>readAllArticle(Pageable pageable,
         ArticleSearch condition) {
+
+
+
         Slice<Article> articleSlices = articleRepository.findSliceByCondition(pageable,
             condition);
         return new SliceImpl<>(articleSlices.getContent().stream()
