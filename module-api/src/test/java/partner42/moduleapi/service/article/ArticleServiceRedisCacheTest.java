@@ -77,7 +77,5 @@ class ArticleServiceRedisCacheTest {
         //then
         SliceImpl<ArticleReadResponse> result = articleService.readAllArticle(page,
             articleSearch);
-
-
     }
 }

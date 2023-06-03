@@ -4,16 +4,13 @@ import java.util.List;
 import java.util.Random;
 import java.util.function.Function;
 import lombok.RequiredArgsConstructor;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
-import org.springframework.data.redis.core.script.RedisScript;
-import org.springframework.scripting.support.ResourceScriptSource;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class ArticleCacheRepository {
+public class ArticleCacheService {
     private static final int TTL = 5;
     private static final double BETA = 1.0;
     private static final String DELTA = "delta";

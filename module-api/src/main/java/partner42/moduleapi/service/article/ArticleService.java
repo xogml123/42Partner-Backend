@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
@@ -23,7 +22,7 @@ import partner42.moduleapi.dto.matchcondition.MatchConditionDto;
 import partner42.moduleapi.dto.member.MemberDto;
 import partner42.moduleapi.mapper.MemberMapper;
 import partner42.moduleapi.config.kafka.AlarmEvent;
-import partner42.moduleapi.service.article.cache.ArticleCacheRepository;
+import partner42.moduleapi.service.article.cache.ArticleCacheService;
 import partner42.modulecommon.domain.model.alarm.AlarmArgs;
 import partner42.modulecommon.domain.model.alarm.AlarmType;
 import partner42.modulecommon.domain.model.sse.SseEventName;
@@ -72,7 +71,7 @@ public class ArticleService {
     private final MatchMemberRepository matchMemberRepository;
     private final ActivityRepository activityRepository;
 
-    private final ArticleCacheRepository articleCacheRepository;
+    private final ArticleCacheService articleCacheService;
     private final MemberMapper memberMapper;
 
     @Transactional
@@ -191,7 +190,7 @@ public class ArticleService {
     public SliceImpl<ArticleReadResponse> readAllArticle(Pageable pageable,
         ArticleSearch condition) {
         String cacheKey = getReadAllArticleCacheKey(pageable, condition);
-        Object result = articleCacheRepository.probabilisticEarlyRecomputationGet(cacheKey,
+        Object result = articleCacheService.probabilisticEarlyRecomputationGet(cacheKey,
             args -> {
                 Slice<Article> articleSlices = articleRepository.findSliceByCondition(
                     (Pageable) args.get(0),
