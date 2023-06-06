@@ -41,7 +41,7 @@ public class ArticleCacheService {
             long start = System.currentTimeMillis();
             data = recomputer.apply(args);
             long computationTime = (System.currentTimeMillis() - start);
-            redisTemplate.execute(cacheSetRedisScript, List.of(key, getDeltaKey(key)), data, computationTime, ttl);
+//            redisTemplate.execute(cacheSetRedisScript, List.of(key, getDeltaKey(key)), data, computationTime, ttl);
             setKeyAndDeltaWithPipeline(ttl, key, data, computationTime);
         }
         return data;
