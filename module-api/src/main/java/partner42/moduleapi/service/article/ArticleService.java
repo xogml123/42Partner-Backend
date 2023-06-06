@@ -190,6 +190,7 @@ public class ArticleService {
     public SliceImpl<ArticleReadResponse> readAllArticle(Pageable pageable,
         ArticleSearch condition) {
         String cacheKey = getReadAllArticleCacheKey(pageable, condition);
+        int ttl = 5;
         Object result = articleCacheService.probabilisticEarlyRecomputationGet(cacheKey,
             args -> {
                 Slice<Article> articleSlices = articleRepository.findSliceByCondition(
@@ -213,7 +214,7 @@ public class ArticleService {
                     .collect(Collectors.toList()),
                     articleSlices.getPageable(),
                     articleSlices.hasNext());
-            }, List.of(pageable, condition));
+            }, List.of(pageable, condition), ttl);
 
         if (result instanceof SliceImpl) {
             return (SliceImpl<ArticleReadResponse>) result;
@@ -222,11 +223,7 @@ public class ArticleService {
         }
     }
 
-    private String getReadAllArticleCacheKey(Pageable pageable, ArticleSearch condition) {
-        return pageable.getPageNumber() + "-" + pageable.getPageSize() + "-" + pageable.getSort()
-            + "-" + condition.getAnonymity() + "-" + condition.getContentCategory() + "-"
-            + condition.getIsComplete();
-    }
+
 
     //OptimisticLockException
     //이미 참여중인 경우 방지.
@@ -355,4 +352,11 @@ public class ArticleService {
         }
         return matchConditionStrings;
     }
+
+    private String getReadAllArticleCacheKey(Pageable pageable, ArticleSearch condition) {
+        return pageable.getPageNumber() + "-" + pageable.getPageSize() + "-" + pageable.getSort()
+            + "-" + condition.getAnonymity() + "-" + condition.getContentCategory() + "-"
+            + condition.getIsComplete();
+    }
+
 }

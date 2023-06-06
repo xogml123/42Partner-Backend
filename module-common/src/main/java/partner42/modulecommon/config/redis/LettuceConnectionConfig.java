@@ -42,7 +42,7 @@ public class LettuceConnectionConfig {
     @Value("${spring.redis.cluster.nodes}")
     private String clusterNodes;
     @Value("${spring.redis.cluster.max-redirects}")
-    private int maxRedirects;
+    private Integer maxRedirects;
     @Value("${spring.redis.password}")
     private String password;
     private final RedisMessageSubscriber redisMessageSubscriber;

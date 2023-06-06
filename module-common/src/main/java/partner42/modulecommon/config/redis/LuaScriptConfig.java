@@ -11,17 +11,18 @@ import org.springframework.scripting.support.ResourceScriptSource;
 public class LuaScriptConfig {
 
     @Bean
-    public DefaultRedisScript<List<Object>> cacheGetRedisScript(){
-        DefaultRedisScript<List<Object>> redisScript = new DefaultRedisScript<>();
-        redisScript.setScriptSource(new ResourceScriptSource(new ClassPathResource("cache_get.lua")));
+    public DefaultRedisScript<List> cacheGetRedisScript(){
+        DefaultRedisScript<List> redisScript = new DefaultRedisScript<>();
+        redisScript.setScriptSource(new ResourceScriptSource(new ClassPathResource("luascript/cache_get.lua")));
+        redisScript.setResultType(List.class);
         return redisScript;
     }
 
     @Bean
-    public DefaultRedisScript<Object> cacheSetRedisScript(){
-        DefaultRedisScript<Object> redisScript = new DefaultRedisScript<>();
-        redisScript.setScriptSource(new ResourceScriptSource(new ClassPathResource("cache_set.lua")));
-        redisScript.setResultType(null);
+    public DefaultRedisScript<List> cacheSetRedisScript(){
+        DefaultRedisScript<List> redisScript = new DefaultRedisScript<>();
+        redisScript.setScriptSource(new ResourceScriptSource(new ClassPathResource("luascript/cache_set.lua")));
+        redisScript.setResultType(List.class);
         return redisScript;
     }
 }
