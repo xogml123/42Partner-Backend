@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
@@ -23,6 +22,7 @@ import partner42.moduleapi.dto.matchcondition.MatchConditionDto;
 import partner42.moduleapi.dto.member.MemberDto;
 import partner42.moduleapi.mapper.MemberMapper;
 import partner42.moduleapi.config.kafka.AlarmEvent;
+import partner42.moduleapi.service.article.cache.ArticleCacheService;
 import partner42.modulecommon.domain.model.alarm.AlarmArgs;
 import partner42.modulecommon.domain.model.alarm.AlarmType;
 import partner42.modulecommon.domain.model.sse.SseEventName;
@@ -70,6 +70,8 @@ public class ArticleService {
     private final MatchRepository matchRepository;
     private final MatchMemberRepository matchMemberRepository;
     private final ActivityRepository activityRepository;
+
+    private final ArticleCacheService articleCacheService;
     private final MemberMapper memberMapper;
 
     @Transactional
@@ -183,35 +185,51 @@ public class ArticleService {
 
     }
 
-    @Cacheable(value = "articles", key = "#pageable.pageNumber + '-' + #pageable.pageSize + '-' + #pageable.sort"
-        + " + '-' + #condition.anonymity + '-' + #condition.contentCategory +'-'+ #condition.isComplete")
-        public SliceImpl<ArticleReadResponse>readAllArticle(Pageable pageable,
+    //    @Cacheable(value = "articles", key = "#pageable.pageNumber + '-' + #pageable.pageSize + '-' + #pageable.sort"
+//        + " + '-' + #condition.anonymity + '-' + #condition.contentCategory +'-'+ #condition.isComplete")
+    public SliceImpl<ArticleReadResponse> readAllArticle(Pageable pageable,
         ArticleSearch condition) {
-        Slice<Article> articleSlices = articleRepository.findSliceByCondition(pageable,
-            condition);
-        return new SliceImpl<>(articleSlices.getContent().stream()
-            .map((article) -> {
-                List<MatchCondition> matchConditions = article.getArticleMatchConditions().stream()
-                    .map(amc ->
-                        amc.getMatchCondition())
-                    .collect(Collectors.toList());
-                return ArticleReadResponse.of(article,
-                    MatchConditionDto.of(Place.extractPlaceFromMatchCondition(matchConditions),
-                        TimeOfEating.extractTimeOfEatingFromMatchCondition(matchConditions),
-                        WayOfEating.extractWayOfEatingFromMatchCondition(matchConditions),
-                        TypeOfStudy.extractTypeOfStudyFromMatchCondition(matchConditions)
-                    ));
-            })
-            .collect(Collectors.toList()),
-            articleSlices.getPageable(),
-            articleSlices.hasNext());
+        String cacheKey = getReadAllArticleCacheKey(pageable, condition);
+        int ttl = 5;
+        Object result = articleCacheService.probabilisticEarlyRecomputationGet(cacheKey,
+            args -> {
+                Slice<Article> articleSlices = articleRepository.findSliceByCondition(
+                    (Pageable) args.get(0),
+                    (ArticleSearch) args.get(1));
+                return new SliceImpl<>(articleSlices.getContent().stream()
+                    .map((article) -> {
+                        List<MatchCondition> matchConditions = article.getArticleMatchConditions()
+                            .stream()
+                            .map(amc ->
+                                amc.getMatchCondition())
+                            .collect(Collectors.toList());
+                        return ArticleReadResponse.of(article,
+                            MatchConditionDto.of(
+                                Place.extractPlaceFromMatchCondition(matchConditions),
+                                TimeOfEating.extractTimeOfEatingFromMatchCondition(matchConditions),
+                                WayOfEating.extractWayOfEatingFromMatchCondition(matchConditions),
+                                TypeOfStudy.extractTypeOfStudyFromMatchCondition(matchConditions)
+                            ));
+                    })
+                    .collect(Collectors.toList()),
+                    articleSlices.getPageable(),
+                    articleSlices.hasNext());
+            }, List.of(pageable, condition), ttl);
 
+        if (result instanceof SliceImpl) {
+            return (SliceImpl<ArticleReadResponse>) result;
+        } else {
+            throw new IllegalStateException("Cache result is not SliceImpl");
+        }
     }
+
+
 
     //OptimisticLockException
     //이미 참여중인 경우 방지.
     @Transactional(isolation = Isolation.READ_UNCOMMITTED)
-    public ResponseWithAlarmEventDto<ArticleOnlyIdResponse> participateArticle(String username, String articleId) {
+    public ResponseWithAlarmEventDto<ArticleOnlyIdResponse> participateArticle(String username,
+        String articleId) {
         Article article = articleRepository.findEntityGraphArticleMembersByApiIdAndIsDeletedIsFalse(
                 articleId)
             .orElseThrow(() -> new NoEntityException(ErrorCode.ENTITY_NOT_FOUND));
@@ -235,7 +253,8 @@ public class ArticleService {
 
     //OptimisticLockException
     @Transactional
-    public ResponseWithAlarmEventDto<ArticleOnlyIdResponse> participateCancelArticle(String username, String articleId) {
+    public ResponseWithAlarmEventDto<ArticleOnlyIdResponse> participateCancelArticle(
+        String username, String articleId) {
 
         Article article = articleRepository.findEntityGraphArticleMembersByApiIdAndIsDeletedIsFalse(
                 articleId)
@@ -301,7 +320,7 @@ public class ArticleService {
 
     private void verifyUserIsArticleAuthorMemberOrAdmin(User user, Article article) {
         if (user.hasRole(RoleEnum.ROLE_ADMIN)) {
-            return ;
+            return;
         }
         if (!article.isAuthorMember(user.getMember())) {
             throw new InvalidInputException(ErrorCode.NOT_ARTICLE_AUTHOR);
@@ -333,4 +352,11 @@ public class ArticleService {
         }
         return matchConditionStrings;
     }
+
+    private String getReadAllArticleCacheKey(Pageable pageable, ArticleSearch condition) {
+        return pageable.getPageNumber() + "-" + pageable.getPageSize() + "-" + pageable.getSort()
+            + "-" + condition.getAnonymity() + "-" + condition.getContentCategory() + "-"
+            + condition.getIsComplete();
+    }
+
 }
