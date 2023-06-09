@@ -179,6 +179,41 @@
 
 1. 방 매칭의 참여자 수와 같은 데이터의 경우 일관성이 중요해 db에서는 락을 사용해 수정해야함. row level의 락이 걸리기 때문에 해당 컬럼을 따로 분리하여 락 적용 범위를 줄일 필요가 있어 보임.
 
+# 3. Hot key의 TTL 만료 시 Cache Stampede를 고려하여 Probabilistic Early Recomputation을 적용.
+
+[Hot-key에서-Cache-Stampede와-Probabilistic-Early-Recomputation-적용](https://velog.io/@xogml951/Hot-key%EC%97%90%EC%84%9C-Cache-Stampede%EC%99%80-Probabilistic-Early-Recomputation-%EC%A0%81%EC%9A%A9)
+
+[Redis Transaction-Lua-Scripting, 동시성 문제](https://velog.io/@xogml951/Redis-%EB%8F%99%EC%8B%9C%EC%84%B1-%EB%AC%B8%EC%A0%9C-%EB%B0%A9%EC%A7%80Transaction-Lua-Scripting)
+
+[Redis Pipelining](https://velog.io/@xogml951/Redis-round-trip-time-RTT-Pipelining)
+
+[테스트 조건]
+
+1. pageNumber를 평균 50, 표준편차 2의 정규분포로 생성. 5 %의 게시글 요청이 80%의 요청을 받는 상황 가정
+
+[문제점 및 이슈]
+
+1. 캐시를 적용할 때 TTL, Eviction등으로 key가 만료되면  갱신에 걸리는 시간(Recomputation Time Interval)사이에 모든 요청이 RDB조회 + Redis 쓰기를 반복함.
+2. Hot Key인 경우 RDS, Redis 모두에게 큰 부하가 될 수 있음.
+
+[해결 방안]
+
+1. probabilistic early recomputation 적용. TTL 전에 재갱신이 될 확률은 다음 지표들에 의해서 결정됨.
+    1. 포아송 분포에서 독립사건의 시간 간격 (-log(0~1.0사이의 난수))
+    2. 요청이 많을 수록 갱신이 잘됨. Hot key의 TTL만료 방지 효과
+    3. TTL만료에 근접하는 정도
+    4. Recomputation 시간
+2. RTT, 입출력 시스템 콜 횟수를 줄이기 위해 Redis Pipelining, Lua scripting을 적용.
+
+[결과]
+
+1.  조회 1400~1700TPS기준 Cache Miss 1/10으로 감소및  RDS CPU사용률 45% → 28%
+
+[배운 점]
+
+1. Hot key, Consistent Hashing, Cache Stampede, PER에 대해서 잘 이해하였음.
+2. Redis Pipelining, Lua scripting, Transaction의 사용방법과 장단점, 주의점, 한계점에 대해서 학습
+
 # 3.  AWS High Available, Scalable Architecture 구성
 
 [AWS-HAHigh-Availability-구축](https://velog.io/@xogml951/AWS-HAHigh-Availability-%EA%B5%AC%EC%B6%95-%EA%B8%B0%EB%A1%9D)
