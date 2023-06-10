@@ -12,7 +12,7 @@ public interface RandomMatchRepositoryCustom {
     List<RandomMatch> findForUpdateByCreatedAtAfterAndIsExpiredAndMemberIdAndContentCategory(RandomMatchSearch randomMatchSearch);
     List<RandomMatch> findByCreatedAtAfterAndIsExpiredAndMemberIdAndContentCategory(RandomMatchSearch randomMatchSearch);
 
-    List<RandomMatch> findForUpdateByCreatedAtAfterAndIsExpiredAndRandomMatchConditionAndSortedByCreatedAtASC(
+    List<RandomMatch> findByCreatedAtAfterAndIsExpiredAndRandomMatchConditionAndSortedByRandomMatchConditionAndCreatedAtASC(
         LocalDateTime createdAt,
         Boolean isExpired,
         RandomMatchConditionSearch randomMatchConditionSearch);

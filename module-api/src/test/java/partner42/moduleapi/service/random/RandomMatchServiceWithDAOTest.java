@@ -6,10 +6,10 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.persistence.OptimisticLockException;
+import javax.swing.text.AbstractDocument.Content;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,9 +18,6 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.orm.jpa.JpaOptimisticLockingFailureException;
-import org.springframework.test.annotation.Rollback;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 import partner42.moduleapi.config.ServiceWithDAOTestDefaultConfig;
 import partner42.moduleapi.dto.random.MealRandomMatchDto;
 import partner42.moduleapi.dto.random.RandomMatchCancelRequest;
@@ -30,7 +27,7 @@ import partner42.moduleapi.dto.random.RandomMatchDtoFactory;
 import partner42.moduleapi.dto.random.RandomMatchExistDto;
 import partner42.moduleapi.dto.random.RandomMatchParam;
 import partner42.moduleapi.dto.random.StudyRandomMatchDto;
-import partner42.moduleapi.service.user.UserService;
+import partner42.moduleapi.producer.random.MatchMakingEvent;
 import partner42.modulecommon.domain.model.match.ConditionCategory;
 import partner42.modulecommon.domain.model.match.ContentCategory;
 import partner42.modulecommon.domain.model.match.Match;
@@ -404,17 +401,16 @@ class RandomMatchServiceWithDAOTest {
             RandomMatchCondition.of(Place.GAEPO, TypeOfStudy.INNER_CIRCLE), takim.getMember()));
         RandomMatch randomMatch8 = randomMatchRepository.save(RandomMatch.of(
             RandomMatchCondition.of(Place.GAEPO, WayOfEating.EATOUT), hyenam.getMember()));
-
+        MatchMakingEvent matchMakingEvent = new MatchMakingEvent(LocalDateTime.now(),
+            ContentCategory.MEAL, List.of(Place.GAEPO, Place.SEOCHO)
+            , List.of(WayOfEating.DELIVERY, WayOfEating.TAKEOUT, WayOfEating.EATOUT), null);
         //when
         List<RandomMatch> randomMatches = randomMatchService.getValidRandomMatchesSortedByMatchCondition(
-            LocalDateTime.now());
+            matchMakingEvent);
         //then
 
         assertThat(randomMatches).extracting(RandomMatch::getId)
-            .containsExactly(randomMatch4.getId(), randomMatch1.getId(),randomMatch8.getId(),
-                randomMatch2.getId(), randomMatch3.getId(),
-                randomMatch6.getId(), randomMatch7.getId(), randomMatch5.getId());
-
+            .containsExactly(randomMatch8.getId(), randomMatch2.getId(), randomMatch3.getId(), randomMatch4.getId(), randomMatch1.getId());
     }
     @Test
     void getValidRandomMatchesSortedByMatchCondition_whenNowIsAfterMatchCountMinute_thenValidRandomMatchesEmpty(){
@@ -435,16 +431,17 @@ class RandomMatchServiceWithDAOTest {
             RandomMatchCondition.of(Place.GAEPO, TypeOfStudy.INNER_CIRCLE), takim.getMember()));
         RandomMatch randomMatch6 = randomMatchRepository.save(RandomMatch.of(
             RandomMatchCondition.of(Place.SEOCHO, TypeOfStudy.NOT_INNER_CIRCLE), takim.getMember()));
-
+        MatchMakingEvent matchMakingEvent = new MatchMakingEvent(LocalDateTime.now().plusMinutes(30),
+            null, List.of(Place.GAEPO, Place.SEOCHO)
+            , List.of(WayOfEating.DELIVERY, WayOfEating.TAKEOUT, WayOfEating.EATOUT), null);
         //when
         List<RandomMatch> randomMatches = randomMatchService.getValidRandomMatchesSortedByMatchCondition(
-            LocalDateTime.now().plusMinutes(30));
+            matchMakingEvent);
         //then
         assertThat(randomMatches).isEmpty();
     }
 
     @Test
-
     void 매칭_알고리즘_실행도중_매칭취소등으로인해_RandomMatch에_변경이일어날경우_makeMatchInDB실패(){
         User takim = userRepository.findByUsername("takim").get();
         User sorkim = userRepository.findByUsername("sorkim").get();
@@ -453,10 +450,12 @@ class RandomMatchServiceWithDAOTest {
             RandomMatchCondition.of(Place.GAEPO, WayOfEating.DELIVERY), takim.getMember()));
         RandomMatch randomMatch2 = randomMatchRepository.save(RandomMatch.of(
             RandomMatchCondition.of(Place.GAEPO, WayOfEating.DELIVERY), sorkim.getMember()));
-
+        MatchMakingEvent matchMakingEvent = new MatchMakingEvent(LocalDateTime.now(),
+            null, List.of(Place.GAEPO, Place.SEOCHO)
+            , List.of(WayOfEating.DELIVERY, WayOfEating.TAKEOUT, WayOfEating.EATOUT), null);
         //when
         List<RandomMatch> randomMatches = randomMatchService.getValidRandomMatchesSortedByMatchCondition(
-            now);
+            matchMakingEvent);
         randomMatchService.deleteRandomMatch(sorkim.getUsername(), RandomMatchCancelRequest.builder()
             .contentCategory(ContentCategory.MEAL).build(), now);
 

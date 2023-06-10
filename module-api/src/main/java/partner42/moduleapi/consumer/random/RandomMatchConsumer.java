@@ -29,13 +29,13 @@ public class RandomMatchConsumer {
     @KafkaListener(topics = "${kafka.topic.match-making.name}", groupId = "${kafka.consumer.match-making.rdb-group-id}",
         containerFactory = "kafkaListenerContainerFactoryMatchMakingEvent")
     public void matchMakingConsumerGroup(@Payload MatchMakingEvent matchMakingEvent, Acknowledgment ack) {
-        MatchMakingDto matchMakingDto = matchMakingService.matchMaking(matchMakingEvent.getNow());
+        MatchMakingDto matchMakingDto = matchMakingService.matchMaking(matchMakingEvent);
         // 알림 생성.
         for (List<AlarmEvent> alarmEvents: matchMakingDto.getAlarmEvents()){
             alarmEvents.forEach(alarmProducer::send);
         }
         //slack에 장애가 발생하여
-        //알림이 보내지지 않아도 ack를 보내야 함.
+        //알림이 보내지지 않아도 ack를 보냄.
         matchMakingDto.getEmails().forEach( emails -> {
             try{
                 slackBotService.createSlackMIIM(emails);

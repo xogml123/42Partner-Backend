@@ -2,6 +2,7 @@ package partner42.modulecommon.repository.random;
 
 import java.util.List;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import partner42.modulecommon.domain.model.match.ContentCategory;
@@ -12,6 +13,7 @@ import partner42.modulecommon.domain.model.matchcondition.WayOfEating;
 @Getter
 @Setter
 @AllArgsConstructor
+@Builder
 public class RandomMatchConditionSearch {
     private ContentCategory contentCategory;
     private List<Place> placeList;

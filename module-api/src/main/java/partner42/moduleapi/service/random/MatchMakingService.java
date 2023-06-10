@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import partner42.moduleapi.dto.match.MatchMakingDto;
 import partner42.moduleapi.config.kafka.AlarmEvent;
+import partner42.moduleapi.producer.random.MatchMakingEvent;
 import partner42.modulecommon.domain.model.alarm.AlarmArgs;
 import partner42.modulecommon.domain.model.alarm.AlarmType;
 import partner42.modulecommon.domain.model.match.Match;
@@ -25,13 +26,14 @@ import partner42.modulecommon.repository.random.RandomMatchRepository;
 @Service
 public class MatchMakingService {
     private static final String SYSTEM = "system";
+
     private final RandomMatchService randomMatchService;
     private final RandomMatchRepository randomMatchRepository;
 
-    public MatchMakingDto matchMaking(LocalDateTime now) {
-
+    public MatchMakingDto matchMaking(MatchMakingEvent matchMakingEvent) {
+        LocalDateTime now = matchMakingEvent.getNow();
         MatchMakingDto matchMakingDto = new MatchMakingDto();
-        getMatchedGroupList(now).forEach((matchedRandomMatches) -> {
+        getMatchedGroupList(matchMakingEvent).forEach((matchedRandomMatches) -> {
             //3. 매칭이 완료된 데이터를 트랜잭션을 걸고 DB에 저장한다, 반영 중 취소등의 사유로 RandomMatch Entity에
             // 변경이 발생했을 경우 낙관적락 예외가 발생한다.
             try {
@@ -51,7 +53,7 @@ public class MatchMakingService {
                             .build(), member.getId(), SseEventName.ALARM_LIST))
                     .collect(Collectors.toList()));
             } catch (RuntimeException e) {
-                log.error("{}: 해당 매칭이 실패했습니다.",e.getClass());
+                log.info("{}: 매칭 과정 중 취소가 발생했습니다.",e.getClass());
             }
         });
         return matchMakingDto;
@@ -60,14 +62,13 @@ public class MatchMakingService {
     /**
      * 정렬된 매칭 리스트를 매칭 조건에 따라 그룹화한다.
      *
-     * @param now
      * @return
      */
     private List<List<RandomMatch>> getMatchedGroupList(
-        LocalDateTime now) {
+        MatchMakingEvent matchMakingEvent) {
         //1. 랜덤 매칭 테이블에서 매칭 대기중인 데이터를 가져온다.
         List<RandomMatch> validAndSortedByRandomMatchConditionRandomMatches = randomMatchService.getValidRandomMatchesSortedByMatchCondition(
-            now);
+            matchMakingEvent);
 
         List<List<RandomMatch>> matchedRandomMatchesList = new ArrayList<>();
         List<RandomMatch> matchedRandomMatches = new ArrayList<>();

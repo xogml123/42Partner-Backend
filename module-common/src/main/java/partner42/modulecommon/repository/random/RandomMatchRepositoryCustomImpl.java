@@ -57,21 +57,26 @@ public class RandomMatchRepositoryCustomImpl implements RandomMatchRepositoryCus
             .fetch();
     }
     @Override
-    public List<RandomMatch> findForUpdateByCreatedAtAfterAndIsExpiredAndRandomMatchConditionAndSortedByCreatedAtASC(
+    public List<RandomMatch> findByCreatedAtAfterAndIsExpiredAndRandomMatchConditionAndSortedByRandomMatchConditionAndCreatedAtASC(
         LocalDateTime createdAt,
         Boolean isExpired,
         RandomMatchConditionSearch randomMatchConditionSearch){
         return queryFactory.select(randomMatch)
             .from(randomMatch)
-            .where(isCreatedAtAfter(createdAt),
-                isExpired(isExpired),
+            .where(
                 isContentCategory(randomMatchConditionSearch.getContentCategory()),
                 isPlaceIn(randomMatchConditionSearch.getPlaceList()),
                 isWayOfEatingIn(randomMatchConditionSearch.getWayOfEatingList()),
-                isTypeOfStudyIn(randomMatchConditionSearch.getTypeOfStudyList())
+                isTypeOfStudyIn(randomMatchConditionSearch.getTypeOfStudyList()),
+                isCreatedAtAfter(createdAt),
+                isExpired(isExpired)
             )
-            .orderBy(randomMatch.createdAt.asc())
-            .setLockMode(LockModeType.PESSIMISTIC_WRITE)
+            .orderBy(
+                randomMatch.randomMatchCondition.contentCategory.asc(),
+                randomMatch.randomMatchCondition.place.asc(),
+                randomMatch.randomMatchCondition.wayOfEating.asc(),
+                randomMatch.randomMatchCondition.typeOfStudy.asc(),
+                randomMatch.createdAt.asc())
             .fetch();
     }
 

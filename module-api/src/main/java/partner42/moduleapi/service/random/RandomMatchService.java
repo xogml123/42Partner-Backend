@@ -9,24 +9,30 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import partner42.moduleapi.config.kafka.AlarmEvent;
 import partner42.moduleapi.dto.random.RandomMatchCancelRequest;
 import partner42.moduleapi.dto.random.RandomMatchCountResponse;
 import partner42.moduleapi.dto.random.RandomMatchDto;
 import partner42.moduleapi.dto.random.RandomMatchDtoFactory;
 import partner42.moduleapi.dto.random.RandomMatchExistDto;
 import partner42.moduleapi.dto.random.RandomMatchParam;
+import partner42.moduleapi.producer.random.MatchMakingEvent;
+import partner42.modulecommon.domain.model.alarm.AlarmArgs;
+import partner42.modulecommon.domain.model.alarm.AlarmType;
 import partner42.modulecommon.domain.model.match.Match;
 import partner42.modulecommon.domain.model.match.MatchMember;
 import partner42.modulecommon.domain.model.match.MatchStatus;
 import partner42.modulecommon.domain.model.match.MethodCategory;
 import partner42.modulecommon.domain.model.matchcondition.MatchCondition;
 import partner42.modulecommon.domain.model.matchcondition.MatchConditionMatch;
+import partner42.modulecommon.domain.model.sse.SseEventName;
 import partner42.modulecommon.domain.model.user.User;
 import partner42.modulecommon.repository.match.MatchMemberRepository;
 import partner42.modulecommon.repository.match.MatchRepository;
 import partner42.modulecommon.repository.matchcondition.MatchConditionMatchRepository;
 import partner42.modulecommon.repository.matchcondition.MatchConditionRepository;
 import partner42.modulecommon.repository.random.RandomMatchBulkUpdateDto;
+import partner42.modulecommon.repository.random.RandomMatchConditionSearch;
 import partner42.modulecommon.repository.random.RandomMatchSearch;
 import partner42.modulecommon.domain.model.match.ContentCategory;
 import partner42.modulecommon.domain.model.member.Member;
@@ -43,6 +49,7 @@ import partner42.modulecommon.repository.user.UserRepository;
 @Transactional(readOnly = true)
 @Service
 public class RandomMatchService {
+    private static final String SYSTEM = "system";
 
     private final UserRepository userRepository;
     private final RandomMatchRepository randomMatchRepository;
@@ -53,8 +60,9 @@ public class RandomMatchService {
     private final RandomMatchDtoFactory randomMatchDtoFactory;
 
     /**
-     * DB와 상관없이 DAO를 Mocking하는 테스트를 구행해보기 위해서 List<RandomMatch>라는 Entity자체를 return 하도록 구성하였다.
-     * 하지만 Controller로 Entity자체를 반환하는 형태는 좋은 방식이 아니며 CQRS관점에서도 좋지 않은 방식이다.
+     * DB와 상관없이 DAO를 Mocking하는 테스트를 구행해보기 위해서 List<RandomMatch>라는 Entity자체를 return 하도록 구성하였다. 하지만
+     * Controller로 Entity자체를 반환하는 형태는 좋은 방식이 아니며 CQRS관점에서도 좋지 않은 방식이다.
+     *
      * @param username
      * @param randomMatchDto
      * @param now
@@ -69,7 +77,8 @@ public class RandomMatchService {
         verifyAlreadyApplied(randomMatchDto.getContentCategory(), member, now);
 
         //요청 dto로 부터 랜덤 매칭 모든 경우의 수 만들어서 RandomMatch 여러개로 변환
-        List<RandomMatch> randomMatches = randomMatchDto.makeAllAvailRandomMatchesFromRandomMatchDto(member);
+        List<RandomMatch> randomMatches = randomMatchDto.makeAllAvailRandomMatchesFromRandomMatchDto(
+            member);
 
         //랜덤 매칭 신청한 것 DB에 기록.
         randomMatchRepository.saveAll(randomMatches);
@@ -173,30 +182,37 @@ public class RandomMatchService {
             throw new RandomMatchAlreadyExistException(ErrorCode.RANDOM_MATCH_ALREADY_EXIST);
         }
     }
+
     /**
      * 테스트 케이스 1. 여러 조건이 들어오는 경우 매칭이 하나의 조건으로 채결되면 다른 신청 무효화 - 안됨 2. Meal 만 매칭이 가능. 3. 만료시간 제대로 되는지
      * 확인. 4. 매칭 조건 다른 것들 섞여서 생성해도 잘 되는지 체크 5. 같은 조건 먼저 신청한사람이 먼저 매칭되도록
      *
-     * @return
      */
-    public List<RandomMatch> getValidRandomMatchesSortedByMatchCondition(LocalDateTime now) {
-        List<RandomMatch> randomMatches = randomMatchRepository.findByCreatedAtAfterAndIsExpiredAndMemberIdAndContentCategory(
-            RandomMatchSearch.builder()
-                .createdAt(now.minusMinutes(RandomMatch.MAX_WAITING_TIME))
-                .isExpired(false)
+    public List<RandomMatch> getValidRandomMatchesSortedByMatchCondition(
+        MatchMakingEvent matchMakingEvent) {
+        LocalDateTime matchAvailableApplyTime = matchMakingEvent.getNow()
+            .minusMinutes(RandomMatch.MAX_WAITING_TIME);
+        return randomMatchRepository.findByCreatedAtAfterAndIsExpiredAndRandomMatchConditionAndSortedByRandomMatchConditionAndCreatedAtASC(
+            matchAvailableApplyTime,
+            false,
+        RandomMatchConditionSearch.builder()
+                .contentCategory(matchMakingEvent.getContentCategory())
+                .placeList(matchMakingEvent.getPlaceList())
+                .wayOfEatingList(matchMakingEvent.getWayOfEatingList())
+                .typeOfStudyList(matchMakingEvent.getTypeOfStudyList())
                 .build());
-        randomMatches.sort(new RandomMatch.MatchConditionComparator());
-        return randomMatches;
     }
 
     /**
      * matchedRandomMatches는 같은 RandomMatchCondition을 가지고 있어야함.
+     *
      * @param matchedRandomMatches
      * @param now
      * @return
      */
     @Transactional
     public Match makeMatchInRDB(List<RandomMatch> matchedRandomMatches, LocalDateTime now) {
+
         Match match = createAndSaveMatch(matchedRandomMatches);
         //RDB에 Match에 저장, MatchMember저장
         //matchMember
@@ -212,6 +228,23 @@ public class RandomMatchService {
                     .version(randomMatch.getVersion())
                     .build())
                 .collect(Collectors.toSet()));
+
+        // OSIV 옵션 때문에 이 메서드를 호출한 외부에서 Lazy loading할 수 없어 미리 호출,
+        // 다른 방법 생각해봐야함.
+        List<String> emails = match.getMatchMembers().stream()
+            .map(MatchMember::getMember)
+            .map(Member::getUser)
+            .map(User::getEmail)
+            .collect(Collectors.toList());
+        List<AlarmEvent> alarmEvents = match.getMatchMembers().stream()
+            .map(MatchMember::getMember)
+            .map(member -> new AlarmEvent(AlarmType.MATCH_CONFIRMED,
+                AlarmArgs.builder()
+                    .opinionId(null)
+                    .articleId(null)
+                    .callingMemberNickname(SYSTEM)
+                    .build(), member.getId(), SseEventName.ALARM_LIST))
+            .collect(Collectors.toList());
         return match;
     }
 
@@ -219,8 +252,7 @@ public class RandomMatchService {
         Match match = Match.of(MatchStatus.MATCHED,
             matchedRandomMatches.get(0).getRandomMatchCondition().getContentCategory(),
             MethodCategory.RANDOM, null, RandomMatch.MATCH_COUNT);
-        matchRepository.save(match);
-        return match;
+        return matchRepository.save(match);
     }
 
     private void createAndSaveMatchMembers(Match match, List<RandomMatch> matchedRandomMatches) {
@@ -231,11 +263,13 @@ public class RandomMatchService {
             });
     }
 
-    private List<MatchCondition> createAndSaveMatchCondition(Match match, List<RandomMatch> matchedRandomMatches) {
+    private List<MatchCondition> createAndSaveMatchCondition(Match match,
+        List<RandomMatch> matchedRandomMatches) {
         RandomMatch randomMatch = matchedRandomMatches.get(0);
         List<MatchCondition> matchConditions = new ArrayList<>();
         String errorMessage = "MatchCondition이 존재하지 않습니다. value : ";
-        matchConditions.add(matchConditionRepository.findByValue(randomMatch.getRandomMatchCondition().getPlace().toString())
+        matchConditions.add(matchConditionRepository.findByValue(
+                randomMatch.getRandomMatchCondition().getPlace().toString())
             .orElseThrow(() ->
                 new IllegalStateException(
                     errorMessage + randomMatch.getRandomMatchCondition().getPlace().toString())));
@@ -246,7 +280,7 @@ public class RandomMatchService {
                     new IllegalStateException(errorMessage
                         + (randomMatch).getRandomMatchCondition().getWayOfEating().toString())));
         }
-        if (randomMatch.getRandomMatchCondition().getTypeOfStudy() != null){
+        if (randomMatch.getRandomMatchCondition().getTypeOfStudy() != null) {
             matchConditions.add(matchConditionRepository.findByValue(
                     randomMatch.getRandomMatchCondition().getTypeOfStudy().toString())
                 .orElseThrow(() ->
