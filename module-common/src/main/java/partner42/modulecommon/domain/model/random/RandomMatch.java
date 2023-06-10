@@ -34,7 +34,14 @@ import partner42.modulecommon.exception.InvalidInputException;
 @Getter
 @Entity
 @Table(name = "RANDOM_MATCHES"
-    , indexes = @Index(name = "idx__created_at", columnList = "createdAt")
+    , indexes = {
+    @Index(name = "idx__created_at", columnList = "createdAt"),
+    /**
+     * multi column index @Index에서 columnList에 여러개의 컬럼을 지정하면
+     * 지정한 순서대로 적용됨.
+     */
+    @Index(name = "idx__meal__condition", columnList = "contentCategory, place, wayOfEating"),
+    @Index(name = "idx__study__condition", columnList = "contentCategory, place, typeOfStudy")}
 )
 public class RandomMatch extends BaseEntity implements Serializable {
 

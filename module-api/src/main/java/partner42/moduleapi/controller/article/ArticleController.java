@@ -60,9 +60,6 @@ public class ArticleController {
     public SliceImpl<ArticleReadResponse> readAllArticle(Pageable pageable, ArticleSearch condition) {
         SliceImpl<ArticleReadResponse> articleReadResponses = articleService.readAllArticle(
             pageable, condition);
-        for (ArticleReadResponse articleReadResponse : articleReadResponses) {
-            log.info("articleReadResponse : {}", articleReadResponse);
-        }
         return articleReadResponses;
     }
 
