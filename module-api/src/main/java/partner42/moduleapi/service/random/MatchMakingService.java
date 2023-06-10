@@ -33,7 +33,7 @@ public class MatchMakingService {
         MatchMakingDto matchMakingDto = new MatchMakingDto();
         getMatchedGroupList(now).forEach((matchedRandomMatches) -> {
             //3. 매칭이 완료된 데이터를 트랜잭션을 걸고 DB에 저장한다, 반영 중 취소등의 사유로 RandomMatch Entity에
-            // 변경이 발생했을 경우 예외가 발생한다.
+            // 변경이 발생했을 경우 낙관적락 예외가 발생한다.
             try {
                 Match match = randomMatchService.makeMatchInRDB(matchedRandomMatches, now);
                 matchMakingDto.getEmails().add(match.getMatchMembers().stream()
@@ -51,7 +51,7 @@ public class MatchMakingService {
                             .build(), member.getId(), SseEventName.ALARM_LIST))
                     .collect(Collectors.toList()));
             } catch (RuntimeException e) {
-                log.error("해당 매칭이 실패했습니다.");
+                log.error("{}: 해당 매칭이 실패했습니다.",e.getClass());
             }
         });
         return matchMakingDto;
